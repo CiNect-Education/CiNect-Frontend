@@ -1,0 +1,103 @@
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 36 77% 49%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 36 77% 49%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 36 77% 49%;
+    --chart-1: 36 77% 49%;
+    --chart-2: 200 65% 48%;
+    --chart-3: 150 60% 40%;
+    --chart-4: 280 55% 55%;
+    --chart-5: 0 70% 55%;
+    --radius: 0.5rem;
+    --sidebar-background: 220 14% 96%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 36 77% 49%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 92%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 36 77% 49%;
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 96%;
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 96%;
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 36 77% 49%;
+    --primary-foreground: 222 47% 6%;
+    --secondary: 222 30% 14%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 222 30% 14%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 36 77% 49%;
+    --accent-foreground: 222 47% 6%;
+    --border: 222 30% 16%;
+    --input: 222 30% 16%;
+    --ring: 36 77% 49%;
+    --chart-1: 36 77% 49%;
+    --chart-2: 200 65% 48%;
+    --chart-3: 150 60% 40%;
+    --chart-4: 280 55% 55%;
+    --chart-5: 0 70% 55%;
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 36 77% 49%;
+    --sidebar-primary-foreground: 222 47% 6%;
+    --sidebar-accent: 222 30% 14%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 222 30% 16%;
+    --sidebar-ring: 36 77% 49%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+@keyframes tier-glow {
+  0%, 100% { opacity: 0.8; box-shadow: 0 0 10px currentColor; }
+  50% { opacity: 1; box-shadow: 0 0 24px currentColor; }
+}
+
+@keyframes tier-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.animate-tier-glow {
+  animation: tier-glow 2s ease-in-out infinite;
+}
+
+.animate-tier-scale {
+  animation: tier-scale 2s ease-in-out infinite;
+}
