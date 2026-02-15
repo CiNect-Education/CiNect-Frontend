@@ -7,7 +7,7 @@ import { Film } from "lucide-react";
 import { LanguageToggle } from "@/components/shared/language-toggle";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { CitySelector } from "@/components/shared/city-selector";
-import { DemoBackendBadge } from "@/components/shared/demo-backend-badge";
+
 import { UserMenu } from "@/components/shared/user-menu";
 import { GlobalSearch } from "@/components/shared/global-search";
 import { MobileNav } from "./mobile-nav";
@@ -62,7 +62,6 @@ export function Header() {
 
         {/* Right side actions */}
         <div className="ml-auto flex items-center gap-1">
-          <DemoBackendBadge />
           <GlobalSearch />
           <CitySelector />
           <div className="hidden sm:flex sm:items-center sm:gap-1">

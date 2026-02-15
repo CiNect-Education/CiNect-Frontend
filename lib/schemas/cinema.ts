@@ -9,14 +9,14 @@ export const roomSchema = z.object({
   name: z.string(),
   cinemaId: z.string(),
   cinemaName: n(z.string()),
-  format: z.enum(["2D", "3D", "IMAX", "4DX", "DOLBY"]),
-  totalSeats: z.number(),
-  rows: z.number(),
-  columns: z.number(),
-  isActive: z.boolean(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
+  format: z.string(),
+  totalSeats: n(z.number()),
+  rows: n(z.number()),
+  columns: n(z.number()),
+  isActive: n(z.boolean()),
+  createdAt: n(z.string()),
+  updatedAt: n(z.string()),
+}).passthrough();
 
 export const cinemaSchema = z.object({
   id: z.string(),
@@ -28,13 +28,13 @@ export const cinemaSchema = z.object({
   phone: n(z.string()),
   email: n(z.string()),
   imageUrl: n(z.string()),
-  amenities: z.array(z.string()),
+  amenities: z.array(z.string()).optional().default([]),
   latitude: n(z.number()),
   longitude: n(z.number()),
-  rooms: z.array(roomSchema),
+  rooms: z.array(roomSchema).optional().default([]),
   createdAt: z.string(),
   updatedAt: z.string(),
-});
+}).passthrough();
 
 export const cinemaListItemSchema = z.object({
   id: z.string(),
@@ -44,8 +44,8 @@ export const cinemaListItemSchema = z.object({
   city: z.string(),
   imageUrl: n(z.string()),
   amenities: z.array(z.string()),
-  roomCount: z.number(),
-});
+  roomCount: n(z.number()),
+}).passthrough();
 
 export const seatSchema = z.object({
   id: z.string(),
@@ -64,8 +64,8 @@ export const showtimeSchema = z.object({
   cinemaId: z.string(),
   startTime: z.string(),
   endTime: z.string(),
-  basePrice: z.number(),
-  format: z.enum(["2D", "3D", "IMAX", "4DX", "DOLBY"]),
+  basePrice: z.union([z.number(), z.string()]).transform((v) => Number(v)),
+  format: z.string(),
   language: n(z.string()),
   subtitles: n(z.string()),
   movieTitle: n(z.string()),
@@ -75,4 +75,4 @@ export const showtimeSchema = z.object({
   availableSeats: n(z.number()),
   totalSeats: n(z.number()),
   memberExclusive: n(z.boolean()),
-});
+}).passthrough();
