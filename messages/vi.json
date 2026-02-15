@@ -17,7 +17,17 @@
     "notifications": "Thông Báo",
     "logout": "Đăng Xuất",
     "admin": "Quản Trị",
-    "selectCity": "Chọn thành phố"
+    "selectCity": "Chọn thành phố",
+    "settings": "Cài Đặt",
+    "theme": "Giao Diện",
+    "lightMode": "Sáng",
+    "darkMode": "Tối",
+    "systemMode": "Hệ Thống",
+    "language": "Ngôn Ngữ",
+    "city": "Thành Phố",
+    "bookNow": "Đặt Vé",
+    "mainMenu": "Menu Chính",
+    "more": "Thêm"
   },
   "common": {
     "appName": "CinemaConnect",
