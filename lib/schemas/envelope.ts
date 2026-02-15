@@ -10,8 +10,8 @@ export function apiEnvelopeSchema<T>(dataSchema: ZodType<T>) {
     meta: z.record(z.unknown()).optional(),
     message: z.string().optional(),
     error: z.unknown().optional(),
-    timestamp: z.string(),
-  });
+    timestamp: z.string().optional(),
+  }).passthrough();
 }
 
 export const paginationMetaSchema = z.object({
