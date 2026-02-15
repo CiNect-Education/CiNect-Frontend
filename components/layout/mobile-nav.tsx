@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
@@ -11,57 +14,193 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, Film } from "lucide-react";
-import { LanguageToggle } from "@/components/shared/language-toggle";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
+import {
+  Film,
+  Clock,
+  Building2,
+  Tag,
+  Newspaper,
+  Megaphone,
+  Crown,
+  Gift,
+  HeadphonesIcon,
+  Ticket,
+  LayoutGrid,
+  LogIn,
+  UserPlus,
+} from "lucide-react";
+import { useAuth } from "@/providers/auth-provider";
+import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
-  { key: "movies", href: "/movies" },
-  { key: "showtimes", href: "/showtimes" },
-  { key: "cinemas", href: "/cinemas" },
-  { key: "promotions", href: "/promotions" },
-  { key: "campaigns", href: "/campaigns" },
-  { key: "membership", href: "/membership" },
-  { key: "gift", href: "/gift" },
-  { key: "news", href: "/news" },
-  { key: "support", href: "/support" },
+const MAIN_NAV = [
+  { key: "movies", href: "/movies", icon: Film },
+  { key: "showtimes", href: "/showtimes", icon: Clock },
+  { key: "cinemas", href: "/cinemas", icon: Building2 },
+  { key: "promotions", href: "/promotions", icon: Tag },
+  { key: "news", href: "/news", icon: Newspaper },
+] as const;
+
+const SECONDARY_NAV = [
+  { key: "campaigns", href: "/campaigns", icon: Megaphone },
+  { key: "membership", href: "/membership", icon: Crown },
+  { key: "gift", href: "/gift", icon: Gift },
+  { key: "support", href: "/support", icon: HeadphonesIcon },
 ] as const;
 
 export function MobileNav() {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
+  const { isAuthenticated, user } = useAuth();
+  const pathname = usePathname();
+  const path = pathname.replace(/^\/(vi|en)/, "") || "/";
+
+  const initials = user?.fullName
+    ?.split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .toUpperCase() || "U";
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="h-9 w-9">
-          <Menu className="h-5 w-5" />
+          <LayoutGrid className="h-5 w-5" />
           <span className="sr-only">Menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 p-0">
-        <SheetHeader className="border-b p-4">
-          <SheetTitle className="flex items-center gap-2 text-left">
-            <Film className="h-5 w-5 text-primary" />
-            CinemaConnect
+      <SheetContent side="left" className="flex w-80 flex-col p-0">
+        {/* ─── Header ─── */}
+        <SheetHeader className="border-b bg-muted/30 px-5 py-4">
+          <SheetTitle className="flex items-center gap-2.5 text-left">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+              <Film className="h-4 w-4 text-primary-foreground" />
+            </div>
+            <span className="text-lg font-bold tracking-tight">CiNect</span>
           </SheetTitle>
         </SheetHeader>
-        <nav className="flex flex-col p-4">
-          {NAV_ITEMS.map((item) => (
+
+        {/* ─── User Section ─── */}
+        <div className="border-b px-5 py-4">
+          {isAuthenticated && user ? (
             <Link
-              key={item.key}
-              href={item.href}
+              href="/account/profile"
               onClick={() => setOpen(false)}
-              className="rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="flex items-center gap-3"
             >
-              {t(item.key)}
+              <Avatar className="h-10 w-10">
+                <AvatarFallback className="bg-primary/15 text-sm font-semibold text-primary">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">{user.fullName}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {t("profile")}
+                </p>
+              </div>
             </Link>
-          ))}
-          <div className="mt-4 flex items-center gap-2 border-t pt-4">
-            <LanguageToggle />
-            <ThemeToggle />
+          ) : (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 gap-2"
+                asChild
+              >
+                <Link href="/login" onClick={() => setOpen(false)}>
+                  <LogIn className="h-4 w-4" />
+                  {t("login")}
+                </Link>
+              </Button>
+              <Button size="sm" className="flex-1 gap-2" asChild>
+                <Link href="/register" onClick={() => setOpen(false)}>
+                  <UserPlus className="h-4 w-4" />
+                  {t("register")}
+                </Link>
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* ─── Quick Book CTA ─── */}
+        <div className="px-5 pt-4">
+          <Button className="w-full gap-2" asChild>
+            <Link href="/showtimes" onClick={() => setOpen(false)}>
+              <Ticket className="h-4 w-4" />
+              {t("bookNow")}
+            </Link>
+          </Button>
+        </div>
+
+        {/* ─── Navigation ─── */}
+        <nav className="flex-1 overflow-y-auto px-3 py-4">
+          {/* Main navigation */}
+          <div className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+            {t("mainMenu")}
           </div>
+          <ul className="space-y-0.5">
+            {MAIN_NAV.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                path === item.href ||
+                (item.href !== "/" && path.startsWith(item.href));
+              return (
+                <li key={item.key}>
+                  <Link
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )}
+                  >
+                    <Icon className={cn("h-4 w-4 shrink-0", isActive && "text-primary")} />
+                    {t(item.key)}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+
+          <Separator className="my-4" />
+
+          {/* Secondary navigation */}
+          <div className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+            {t("more")}
+          </div>
+          <ul className="space-y-0.5">
+            {SECONDARY_NAV.map((item) => {
+              const Icon = item.icon;
+              const isActive = path.startsWith(item.href);
+              return (
+                <li key={item.key}>
+                  <Link
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )}
+                  >
+                    <Icon className={cn("h-4 w-4 shrink-0", isActive && "text-primary")} />
+                    {t(item.key)}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </nav>
+
+        {/* ─── Footer ─── */}
+        <div className="border-t bg-muted/30 px-5 py-3">
+          <p className="text-center text-[10px] text-muted-foreground/50">
+            CiNect &copy; {new Date().getFullYear()}
+          </p>
+        </div>
       </SheetContent>
     </Sheet>
   );

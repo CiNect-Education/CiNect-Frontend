@@ -17,7 +17,17 @@
     "notifications": "Notifications",
     "logout": "Logout",
     "admin": "Admin",
-    "selectCity": "Select city"
+    "selectCity": "Select city",
+    "settings": "Settings",
+    "theme": "Theme",
+    "lightMode": "Light",
+    "darkMode": "Dark",
+    "systemMode": "System",
+    "language": "Language",
+    "city": "City",
+    "bookNow": "Book Now",
+    "mainMenu": "Main Menu",
+    "more": "More"
   },
   "common": {
     "appName": "CinemaConnect",
