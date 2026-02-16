@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { User } from '@/types/domain';
 import { setAccessToken, setRefreshToken, clearTokens } from '@/lib/auth-storage';
+import { initApiClient } from '@/lib/api-client';
 import { useCurrentUser, useLogin, useRegister, useLogout } from '@/hooks/queries/use-auth';
 
 interface AuthContextValue {
@@ -39,6 +40,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logoutMutation = useLogout();
 
   const isAuthenticated = !!user && !isLoading;
+
+  // Auto-detect active backend on mount
+  useEffect(() => {
+    initApiClient();
+  }, []);
 
   // Auto-logout on 401 errors - listen to query errors
   useEffect(() => {
