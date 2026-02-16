@@ -8,11 +8,16 @@ import {
   setRefreshToken,
   clearTokens,
 } from "@/lib/auth-storage";
+import { discoverApiBaseUrl, getApiBaseUrl } from "@/lib/api-discovery";
 
 // ─── Config ────────────────────────────────────────────────────────
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
+let API_BASE_URL = getApiBaseUrl();
+
+/** Call once on app startup to auto-detect the active backend. */
+export async function initApiClient(): Promise<void> {
+  API_BASE_URL = await discoverApiBaseUrl();
+}
 
 // ─── ApiError class ────────────────────────────────────────────────
 
