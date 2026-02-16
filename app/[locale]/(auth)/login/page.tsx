@@ -18,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
 import {
   Form,
   FormControl,
@@ -114,6 +115,9 @@ export default function LoginPage() {
             </Button>
           </form>
         </Form>
+        <div className="mt-6">
+          <SocialLoginButtons />
+        </div>
       </CardContent>
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">

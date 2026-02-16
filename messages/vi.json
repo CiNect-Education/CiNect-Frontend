@@ -103,7 +103,10 @@
     "registerBtn": "Đăng Ký",
     "sendResetLink": "Gửi link đặt lại",
     "resetBtn": "Đặt lại mật khẩu",
-    "orContinueWith": "Hoặc tiếp tục với"
+    "orContinueWith": "Hoặc tiếp tục với",
+    "loginWithGoogle": "Đăng nhập với Google",
+    "loginWithFacebook": "Đăng nhập với Facebook",
+    "loginWithGithub": "Đăng nhập với GitHub"
   },
   "home": {
     "hero": "Trải Nghiệm Điện Ảnh Đỉnh Cao",
