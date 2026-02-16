@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useCallback, useEffect } from 'react';
+import { createContext, useContext, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -30,9 +30,10 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [apiReady, setApiReady] = useState(false);
 
-  // Fetch current user if token exists
-  const { data: userEnvelope, isLoading, refetch } = useCurrentUser();
+  // Fetch current user only after API discovery completes
+  const { data: userEnvelope, isLoading, refetch } = useCurrentUser(apiReady);
   const user: User | null = userEnvelope?.data ?? null;
 
   const loginMutation = useLogin();
@@ -41,9 +42,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = !!user && !isLoading;
 
-  // Auto-detect active backend on mount
+  // Auto-detect active backend on mount, then signal ready
   useEffect(() => {
-    initApiClient();
+    initApiClient().then(() => setApiReady(true));
   }, []);
 
   // Auto-logout on 401 errors - listen to query errors

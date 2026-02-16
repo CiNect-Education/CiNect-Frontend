@@ -13,10 +13,10 @@ import {
 
 // ─── Queries ───────────────────────────────────────────────────────
 
-export function useCurrentUser() {
+export function useCurrentUser(apiReady = true) {
   return useApiQuery<User>(["auth", "me"], "/auth/me", undefined, {
     schema: userSchema,
-    enabled: hasToken(),
+    enabled: apiReady && hasToken(),
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 min
   });
