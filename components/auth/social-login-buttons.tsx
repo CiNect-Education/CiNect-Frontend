@@ -3,9 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
+import { getApiBaseUrl } from "@/lib/api-discovery";
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -53,7 +51,7 @@ export function SocialLoginButtons() {
   const t = useTranslations("auth");
 
   const handleSocialLogin = (provider: string) => {
-    window.location.href = `${API_BASE_URL}/auth/${provider}`;
+    window.location.href = `${getApiBaseUrl()}/auth/${provider}`;
   };
 
   return (
