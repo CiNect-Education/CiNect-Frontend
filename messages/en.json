@@ -93,7 +93,10 @@
     "registerBtn": "Register",
     "sendResetLink": "Send reset link",
     "resetBtn": "Reset password",
-    "orContinueWith": "Or continue with"
+    "orContinueWith": "Or continue with",
+    "loginWithGoogle": "Login with Google",
+    "loginWithFacebook": "Login with Facebook",
+    "loginWithGithub": "Login with GitHub"
   },
   "home": {
     "hero": "The Ultimate Cinema Experience",
