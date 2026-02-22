@@ -46,10 +46,9 @@ function exportToCsv(logs: AuditLogEntry[]) {
     log.entityId ?? "",
     (log.details ?? "").replace(/"/g, '""'),
   ]);
-  const csvContent = [
-    headers.join(","),
-    ...rows.map((r) => r.map((c) => `"${c}"`).join(",")),
-  ].join("\n");
+  const csvContent = [headers.join(","), ...rows.map((r) => r.map((c) => `"${c}"`).join(","))].join(
+    "\n"
+  );
   const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -82,7 +81,8 @@ export default function AdminAuditLogsPage() {
 
   const { data: logsRes } = useAdminAuditLogs(params);
   const logs = toList<AuditLogEntry>(logsRes?.data ?? logsRes);
-  const meta = (logsRes?.data as { meta?: { total?: number; totalPages?: number } } | undefined)?.meta;
+  const meta = (logsRes?.data as { meta?: { total?: number; totalPages?: number } } | undefined)
+    ?.meta;
   const totalPages = meta?.totalPages ?? 1;
 
   const columns: ColumnDef<AuditLogEntry>[] = useMemo(
@@ -116,7 +116,7 @@ export default function AdminAuditLogsPage() {
         accessorKey: "details",
         header: "Details",
         cell: ({ row }) => (
-          <span className="max-w-[200px] truncate block" title={row.original.details}>
+          <span className="block max-w-[200px] truncate" title={row.original.details}>
             {row.original.details ?? "—"}
           </span>
         ),
@@ -130,10 +130,7 @@ export default function AdminAuditLogsPage() {
       <PageHeader
         title={t("auditLogs")}
         description="View system audit logs and activity history."
-        breadcrumbs={[
-          { label: t("title"), href: "/admin" },
-          { label: t("auditLogs") },
-        ]}
+        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("auditLogs") }]}
         actions={
           <Button variant="outline" size="sm" onClick={() => exportToCsv(logs)}>
             <Download className="mr-2 h-4 w-4" />
@@ -142,7 +139,7 @@ export default function AdminAuditLogsPage() {
         }
       />
 
-      <div className="flex flex-wrap gap-4 mb-4">
+      <div className="mb-4 flex flex-wrap gap-4">
         <Input
           placeholder="Search user..."
           value={search}
@@ -191,8 +188,8 @@ export default function AdminAuditLogsPage() {
 
       <DataTable columns={columns} data={logs} pageSize={50} hidePagination />
 
-      <div className="flex justify-between items-center mt-2">
-        <span className="text-sm text-muted-foreground">
+      <div className="mt-2 flex items-center justify-between">
+        <span className="text-muted-foreground text-sm">
           Page {page + 1} of {totalPages}
         </span>
         <div className="flex gap-2">

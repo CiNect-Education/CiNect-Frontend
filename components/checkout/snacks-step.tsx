@@ -36,20 +36,15 @@ export function SnacksStep({
             <Card key={snack.id} className="p-4">
               <div className="flex gap-4">
                 {snack.imageUrl && (
-                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-muted">
-                    <Image
-                      src={snack.imageUrl}
-                      alt={snack.name}
-                      fill
-                      className="object-cover"
-                    />
+                  <div className="bg-muted relative h-20 w-20 shrink-0 overflow-hidden rounded-md">
+                    <Image src={snack.imageUrl} alt={snack.name} fill className="object-cover" />
                   </div>
                 )}
                 <div className="flex-1 space-y-2">
                   <div>
                     <h3 className="font-semibold">{snack.name}</h3>
                     {snack.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <p className="text-muted-foreground line-clamp-2 text-sm">
                         {snack.description}
                       </p>
                     )}
@@ -57,7 +52,8 @@ export function SnacksStep({
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-bold">
                       $
-                      {((snack as { unitPrice?: number }).unitPrice ??
+                      {(
+                        (snack as { unitPrice?: number }).unitPrice ??
                         (snack as { price?: number }).price ??
                         0
                       ).toFixed(2)}

@@ -77,9 +77,7 @@ export default function AdminAnalyticsPage() {
   const revenueData = toArray<{ date: string; revenue: number; predicted?: boolean }>(
     revenueRes?.data ?? revenueRes
   );
-  const forecastData = toArray<{ date: string; revenue: number }>(
-    forecastRes?.data ?? forecastRes
-  );
+  const forecastData = toArray<{ date: string; revenue: number }>(forecastRes?.data ?? forecastRes);
   const occupancyData = toArray<{
     cinemaId: string;
     cinemaName: string;
@@ -164,7 +162,10 @@ export default function AdminAnalyticsPage() {
     );
   const exportSegmentsCSV = () => exportToCSV(segmentsData, "customer-segments");
   const exportPeakHoursCSV = () =>
-    exportToCSV(peakHoursChartData.map((p) => ({ hour: `${p.hour}:00`, bookings: p.bookings })), "peak-hours");
+    exportToCSV(
+      peakHoursChartData.map((p) => ({ hour: `${p.hour}:00`, bookings: p.bookings })),
+      "peak-hours"
+    );
 
   return (
     <div>
@@ -239,7 +240,7 @@ export default function AdminAnalyticsPage() {
           </CardHeader>
           <CardContent>
             {revenueData.length === 0 && forecastData.length === 0 ? (
-              <div className="flex h-64 items-center justify-center rounded-lg border border-dashed text-muted-foreground">
+              <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
                 No revenue data for this period
               </div>
             ) : (
@@ -247,10 +248,7 @@ export default function AdminAnalyticsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={mergedRevenueChart}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="date"
-                      tickFormatter={(v) => format(new Date(v), "MM/dd")}
-                    />
+                    <XAxis dataKey="date" tickFormatter={(v) => format(new Date(v), "MM/dd")} />
                     <YAxis tickFormatter={(v) => v.toLocaleString()} />
                     <Tooltip
                       formatter={(value) => (value as number).toLocaleString()}
@@ -304,7 +302,7 @@ export default function AdminAnalyticsPage() {
           </CardHeader>
           <CardContent>
             {forecastData.length === 0 ? (
-              <div className="flex h-64 items-center justify-center rounded-lg border border-dashed text-muted-foreground">
+              <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
                 No forecast data for this period
               </div>
             ) : (
@@ -312,10 +310,7 @@ export default function AdminAnalyticsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={forecastData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="date"
-                      tickFormatter={(v) => format(new Date(v), "MM/dd")}
-                    />
+                    <XAxis dataKey="date" tickFormatter={(v) => format(new Date(v), "MM/dd")} />
                     <YAxis tickFormatter={(v) => v.toLocaleString()} />
                     <Tooltip
                       formatter={(value) => (value as number).toLocaleString()}
@@ -359,7 +354,7 @@ export default function AdminAnalyticsPage() {
             </CardHeader>
             <CardContent>
               {occupancyData.length === 0 ? (
-                <div className="flex h-64 items-center justify-center rounded-lg border border-dashed text-muted-foreground">
+                <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
                   No occupancy data for this period
                 </div>
               ) : (
@@ -369,10 +364,7 @@ export default function AdminAnalyticsPage() {
                       <tr>
                         <th className="border-b p-2 text-left">Cinema</th>
                         {occupancyDates.slice(0, 14).map((d) => (
-                          <th
-                            key={d}
-                            className="border-b p-2 text-center text-muted-foreground"
-                          >
+                          <th key={d} className="text-muted-foreground border-b p-2 text-center">
                             {format(new Date(d), "MM/dd")}
                           </th>
                         ))}
@@ -383,8 +375,7 @@ export default function AdminAnalyticsPage() {
                         <tr key={cinema}>
                           <td className="border-b p-2 font-medium">{cinema}</td>
                           {occupancyDates.slice(0, 14).map((d) => {
-                            const occ =
-                              occupancyByCinemaDate.get(`${cinema}|${d}`) ?? 0;
+                            const occ = occupancyByCinemaDate.get(`${cinema}|${d}`) ?? 0;
                             const pct = Math.round(occ * 100);
                             const bg =
                               pct >= 80
@@ -435,7 +426,7 @@ export default function AdminAnalyticsPage() {
             </CardHeader>
             <CardContent>
               {segmentsData.length === 0 ? (
-                <div className="flex h-64 items-center justify-center rounded-lg border border-dashed text-muted-foreground">
+                <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
                   No segmentation data available
                 </div>
               ) : (
@@ -491,17 +482,13 @@ export default function AdminAnalyticsPage() {
           </CardHeader>
           <CardContent>
             {moviesData.length === 0 ? (
-              <div className="flex h-64 items-center justify-center rounded-lg border border-dashed text-muted-foreground">
+              <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
                 No movie data for this period
               </div>
             ) : (
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={moviesData.slice(0, 10)}
-                    layout="vertical"
-                    margin={{ left: 100 }}
-                  >
+                  <BarChart data={moviesData.slice(0, 10)} layout="vertical" margin={{ left: 100 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" tickFormatter={(v) => v.toLocaleString()} />
                     <YAxis
@@ -511,11 +498,7 @@ export default function AdminAnalyticsPage() {
                       tick={{ fontSize: 12 }}
                     />
                     <Tooltip formatter={(v) => (v as number).toLocaleString()} />
-                    <Bar
-                      dataKey="revenue"
-                      fill="hsl(var(--primary))"
-                      radius={[0, 4, 4, 0]}
-                    />
+                    <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -544,7 +527,7 @@ export default function AdminAnalyticsPage() {
           </CardHeader>
           <CardContent>
             {peakHoursChartData.every((p) => p.bookings === 0) ? (
-              <div className="flex h-64 items-center justify-center rounded-lg border border-dashed text-muted-foreground">
+              <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
                 No peak hours data available
               </div>
             ) : (
@@ -552,20 +535,13 @@ export default function AdminAnalyticsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={peakHoursChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="hour"
-                      tickFormatter={(h) => `${h}:00`}
-                    />
+                    <XAxis dataKey="hour" tickFormatter={(h) => `${h}:00`} />
                     <YAxis tickFormatter={(v) => v.toLocaleString()} />
                     <Tooltip
                       formatter={(value) => [value, "Bookings"]}
                       labelFormatter={(h) => `${h}:00`}
                     />
-                    <Bar
-                      dataKey="bookings"
-                      fill="hsl(var(--chart-3))"
-                      radius={[4, 4, 0, 0]}
-                    />
+                    <Bar dataKey="bookings" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

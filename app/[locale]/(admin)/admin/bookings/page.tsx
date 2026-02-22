@@ -75,9 +75,7 @@ export default function AdminBookingsPage() {
         accessorKey: "id",
         header: "ID",
         cell: ({ row }) => (
-          <span className="font-mono text-xs">
-            {String(row.original.id).slice(0, 8)}...
-          </span>
+          <span className="font-mono text-xs">{String(row.original.id).slice(0, 8)}...</span>
         ),
       },
       {
@@ -96,8 +94,7 @@ export default function AdminBookingsPage() {
       {
         accessorKey: "finalAmount",
         header: "Amount",
-        cell: ({ row }) =>
-          (row.original.finalAmount?.toLocaleString() ?? "0") + " ₫",
+        cell: ({ row }) => (row.original.finalAmount?.toLocaleString() ?? "0") + " ₫",
       },
       {
         accessorKey: "status",
@@ -108,10 +105,10 @@ export default function AdminBookingsPage() {
               row.original.status === "CONFIRMED"
                 ? "bg-green-500/20 text-green-700 dark:text-green-400"
                 : row.original.status === "CANCELLED"
-                ? "bg-red-500/20 text-red-700 dark:text-red-400"
-                : row.original.status === "COMPLETED"
-                ? "bg-blue-500/20 text-blue-700 dark:text-blue-400"
-                : "bg-muted text-muted-foreground"
+                  ? "bg-red-500/20 text-red-700 dark:text-red-400"
+                  : row.original.status === "COMPLETED"
+                    ? "bg-blue-500/20 text-blue-700 dark:text-blue-400"
+                    : "bg-muted text-muted-foreground"
             }`}
           >
             {row.original.status}
@@ -122,19 +119,15 @@ export default function AdminBookingsPage() {
         accessorKey: "createdAt",
         header: "Date",
         cell: ({ row }) =>
-          row.original.createdAt
-            ? format(new Date(row.original.createdAt), "MMM d, HH:mm")
-            : "—",
+          row.original.createdAt ? format(new Date(row.original.createdAt), "MMM d, HH:mm") : "—",
       },
       {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => {
           const b = row.original;
-          const canCancel =
-            b.status !== "CANCELLED" && b.status !== "COMPLETED";
-          const canRefund =
-            b.status === "CONFIRMED" || b.status === "COMPLETED";
+          const canCancel = b.status !== "CANCELLED" && b.status !== "COMPLETED";
+          const canRefund = b.status === "CONFIRMED" || b.status === "COMPLETED";
           return (
             <div className="flex gap-1">
               {canCancel && (
@@ -144,7 +137,7 @@ export default function AdminBookingsPage() {
                   onClick={() => setCancelTarget(b)}
                   title="Cancel"
                 >
-                  <Ban className="h-4 w-4 text-destructive" />
+                  <Ban className="text-destructive h-4 w-4" />
                 </Button>
               )}
               {canRefund && (
@@ -170,10 +163,7 @@ export default function AdminBookingsPage() {
       <PageHeader
         title={t("bookings")}
         description="View and manage all customer bookings and orders."
-        breadcrumbs={[
-          { label: t("title"), href: "/admin" },
-          { label: t("bookings") },
-        ]}
+        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("bookings") }]}
         actions={
           <Button variant="outline" size="sm">
             <Download className="mr-2 h-4 w-4" />
@@ -183,7 +173,7 @@ export default function AdminBookingsPage() {
       />
 
       <div className="mb-6 flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative min-w-[200px] flex-1">
           <Input
             placeholder="Search bookings..."
             value={search}
@@ -229,16 +219,12 @@ export default function AdminBookingsPage() {
         searchPlaceholder="Search by movie..."
       />
 
-      <AlertDialog
-        open={!!cancelTarget}
-        onOpenChange={(open) => !open && setCancelTarget(null)}
-      >
+      <AlertDialog open={!!cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to cancel this booking? This action cannot
-              be undone.
+              Are you sure you want to cancel this booking? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -253,10 +239,7 @@ export default function AdminBookingsPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog
-        open={!!refundTarget}
-        onOpenChange={(open) => !open && setRefundTarget(null)}
-      >
+      <AlertDialog open={!!refundTarget} onOpenChange={(open) => !open && setRefundTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Refund Booking</AlertDialogTitle>
@@ -266,9 +249,7 @@ export default function AdminBookingsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRefund}>
-              Refund
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleRefund}>Refund</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

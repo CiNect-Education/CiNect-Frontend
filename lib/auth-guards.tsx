@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { useAuth } from '@/providers/auth-provider';
-import type { UserRole } from '@/types/domain';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Link } from '@/i18n/navigation';
+import { useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useAuth } from "@/providers/auth-provider";
+import type { UserRole } from "@/types/domain";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 
 interface RequireAuthProps {
   children: React.ReactNode;
@@ -33,7 +33,7 @@ export function RequireAuth({ children, fallback }: RequireAuthProps) {
   if (isLoading) {
     return (
       fallback || (
-        <div className="container mx-auto max-w-4xl py-8 space-y-4">
+        <div className="container mx-auto max-w-4xl space-y-4 py-8">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-64 w-full" />
         </div>
@@ -61,7 +61,7 @@ export function RequireRole({ children, roles }: RequireRoleProps) {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto max-w-4xl py-8 space-y-4">
+      <div className="container mx-auto max-w-4xl space-y-4 py-8">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-64 w-full" />
       </div>
@@ -75,18 +75,16 @@ export function RequireRole({ children, roles }: RequireRoleProps) {
       <div className="container mx-auto max-w-2xl py-16">
         <Card className="border-destructive">
           <CardContent className="pt-6">
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="rounded-full bg-destructive/10 p-4">
-                <AlertCircle className="h-10 w-10 text-destructive" />
+            <div className="flex flex-col items-center space-y-4 text-center">
+              <div className="bg-destructive/10 rounded-full p-4">
+                <AlertCircle className="text-destructive h-10 w-10" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-foreground mb-2">
-                  Access Denied
-                </h2>
+                <h2 className="text-foreground mb-2 text-2xl font-bold">Access Denied</h2>
                 <p className="text-muted-foreground mb-6">
                   You don&apos;t have permission to access this page.
                   <br />
-                  Required role: {roles.join(' or ')}
+                  Required role: {roles.join(" or ")}
                 </p>
               </div>
               <div className="flex gap-4">

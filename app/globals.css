@@ -85,13 +85,25 @@
 }
 
 @keyframes tier-glow {
-  0%, 100% { opacity: 0.8; box-shadow: 0 0 10px currentColor; }
-  50% { opacity: 1; box-shadow: 0 0 24px currentColor; }
+  0%,
+  100% {
+    opacity: 0.8;
+    box-shadow: 0 0 10px currentColor;
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 24px currentColor;
+  }
 }
 
 @keyframes tier-scale {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 .animate-tier-glow {

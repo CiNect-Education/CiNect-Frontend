@@ -59,12 +59,12 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full">
       {/* ─── Top Bar ─── */}
-      <div className="hidden border-b border-border/30 bg-muted/60 backdrop-blur-sm lg:block">
+      <div className="border-border/30 bg-muted/60 hidden border-b backdrop-blur-sm lg:block">
         <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 lg:px-6">
           {/* Left: city + secondary links */}
           <div className="flex items-center gap-4">
             {cityName && (
-              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span className="text-muted-foreground flex items-center gap-1 text-xs">
                 <MapPin className="h-3 w-3" />
                 {cityName}
               </span>
@@ -75,7 +75,7 @@ export function Header() {
                 <Link
                   key={item.key}
                   href={item.href}
-                  className="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground rounded px-2 py-1 text-xs transition-colors"
                 >
                   {t(item.key)}
                 </Link>
@@ -92,7 +92,7 @@ export function Header() {
       </div>
 
       {/* ─── Main Nav Bar ─── */}
-      <div className="border-b border-border/40 bg-background/90 backdrop-blur-md">
+      <div className="border-border/40 bg-background/90 border-b backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4 lg:px-6">
           {/* Mobile nav trigger */}
           <div className="lg:hidden">
@@ -100,16 +100,11 @@ export function Header() {
           </div>
 
           {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 font-bold text-foreground"
-          >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <Film className="h-4 w-4 text-primary-foreground" />
+          <Link href="/" className="text-foreground flex items-center gap-2.5 font-bold">
+            <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
+              <Film className="text-primary-foreground h-4 w-4" />
             </div>
-            <span className="hidden text-lg tracking-tight sm:inline">
-              CiNect
-            </span>
+            <span className="hidden text-lg tracking-tight sm:inline">CiNect</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -119,7 +114,7 @@ export function Header() {
                 <li key={item.key}>
                   <Link
                     href={item.href}
-                    className="relative px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-primary after:transition-all hover:after:w-2/3"
+                    className="text-muted-foreground hover:text-foreground after:bg-primary relative px-4 py-2 text-sm font-medium transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:w-0 after:-translate-x-1/2 after:rounded-full after:transition-all hover:after:w-2/3"
                   >
                     {t(item.key)}
                   </Link>

@@ -7,13 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   Film,
   Clock,
@@ -54,11 +48,12 @@ export function MobileNav() {
   const pathname = usePathname();
   const path = pathname.replace(/^\/(vi|en)/, "") || "/";
 
-  const initials = user?.fullName
-    ?.split(" ")
-    .map((n: string) => n[0])
-    .join("")
-    .toUpperCase() || "U";
+  const initials =
+    user?.fullName
+      ?.split(" ")
+      .map((n: string) => n[0])
+      .join("")
+      .toUpperCase() || "U";
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -70,10 +65,10 @@ export function MobileNav() {
       </SheetTrigger>
       <SheetContent side="left" className="flex w-80 flex-col p-0">
         {/* ─── Header ─── */}
-        <SheetHeader className="border-b bg-muted/30 px-5 py-4">
+        <SheetHeader className="bg-muted/30 border-b px-5 py-4">
           <SheetTitle className="flex items-center gap-2.5 text-left">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <Film className="h-4 w-4 text-primary-foreground" />
+            <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
+              <Film className="text-primary-foreground h-4 w-4" />
             </div>
             <span className="text-lg font-bold tracking-tight">CiNect</span>
           </SheetTitle>
@@ -88,25 +83,18 @@ export function MobileNav() {
               className="flex items-center gap-3"
             >
               <Avatar className="h-10 w-10">
-                <AvatarFallback className="bg-primary/15 text-sm font-semibold text-primary">
+                <AvatarFallback className="bg-primary/15 text-primary text-sm font-semibold">
                   {initials}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{user.fullName}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {t("profile")}
-                </p>
+                <p className="text-muted-foreground truncate text-xs">{t("profile")}</p>
               </div>
             </Link>
           ) : (
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 gap-2"
-                asChild
-              >
+              <Button variant="outline" size="sm" className="flex-1 gap-2" asChild>
                 <Link href="/login" onClick={() => setOpen(false)}>
                   <LogIn className="h-4 w-4" />
                   {t("login")}
@@ -135,15 +123,14 @@ export function MobileNav() {
         {/* ─── Navigation ─── */}
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           {/* Main navigation */}
-          <div className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+          <div className="text-muted-foreground/60 mb-2 px-2 text-[10px] font-bold tracking-widest uppercase">
             {t("mainMenu")}
           </div>
           <ul className="space-y-0.5">
             {MAIN_NAV.map((item) => {
               const Icon = item.icon;
               const isActive =
-                path === item.href ||
-                (item.href !== "/" && path.startsWith(item.href));
+                path === item.href || (item.href !== "/" && path.startsWith(item.href));
               return (
                 <li key={item.key}>
                   <Link
@@ -167,7 +154,7 @@ export function MobileNav() {
           <Separator className="my-4" />
 
           {/* Secondary navigation */}
-          <div className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+          <div className="text-muted-foreground/60 mb-2 px-2 text-[10px] font-bold tracking-widest uppercase">
             {t("more")}
           </div>
           <ul className="space-y-0.5">
@@ -196,8 +183,8 @@ export function MobileNav() {
         </nav>
 
         {/* ─── Footer ─── */}
-        <div className="border-t bg-muted/30 px-5 py-3">
-          <p className="text-center text-[10px] text-muted-foreground/50">
+        <div className="bg-muted/30 border-t px-5 py-3">
+          <p className="text-muted-foreground/50 text-center text-[10px]">
             CiNect &copy; {new Date().getFullYear()}
           </p>
         </div>

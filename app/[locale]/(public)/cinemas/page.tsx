@@ -36,9 +36,7 @@ export default function CinemasPage() {
   const { data, isLoading, error, refetch } = useCinemas(params);
   const cinemas = toList<CinemaListItem>(data?.data ?? data);
 
-  const allAmenities = Array.from(
-    new Set(cinemas.flatMap((c) => c.amenities ?? []))
-  ).sort();
+  const allAmenities = Array.from(new Set(cinemas.flatMap((c) => c.amenities ?? []))).sort();
 
   function setCity(c: string) {
     const p = new URLSearchParams(searchParams.toString());
@@ -48,9 +46,7 @@ export default function CinemasPage() {
   }
 
   function toggleAmenity(a: string) {
-    const next = amenities.includes(a)
-      ? amenities.filter((x) => x !== a)
-      : [...amenities, a];
+    const next = amenities.includes(a) ? amenities.filter((x) => x !== a) : [...amenities, a];
     const p = new URLSearchParams(searchParams.toString());
     if (next.length) p.set("amenities", next.join(","));
     else p.delete("amenities");
@@ -68,7 +64,7 @@ export default function CinemasPage() {
       {/* Filters */}
       <div className="mb-6 flex flex-wrap gap-3">
         <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-muted-foreground" />
+          <MapPin className="text-muted-foreground h-4 w-4" />
           <select
             value={city}
             onChange={(e) => setCity(e.target.value)}
@@ -91,7 +87,7 @@ export default function CinemasPage() {
         </div>
         {allAmenities.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            <span className="text-sm text-muted-foreground">Amenities:</span>
+            <span className="text-muted-foreground text-sm">Amenities:</span>
             {allAmenities.map((a) => (
               <Badge
                 key={a}
@@ -123,20 +119,16 @@ export default function CinemasPage() {
         <ApiErrorState error={error} onRetry={refetch} />
       ) : cinemas.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-          <Building2 className="mb-3 h-12 w-12 text-muted-foreground" />
-          <h3 className="mb-2 text-lg font-semibold">
-            {t("emptyState") || "No cinemas found"}
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Try adjusting your filters
-          </p>
+          <Building2 className="text-muted-foreground mb-3 h-12 w-12" />
+          <h3 className="mb-2 text-lg font-semibold">{t("emptyState") || "No cinemas found"}</h3>
+          <p className="text-muted-foreground text-sm">Try adjusting your filters</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {cinemas.map((cinema) => (
             <Link key={cinema.id} href={`/cinemas/${cinema.id}`}>
               <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
-                <div className="aspect-video overflow-hidden bg-muted">
+                <div className="bg-muted aspect-video overflow-hidden">
                   {cinema.imageUrl ? (
                     <img
                       src={cinema.imageUrl}
@@ -145,17 +137,17 @@ export default function CinemasPage() {
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
-                      <Film className="h-16 w-16 text-muted-foreground" />
+                      <Film className="text-muted-foreground h-16 w-16" />
                     </div>
                   )}
                 </div>
                 <CardContent className="p-4">
                   <h3 className="mb-2 font-semibold">{cinema.name}</h3>
-                  <div className="mb-2 flex items-center gap-1 text-sm text-muted-foreground">
+                  <div className="text-muted-foreground mb-2 flex items-center gap-1 text-sm">
                     <MapPin className="h-3.5 w-3.5 shrink-0" />
                     <span className="line-clamp-1">{cinema.address}</span>
                   </div>
-                  <p className="mb-3 text-xs text-muted-foreground">{cinema.city}</p>
+                  <p className="text-muted-foreground mb-3 text-xs">{cinema.city}</p>
                   {cinema.amenities?.length ? (
                     <div className="flex flex-wrap gap-1">
                       {cinema.amenities.slice(0, 4).map((a) => (

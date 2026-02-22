@@ -208,9 +208,7 @@ async function request<T>(
         const n = parseInt(retryAfter, 10);
         seconds = Number.isNaN(n) ? 60 : n;
       }
-      window.dispatchEvent(
-        new CustomEvent("api:429", { detail: { retryAfter: seconds } })
-      );
+      window.dispatchEvent(new CustomEvent("api:429", { detail: { retryAfter: seconds } }));
     }
     throw new ApiError({
       status: payload.status ?? response.status,

@@ -8,7 +8,7 @@ export default function AdminAnalyticsLoading() {
         <Skeleton className="h-8 w-40" />
         <Skeleton className="mt-1 h-4 w-64" />
       </div>
-      <div className="flex gap-2 mb-6">
+      <div className="mb-6 flex gap-2">
         <Skeleton className="h-9 w-24" />
         <Skeleton className="h-9 w-24" />
         <Skeleton className="h-9 w-24" />

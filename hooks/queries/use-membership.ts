@@ -1,21 +1,15 @@
 import { useApiQuery } from "@/hooks/use-api-query";
 import { useApiMutation } from "@/hooks/use-api-mutation";
-import {
-  membershipTierSchema,
-  membershipProfileSchema,
-} from "@/lib/schemas/common";
+import { membershipTierSchema, membershipProfileSchema } from "@/lib/schemas/common";
 import { couponSchema } from "@/lib/schemas/common";
 import type { MembershipTier, MembershipProfile, Coupon } from "@/types/domain";
 import type { QueryParams } from "@/types/api";
 import { z } from "zod";
 
 export function useMembershipTiers() {
-  return useApiQuery<MembershipTier[]>(
-    ["membership-tiers"],
-    "/membership/tiers",
-    undefined,
-    { schema: z.array(membershipTierSchema) }
-  );
+  return useApiQuery<MembershipTier[]>(["membership-tiers"], "/membership/tiers", undefined, {
+    schema: z.array(membershipTierSchema),
+  });
 }
 
 export function useMembershipProfile() {
@@ -36,11 +30,7 @@ export function usePointsHistory(params?: QueryParams) {
       description: string;
       createdAt: string;
     }>
-  >(
-    ["points-history", JSON.stringify(params)],
-    "/me/points/history",
-    params
-  );
+  >(["points-history", JSON.stringify(params)], "/me/points/history", params);
 }
 
 export function useMyCoupons() {
@@ -50,14 +40,10 @@ export function useMyCoupons() {
 }
 
 export function useRedeemCoupon() {
-  return useApiMutation<void, { couponId: string }>(
-    "post",
-    "/me/coupons/redeem",
-    {
-      successMessage: "Coupon redeemed!",
-      invalidateKeys: [["my-coupons"]],
-    }
-  );
+  return useApiMutation<void, { couponId: string }>("post", "/me/coupons/redeem", {
+    successMessage: "Coupon redeemed!",
+    invalidateKeys: [["my-coupons"]],
+  });
 }
 
 export function useMembershipEvents() {

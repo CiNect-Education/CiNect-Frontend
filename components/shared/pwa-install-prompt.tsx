@@ -46,24 +46,17 @@ export function PwaInstallPrompt() {
   if (dismissed || !deferredPrompt) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[60] bg-primary text-primary-foreground px-4 py-2 flex items-center justify-between gap-4 shadow-md">
-      <p className="text-sm flex-1 truncate">
-        Install our app for a better experience
-      </p>
-      <div className="flex items-center gap-2 shrink-0">
-        <Button
-          size="sm"
-          variant="secondary"
-          className="h-8"
-          onClick={handleInstall}
-        >
+    <div className="bg-primary text-primary-foreground fixed top-0 right-0 left-0 z-[60] flex items-center justify-between gap-4 px-4 py-2 shadow-md">
+      <p className="flex-1 truncate text-sm">Install our app for a better experience</p>
+      <div className="flex shrink-0 items-center gap-2">
+        <Button size="sm" variant="secondary" className="h-8" onClick={handleInstall}>
           Install App
         </Button>
         <button
           type="button"
           aria-label="Dismiss"
           onClick={handleDismiss}
-          className="p-1 rounded hover:bg-primary-foreground/20"
+          className="hover:bg-primary-foreground/20 rounded p-1"
         >
           <X className="h-4 w-4" />
         </button>

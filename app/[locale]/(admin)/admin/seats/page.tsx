@@ -26,7 +26,13 @@ import {
   Accessibility,
   Grid3X3,
 } from "lucide-react";
-import { useAdminRooms, useAdminCinemas, useAdminRoomSeats, useUpdateRoomSeats, useImportRoomSeats } from "@/hooks/queries/use-admin";
+import {
+  useAdminRooms,
+  useAdminCinemas,
+  useAdminRoomSeats,
+  useUpdateRoomSeats,
+  useImportRoomSeats,
+} from "@/hooks/queries/use-admin";
 import type { Seat, SeatType } from "@/types/domain";
 import { cn } from "@/lib/utils";
 
@@ -48,11 +54,7 @@ const SEAT_TYPE_COLORS: Record<SeatCellType, string> = {
   AISLE: "bg-transparent border border-dashed border-muted-foreground/30",
 };
 
-function buildGridFromSeats(
-  seats: Seat[],
-  rows: number,
-  columns: number
-): GridCell[][] {
+function buildGridFromSeats(seats: Seat[], rows: number, columns: number): GridCell[][] {
   const grid: GridCell[][] = [];
   for (let r = 0; r < rows; r++) {
     grid[r] = [];
@@ -69,7 +71,12 @@ function buildGridFromSeats(
     const colIdx = seat.number - 1;
     if (rowIdx >= 0 && rowIdx < rows && colIdx >= 0 && colIdx < columns) {
       grid[rowIdx][colIdx] = {
-        type: (seat.type === "STANDARD" || seat.type === "VIP" || seat.type === "COUPLE" || seat.type === "DISABLED" ? seat.type : "STANDARD") as SeatCellType,
+        type: (seat.type === "STANDARD" ||
+        seat.type === "VIP" ||
+        seat.type === "COUPLE" ||
+        seat.type === "DISABLED"
+          ? seat.type
+          : "STANDARD") as SeatCellType,
         seatId: seat.id,
         row: seat.row,
         number: seat.number,
@@ -280,10 +287,7 @@ export default function AdminSeatsPage() {
       <PageHeader
         title={t("seats")}
         description="Design and manage seat maps for each screening room."
-        breadcrumbs={[
-          { label: t("title"), href: "/admin" },
-          { label: t("seats") },
-        ]}
+        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("seats") }]}
       />
 
       <Card className="mb-6">
@@ -314,11 +318,7 @@ export default function AdminSeatsPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select
-              value={roomId}
-              onValueChange={setRoomId}
-              disabled={!cinemaFilter}
-            >
+            <Select value={roomId} onValueChange={setRoomId} disabled={!cinemaFilter}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Room" />
               </SelectTrigger>
@@ -374,31 +374,23 @@ export default function AdminSeatsPage() {
                   <Upload className="mr-1 h-4 w-4" />
                   Import JSON
                 </Button>
-                <div className="flex items-center gap-2 ml-4">
-                  <Switch
-                    id="preview"
-                    checked={previewMode}
-                    onCheckedChange={setPreviewMode}
-                  />
+                <div className="ml-4 flex items-center gap-2">
+                  <Switch id="preview" checked={previewMode} onCheckedChange={setPreviewMode} />
                   <Label htmlFor="preview">Preview mode</Label>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={handleSave}
-                  disabled={updateSeats.isPending}
-                >
+                <Button size="sm" onClick={handleSave} disabled={updateSeats.isPending}>
                   <Save className="mr-1 h-4 w-4" />
                   Save
                 </Button>
               </div>
 
               <div
-                className="inline-flex flex-col gap-0.5 p-4 rounded-lg bg-muted/50"
+                className="bg-muted/50 inline-flex flex-col gap-0.5 rounded-lg p-4"
                 onMouseLeave={handleMouseUp}
                 onMouseUp={handleMouseUp}
               >
                 {grid.map((row, r) => (
-                  <div key={r} className="flex gap-0.5 justify-center">
+                  <div key={r} className="flex justify-center gap-0.5">
                     {row.map((cell, c) => {
                       const key = cellKey(r, c);
                       const isSelected = selectedCells.has(key);
@@ -409,9 +401,9 @@ export default function AdminSeatsPage() {
                           key={key}
                           type="button"
                           className={cn(
-                            "w-8 h-8 rounded flex items-center justify-center text-xs font-medium transition-colors border",
+                            "flex h-8 w-8 items-center justify-center rounded border text-xs font-medium transition-colors",
                             SEAT_TYPE_COLORS[cell.type],
-                            isSelected && "ring-2 ring-primary ring-offset-2",
+                            isSelected && "ring-primary ring-2 ring-offset-2",
                             isAisle && "cursor-default",
                             !previewMode && !isAisle && "cursor-pointer"
                           )}
@@ -435,13 +427,13 @@ export default function AdminSeatsPage() {
           )}
 
           {roomId && (!selectedRoom || grid.length === 0) && (
-            <div className="flex h-48 items-center justify-center rounded-lg border border-dashed text-muted-foreground">
+            <div className="text-muted-foreground flex h-48 items-center justify-center rounded-lg border border-dashed">
               No layout. Add rows/columns or import a layout.
             </div>
           )}
 
           {!roomId && (
-            <div className="flex h-48 items-center justify-center rounded-lg border border-dashed text-muted-foreground">
+            <div className="text-muted-foreground flex h-48 items-center justify-center rounded-lg border border-dashed">
               Select a cinema and room to load the seat map.
             </div>
           )}
@@ -454,29 +446,24 @@ export default function AdminSeatsPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-6">
-            {(Object.entries(SEAT_TYPE_COLORS) as [SeatCellType, string][]).map(
-              ([type, color]) => (
-                <div key={type} className="flex items-center gap-2 text-sm">
-                  <div
-                    className={cn(
-                      "h-6 w-8 rounded border flex items-center justify-center",
-                      color
-                    )}
-                  >
-                    {type === "WHEELCHAIR" ? (
-                      <Accessibility className="h-4 w-4 text-white" />
-                    ) : type !== "AISLE" ? (
-                      <Armchair className="h-4 w-4 text-white/80" />
-                    ) : null}
-                  </div>
-                  <span>{type}</span>
+            {(Object.entries(SEAT_TYPE_COLORS) as [SeatCellType, string][]).map(([type, color]) => (
+              <div key={type} className="flex items-center gap-2 text-sm">
+                <div
+                  className={cn("flex h-6 w-8 items-center justify-center rounded border", color)}
+                >
+                  {type === "WHEELCHAIR" ? (
+                    <Accessibility className="h-4 w-4 text-white" />
+                  ) : type !== "AISLE" ? (
+                    <Armchair className="h-4 w-4 text-white/80" />
+                  ) : null}
                 </div>
-              )
-            )}
+                <span>{type}</span>
+              </div>
+            ))}
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Click to select • Shift+click for range • Ctrl+click for multi-select •
-            Drag to select rectangle
+          <p className="text-muted-foreground mt-2 text-xs">
+            Click to select • Shift+click for range • Ctrl+click for multi-select • Drag to select
+            rectangle
           </p>
         </CardContent>
       </Card>

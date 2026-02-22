@@ -4,11 +4,7 @@ import { BottomNav } from "@/components/layout/bottom-nav";
 import { PwaInstallPrompt } from "@/components/shared/pwa-install-prompt";
 import { MaintenanceBanner } from "@/components/shared/maintenance-banner";
 
-export default function PublicLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <PwaInstallPrompt />

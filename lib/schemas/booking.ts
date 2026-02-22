@@ -2,7 +2,10 @@ import { z } from "zod";
 
 /** Accept null from API but normalize to undefined */
 const n = <T extends z.ZodTypeAny>(schema: T) =>
-  schema.optional().nullable().transform((v) => v ?? undefined);
+  schema
+    .optional()
+    .nullable()
+    .transform((v) => v ?? undefined);
 
 export const bookingItemSchema = z.object({
   seatId: z.string(),

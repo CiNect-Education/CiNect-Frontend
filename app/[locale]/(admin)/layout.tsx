@@ -5,11 +5,7 @@ import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { LanguageToggle } from "@/components/shared/language-toggle";
 import { RequireAuthAndRole } from "@/lib/auth-guards";
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <RequireAuthAndRole roles={["ADMIN", "STAFF"]}>
       <SidebarProvider>

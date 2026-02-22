@@ -52,8 +52,7 @@ export default function ShowtimesPage() {
 
   const city = cityFromParams || storedCity;
   const today = new Date();
-  const date =
-    dateFromParams || today.toISOString().split("T")[0];
+  const date = dateFromParams || today.toISOString().split("T")[0];
   const next7Days = Array.from({ length: 8 }, (_, i) => {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
@@ -122,7 +121,7 @@ export default function ShowtimesPage() {
 
       {/* City Tabs */}
       <div className="mb-6">
-        <p className="mb-2 text-sm font-medium text-muted-foreground">City</p>
+        <p className="text-muted-foreground mb-2 text-sm font-medium">City</p>
         <div className="flex flex-wrap gap-2">
           {["Ho Chi Minh", "Hanoi", "Da Nang", "Can Tho"].map((c) => (
             <Button
@@ -154,7 +153,7 @@ export default function ShowtimesPage() {
 
       {/* Date Strip */}
       <div className="mb-6">
-        <p className="mb-2 text-sm font-medium text-muted-foreground">Date</p>
+        <p className="text-muted-foreground mb-2 text-sm font-medium">Date</p>
         <div className="flex gap-2 overflow-x-auto pb-2">
           {next7Days.map((d) => {
             const dateStr = d.toISOString().split("T")[0];
@@ -171,7 +170,15 @@ export default function ShowtimesPage() {
                 className="shrink-0"
               >
                 <Calendar className="mr-1.5 h-4 w-4" />
-                {isToday ? "Today" : d.getDate() === today.getDate() + 1 ? "Tomorrow" : d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                {isToday
+                  ? "Today"
+                  : d.getDate() === today.getDate() + 1
+                    ? "Tomorrow"
+                    : d.toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                      })}
               </Button>
             );
           })}
@@ -240,11 +247,9 @@ export default function ShowtimesPage() {
         <ApiErrorState error={error} onRetry={refetch} />
       ) : Object.keys(groupedByCinema).length === 0 ? (
         <div className="rounded-lg border border-dashed p-12 text-center">
-          <Calendar className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
+          <Calendar className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
           <p className="mb-2 font-medium">No showtimes found</p>
-          <p className="text-sm text-muted-foreground">
-            Try a different date, city, or filters.
-          </p>
+          <p className="text-muted-foreground text-sm">Try a different date, city, or filters.</p>
         </div>
       ) : (
         <div className="space-y-8">
@@ -252,7 +257,7 @@ export default function ShowtimesPage() {
             <Card key={cinemaName}>
               <CardContent className="p-4">
                 <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-                  <MapPin className="h-5 w-5 text-primary" />
+                  <MapPin className="text-primary h-5 w-5" />
                   {cinemaName}
                 </h3>
                 <div className="space-y-4">
@@ -262,7 +267,7 @@ export default function ShowtimesPage() {
                       className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center"
                     >
                       <div className="flex shrink-0 items-center gap-4">
-                        <div className="relative h-20 w-14 overflow-hidden rounded bg-muted">
+                        <div className="bg-muted relative h-20 w-14 overflow-hidden rounded">
                           {st.moviePosterUrl ? (
                             <img
                               src={st.moviePosterUrl}
@@ -271,16 +276,19 @@ export default function ShowtimesPage() {
                             />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center">
-                              <Film className="h-6 w-6 text-muted-foreground" />
+                              <Film className="text-muted-foreground h-6 w-6" />
                             </div>
                           )}
                         </div>
                         <div>
                           <h4 className="font-semibold">{st.movieTitle || "Movie"}</h4>
-                          <div className="flex flex-wrap gap-2 text-sm text-muted-foreground items-center">
+                          <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
                             <Badge variant="outline">{st.format}</Badge>
                             {st.memberExclusive && (
-                              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                              <Badge
+                                variant="secondary"
+                                className="bg-primary/10 text-primary border-primary/20"
+                              >
                                 Member Exclusive
                               </Badge>
                             )}

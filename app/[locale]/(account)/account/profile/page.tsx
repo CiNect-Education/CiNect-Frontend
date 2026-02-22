@@ -18,10 +18,7 @@ export default function ProfilePage() {
       <PageHeader
         title={t("profile")}
         description={t("profileDesc")}
-        breadcrumbs={[
-          { label: t("title"), href: "/account/profile" },
-          { label: t("profile") },
-        ]}
+        breadcrumbs={[{ label: t("title"), href: "/account/profile" }, { label: t("profile") }]}
       />
 
       <div className="flex flex-col gap-6">
@@ -35,20 +32,20 @@ export default function ProfilePage() {
             <div className="flex items-center gap-6">
               <div className="relative">
                 <Avatar className="h-20 w-20">
-                  <AvatarFallback className="bg-primary/10 text-xl font-semibold text-primary">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
                     CC
                   </AvatarFallback>
                 </Avatar>
                 <Button
                   size="icon"
                   variant="outline"
-                  className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full"
+                  className="absolute -right-1 -bottom-1 h-7 w-7 rounded-full"
                 >
                   <Camera className="h-3.5 w-3.5" />
                   <span className="sr-only">Change avatar</span>
                 </Button>
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-muted-foreground text-sm">
                 <p>JPG, PNG or GIF. Max 2MB.</p>
               </div>
             </div>
@@ -98,12 +95,10 @@ export default function ProfilePage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Change Password</CardTitle>
-            <CardDescription>
-              Update your password to keep your account secure.
-            </CardDescription>
+            <CardDescription>Update your password to keep your account secure.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 max-w-md">
+            <div className="grid max-w-md gap-4">
               <div className="space-y-2">
                 <Label htmlFor="currentPassword">Current Password</Label>
                 <Input id="currentPassword" type="password" disabled />

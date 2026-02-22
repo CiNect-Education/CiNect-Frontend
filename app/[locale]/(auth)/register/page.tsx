@@ -161,9 +161,9 @@ export default function RegisterPage() {
         </div>
       </CardContent>
       <CardFooter className="justify-center">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           {t("hasAccount")}{" "}
-          <Link href="/login" className="font-medium text-primary hover:underline">
+          <Link href="/login" className="text-primary font-medium hover:underline">
             {t("login")}
           </Link>
         </p>

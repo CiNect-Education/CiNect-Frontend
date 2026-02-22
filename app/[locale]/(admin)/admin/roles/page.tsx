@@ -56,9 +56,7 @@ export default function AdminRolesPage() {
       const has = current.includes(permission);
       return {
         ...prev,
-        [roleId]: has
-          ? current.filter((p) => p !== permission)
-          : [...current, permission],
+        [roleId]: has ? current.filter((p) => p !== permission) : [...current, permission],
       };
     });
   };
@@ -101,16 +99,14 @@ export default function AdminRolesPage() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Shield className="h-6 w-6 text-primary" />
+          <Shield className="text-primary h-6 w-6" />
           <div>
             <h1 className="text-2xl font-bold">Role Management</h1>
-            <p className="text-sm text-muted-foreground">
-              Configure permissions for each role
-            </p>
+            <p className="text-muted-foreground text-sm">Configure permissions for each role</p>
           </div>
         </div>
         <Button onClick={handleSave} disabled={saving}>
-          <Save className="h-4 w-4 mr-2" />
+          <Save className="mr-2 h-4 w-4" />
           {saving ? "Saving..." : "Save Changes"}
         </Button>
       </div>
@@ -127,12 +123,9 @@ export default function AdminRolesPage() {
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b">
-                  <th className="py-3 px-4 text-left font-medium">Permission</th>
+                  <th className="px-4 py-3 text-left font-medium">Permission</th>
                   {roles.map((role) => (
-                    <th
-                      key={role.id}
-                      className="py-3 px-4 text-center font-medium uppercase"
-                    >
+                    <th key={role.id} className="px-4 py-3 text-center font-medium uppercase">
                       {role.name}
                     </th>
                   ))}
@@ -140,15 +133,13 @@ export default function AdminRolesPage() {
               </thead>
               <tbody>
                 {PERMISSIONS.map((perm) => (
-                  <tr key={perm.key} className="border-b hover:bg-muted/50">
-                    <td className="py-3 px-4">{perm.label}</td>
+                  <tr key={perm.key} className="hover:bg-muted/50 border-b">
+                    <td className="px-4 py-3">{perm.label}</td>
                     {roles.map((role) => (
-                      <td key={role.id} className="py-3 px-4 text-center">
+                      <td key={role.id} className="px-4 py-3 text-center">
                         <Checkbox
                           checked={hasPermission(role.id, perm.key)}
-                          onCheckedChange={() =>
-                            togglePermission(role.id, perm.key)
-                          }
+                          onCheckedChange={() => togglePermission(role.id, perm.key)}
                         />
                       </td>
                     ))}

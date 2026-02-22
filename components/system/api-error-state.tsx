@@ -2,11 +2,7 @@
 
 import { AlertCircle, RefreshCw, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ApiError } from "@/lib/api-client";
 
 interface ApiErrorStateProps {
@@ -43,7 +39,7 @@ export function ApiErrorState({
   if (compact) {
     return (
       <div
-        className={`flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive ${className}`}
+        className={`border-destructive/30 bg-destructive/5 text-destructive flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${className}`}
       >
         <AlertCircle className="h-4 w-4 shrink-0" />
         <span className="flex-1">{message}</span>
@@ -52,7 +48,7 @@ export function ApiErrorState({
             variant="ghost"
             size="sm"
             onClick={onRetry}
-            className="h-7 px-2 text-destructive hover:text-destructive"
+            className="text-destructive hover:text-destructive h-7 px-2"
           >
             <RefreshCw className="mr-1 h-3 w-3" />
             Retry
@@ -63,18 +59,14 @@ export function ApiErrorState({
   }
 
   return (
-    <div
-      className={`flex flex-col items-center justify-center py-16 text-center ${className}`}
-    >
-      <div className="mb-4 rounded-full bg-destructive/10 p-4">
-        <AlertCircle className="h-8 w-8 text-destructive" />
+    <div className={`flex flex-col items-center justify-center py-16 text-center ${className}`}>
+      <div className="bg-destructive/10 mb-4 rounded-full p-4">
+        <AlertCircle className="text-destructive h-8 w-8" />
       </div>
 
-      <h3 className="mb-1 text-lg font-semibold text-foreground">
-        {resolvedTitle}
-      </h3>
+      <h3 className="text-foreground mb-1 text-lg font-semibold">{resolvedTitle}</h3>
 
-      <p className="mb-4 max-w-md text-sm text-muted-foreground">{message}</p>
+      <p className="text-muted-foreground mb-4 max-w-md text-sm">{message}</p>
 
       {onRetry && (
         <Button onClick={onRetry} variant="outline" size="sm" className="mb-4">
@@ -87,31 +79,25 @@ export function ApiErrorState({
       {isDev && (status !== undefined || requestId || details !== undefined) && (
         <Collapsible className="mt-2 w-full max-w-lg">
           <CollapsibleTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs text-muted-foreground"
-            >
+            <Button variant="ghost" size="sm" className="text-muted-foreground text-xs">
               <ChevronDown className="mr-1 h-3 w-3" />
               Debug Details (dev only)
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="mt-2 rounded-md border bg-muted/50 p-3 text-left font-mono text-xs">
+            <div className="bg-muted/50 mt-2 rounded-md border p-3 text-left font-mono text-xs">
               {status !== undefined && (
                 <p>
-                  <span className="text-muted-foreground">Status:</span>{" "}
-                  {status}
+                  <span className="text-muted-foreground">Status:</span> {status}
                 </p>
               )}
               {requestId && (
                 <p>
-                  <span className="text-muted-foreground">Request ID:</span>{" "}
-                  {requestId}
+                  <span className="text-muted-foreground">Request ID:</span> {requestId}
                 </p>
               )}
               {details != null && (
-                <pre className="mt-2 overflow-auto whitespace-pre-wrap text-muted-foreground">
+                <pre className="text-muted-foreground mt-2 overflow-auto whitespace-pre-wrap">
                   {typeof details === "string" ? details : JSON.stringify(details, null, 2)}
                 </pre>
               )}

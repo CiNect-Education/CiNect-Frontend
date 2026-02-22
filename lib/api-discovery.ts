@@ -5,10 +5,7 @@
  * Otherwise, we probe both ports concurrently and use whichever responds first.
  */
 
-const CANDIDATES = [
-  "http://localhost:3001/api/v1",
-  "http://localhost:8081/api/v1",
-];
+const CANDIDATES = ["http://localhost:3001/api/v1", "http://localhost:8081/api/v1"];
 
 const DEFAULT_URL = CANDIDATES[0]; // NestJS fallback
 

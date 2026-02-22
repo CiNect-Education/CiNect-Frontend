@@ -3,11 +3,7 @@ import { Footer } from "@/components/layout/footer";
 import { AccountNav } from "@/components/layout/account-nav";
 import { RequireAuth } from "@/lib/auth-guards";
 
-export default function AccountLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AccountLayout({ children }: { children: React.ReactNode }) {
   return (
     <RequireAuth>
       <div className="flex min-h-screen flex-col">

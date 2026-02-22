@@ -57,8 +57,8 @@ export function OrderSummary({
             <span className="font-medium">${seatsTotal.toFixed(2)}</span>
           </div>
           {(holdSeats.length > 0 || (booking?.seats?.length ?? 0) > 0) && (
-            <p className="text-xs text-muted-foreground">
-              {(holdSeats.length ? holdSeats : booking?.seats ?? [])
+            <p className="text-muted-foreground text-xs">
+              {(holdSeats.length ? holdSeats : (booking?.seats ?? []))
                 .map((s) => `${s.row}${s.number}`)
                 .join(", ")}
             </p>
@@ -75,12 +75,11 @@ export function OrderSummary({
               </div>
               <div className="space-y-1">
                 {selectedSnacks.map((item) => {
-                  const price =
-                    item.snack?.unitPrice ?? item.snack?.price ?? 0;
+                  const price = item.snack?.unitPrice ?? item.snack?.price ?? 0;
                   return (
                     <div
                       key={item.snackId}
-                      className="flex justify-between text-xs text-muted-foreground"
+                      className="text-muted-foreground flex justify-between text-xs"
                     >
                       <span>
                         {item.quantity}x {item.snack?.name || "Item"}

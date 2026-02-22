@@ -43,9 +43,7 @@ export default function CheckoutPage() {
   const hold = holdRes?.data as import("@/hooks/queries/use-booking-flow").HoldDetails | undefined;
   const cinemaId = hold?.showtime?.cinemaId;
 
-  const { data: snacksRes, isLoading: snacksLoading, error: snacksError } = useSnacks(
-    cinemaId
-  );
+  const { data: snacksRes, isLoading: snacksLoading, error: snacksError } = useSnacks(cinemaId);
   const snacksData = snacksRes?.data ?? snacksRes;
   const snackItems = Array.isArray(snacksData) ? snacksData : [];
 
@@ -70,8 +68,7 @@ export default function CheckoutPage() {
     setSelectedSnacks((prev) => {
       const existing = prev.find((s) => s.snackId === snackId);
       if (quantity === 0) return prev.filter((s) => s.snackId !== snackId);
-      if (existing)
-        return prev.map((s) => (s.snackId === snackId ? { ...s, quantity } : s));
+      if (existing) return prev.map((s) => (s.snackId === snackId ? { ...s, quantity } : s));
       return [...prev, { snackId, quantity }];
     });
   }, []);
@@ -85,9 +82,10 @@ export default function CheckoutPage() {
         snacks: selectedSnacks.length > 0 ? selectedSnacks : undefined,
       });
       const payload = res?.data ?? res;
-      const id = typeof payload === "object" && payload && "id" in payload
-        ? (payload as { id: string }).id
-        : (res as { id?: string }).id;
+      const id =
+        typeof payload === "object" && payload && "id" in payload
+          ? (payload as { id: string }).id
+          : (res as { id?: string }).id;
       setBookingId(id ?? null);
       setStep(3);
     } catch {
@@ -151,7 +149,8 @@ export default function CheckoutPage() {
     s.unitPrice ?? (s as { price?: number }).price ?? 0;
 
   const snacksTotal = selectedSnackDetails.reduce(
-    (sum, item) => sum + snackPrice(item.snack as { unitPrice?: number; price?: number }) * item.quantity,
+    (sum, item) =>
+      sum + snackPrice(item.snack as { unitPrice?: number; price?: number }) * item.quantity,
     0
   );
 
@@ -219,11 +218,11 @@ export default function CheckoutPage() {
                   <div className="space-y-4">
                     <div>
                       <h3 className="font-semibold">{hold.showtime?.movieTitle ?? "Movie"}</h3>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-muted-foreground text-sm">
                         {hold.showtime?.cinemaName} • {hold.showtime?.roomName}
                       </p>
                       {hold.showtime?.startTime && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-muted-foreground text-sm">
                           {format(new Date(hold.showtime.startTime), "PPP 'at' p")} •{" "}
                           {hold.showtime?.format}
                         </p>

@@ -6,15 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card } from "@/components/ui/card";
-import {
-  CreditCard,
-  Wallet,
-  Gift,
-  Tag,
-  Smartphone,
-  Building2,
-  Banknote,
-} from "lucide-react";
+import { CreditCard, Wallet, Gift, Tag, Smartphone, Building2, Banknote } from "lucide-react";
 import type { PaymentMethod } from "@/types/domain";
 
 const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ReactNode }[] = [
@@ -169,7 +161,7 @@ export function PaymentStep({
             {isApplyingPoints ? "Applying..." : "Apply"}
           </Button>
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="text-muted-foreground mt-1 text-xs">
           Available: {availablePoints.toLocaleString()} points (discount calculated at checkout)
         </p>
       </Card>
@@ -200,12 +192,7 @@ export function PaymentStep({
         </RadioGroup>
       </div>
 
-      <Button
-        type="submit"
-        className="w-full"
-        size="lg"
-        disabled={isLoading}
-      >
+      <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
         {isLoading ? "Processing..." : "Complete Payment"}
       </Button>
     </form>

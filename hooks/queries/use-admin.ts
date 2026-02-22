@@ -76,14 +76,10 @@ export function useUpdateMovie() {
   );
 }
 export function useDeleteMovie() {
-  return useApiMutation<void, { id: string }>(
-    "delete",
-    (v) => `/admin/movies/${v.id}`,
-    {
-      successMessage: "Movie deleted",
-      invalidateKeys: [["admin", "movies"]],
-    }
-  );
+  return useApiMutation<void, { id: string }>("delete", (v) => `/admin/movies/${v.id}`, {
+    successMessage: "Movie deleted",
+    invalidateKeys: [["admin", "movies"]],
+  });
 }
 
 // ─── Cinemas CRUD ────────────────────────────────────────────────
@@ -111,14 +107,10 @@ export function useUpdateCinema() {
   );
 }
 export function useDeleteCinema() {
-  return useApiMutation<void, { id: string }>(
-    "delete",
-    (v) => `/admin/cinemas/${v.id}`,
-    {
-      successMessage: "Cinema deleted",
-      invalidateKeys: [["admin", "cinemas"]],
-    }
-  );
+  return useApiMutation<void, { id: string }>("delete", (v) => `/admin/cinemas/${v.id}`, {
+    successMessage: "Cinema deleted",
+    invalidateKeys: [["admin", "cinemas"]],
+  });
 }
 
 // ─── Rooms CRUD ──────────────────────────────────────────────────
@@ -146,14 +138,10 @@ export function useUpdateRoom() {
   );
 }
 export function useDeleteRoom() {
-  return useApiMutation<void, { id: string }>(
-    "delete",
-    (v) => `/admin/rooms/${v.id}`,
-    {
-      successMessage: "Room deleted",
-      invalidateKeys: [["admin", "rooms"]],
-    }
-  );
+  return useApiMutation<void, { id: string }>("delete", (v) => `/admin/rooms/${v.id}`, {
+    successMessage: "Room deleted",
+    invalidateKeys: [["admin", "rooms"]],
+  });
 }
 
 // ─── Seats ───────────────────────────────────────────────────────
@@ -166,10 +154,7 @@ export function useAdminRoomSeats(roomId?: string) {
   );
 }
 export function useUpdateRoomSeats() {
-  return useApiMutation<
-    Seat[],
-    { roomId: string; seats: Partial<Seat>[] }
-  >(
+  return useApiMutation<Seat[], { roomId: string; seats: Partial<Seat>[] }>(
     "put",
     (v) => `/admin/rooms/${v.roomId}/seats`,
     {
@@ -179,10 +164,7 @@ export function useUpdateRoomSeats() {
   );
 }
 export function useImportRoomSeats() {
-  return useApiMutation<
-    Seat[],
-    { roomId: string; layout: Record<string, unknown> }
-  >(
+  return useApiMutation<Seat[], { roomId: string; layout: Record<string, unknown> }>(
     "post",
     (v) => `/admin/rooms/${v.roomId}/seats/import`,
     {
@@ -217,14 +199,10 @@ export function useUpdateShowtime() {
   );
 }
 export function useDeleteShowtime() {
-  return useApiMutation<void, { id: string }>(
-    "delete",
-    (v) => `/admin/showtimes/${v.id}`,
-    {
-      successMessage: "Showtime deleted",
-      invalidateKeys: [["admin", "showtimes"]],
-    }
-  );
+  return useApiMutation<void, { id: string }>("delete", (v) => `/admin/showtimes/${v.id}`, {
+    successMessage: "Showtime deleted",
+    invalidateKeys: [["admin", "showtimes"]],
+  });
 }
 
 // ─── Bookings Admin ──────────────────────────────────────────────
@@ -236,24 +214,16 @@ export function useAdminBookings(params?: QueryParams) {
   );
 }
 export function useAdminCancelBooking() {
-  return useApiMutation<void, { id: string }>(
-    "post",
-    (v) => `/admin/bookings/${v.id}/cancel`,
-    {
-      successMessage: "Booking cancelled",
-      invalidateKeys: [["admin", "bookings"]],
-    }
-  );
+  return useApiMutation<void, { id: string }>("post", (v) => `/admin/bookings/${v.id}/cancel`, {
+    successMessage: "Booking cancelled",
+    invalidateKeys: [["admin", "bookings"]],
+  });
 }
 export function useAdminRefundBooking() {
-  return useApiMutation<void, { id: string }>(
-    "post",
-    (v) => `/admin/bookings/${v.id}/refund`,
-    {
-      successMessage: "Booking refunded",
-      invalidateKeys: [["admin", "bookings"]],
-    }
-  );
+  return useApiMutation<void, { id: string }>("post", (v) => `/admin/bookings/${v.id}/refund`, {
+    successMessage: "Booking refunded",
+    invalidateKeys: [["admin", "bookings"]],
+  });
 }
 
 // ─── Pricing Rules ───────────────────────────────────────────────
@@ -265,14 +235,10 @@ export function useAdminPricingRules(params?: QueryParams) {
   );
 }
 export function useCreatePricingRule() {
-  return useApiMutation<PricingRule, Partial<PricingRule>>(
-    "post",
-    "/admin/pricing-rules",
-    {
-      successMessage: "Rule created",
-      invalidateKeys: [["admin", "pricing-rules"]],
-    }
-  );
+  return useApiMutation<PricingRule, Partial<PricingRule>>("post", "/admin/pricing-rules", {
+    successMessage: "Rule created",
+    invalidateKeys: [["admin", "pricing-rules"]],
+  });
 }
 export function useUpdatePricingRule() {
   return useApiMutation<PricingRule, Partial<PricingRule> & { id: string }>(
@@ -285,14 +251,10 @@ export function useUpdatePricingRule() {
   );
 }
 export function useDeletePricingRule() {
-  return useApiMutation<void, { id: string }>(
-    "delete",
-    (v) => `/admin/pricing-rules/${v.id}`,
-    {
-      successMessage: "Rule deleted",
-      invalidateKeys: [["admin", "pricing-rules"]],
-    }
-  );
+  return useApiMutation<void, { id: string }>("delete", (v) => `/admin/pricing-rules/${v.id}`, {
+    successMessage: "Rule deleted",
+    invalidateKeys: [["admin", "pricing-rules"]],
+  });
 }
 
 // ─── Promotions Admin ────────────────────────────────────────────
@@ -304,14 +266,10 @@ export function useAdminPromotions(params?: QueryParams) {
   );
 }
 export function useCreatePromotion() {
-  return useApiMutation<Promotion, Partial<Promotion>>(
-    "post",
-    "/admin/promotions",
-    {
-      successMessage: "Promotion created",
-      invalidateKeys: [["admin", "promotions"]],
-    }
-  );
+  return useApiMutation<Promotion, Partial<Promotion>>("post", "/admin/promotions", {
+    successMessage: "Promotion created",
+    invalidateKeys: [["admin", "promotions"]],
+  });
 }
 export function useUpdatePromotion() {
   return useApiMutation<Promotion, Partial<Promotion> & { id: string }>(
@@ -324,21 +282,15 @@ export function useUpdatePromotion() {
   );
 }
 export function useDeletePromotion() {
-  return useApiMutation<void, { id: string }>(
-    "delete",
-    (v) => `/admin/promotions/${v.id}`,
-    {
-      successMessage: "Promotion deleted",
-      invalidateKeys: [["admin", "promotions"]],
-    }
-  );
+  return useApiMutation<void, { id: string }>("delete", (v) => `/admin/promotions/${v.id}`, {
+    successMessage: "Promotion deleted",
+    invalidateKeys: [["admin", "promotions"]],
+  });
 }
 
 // ─── Reports ─────────────────────────────────────────────────────
 export function useAdminReportSales(params?: QueryParams) {
-  return useApiQuery<
-    Array<{ date: string; revenue: number; bookings: number }>
-  >(
+  return useApiQuery<Array<{ date: string; revenue: number; bookings: number }>>(
     ["admin", "reports", "sales", JSON.stringify(params ?? {})],
     "/admin/reports/sales",
     params
@@ -353,11 +305,7 @@ export function useAdminReportMovies(params?: QueryParams) {
       bookings: number;
       occupancy: number;
     }>
-  >(
-    ["admin", "reports", "movies", JSON.stringify(params ?? {})],
-    "/admin/reports/movies",
-    params
-  );
+  >(["admin", "reports", "movies", JSON.stringify(params ?? {})], "/admin/reports/movies", params);
 }
 export function useAdminReportCinemas(params?: QueryParams) {
   return useApiQuery<
@@ -384,14 +332,10 @@ export function useAdminUsers(params?: QueryParams) {
   );
 }
 export function useCreateUser() {
-  return useApiMutation<User, Partial<User> & { password: string }>(
-    "post",
-    "/admin/users",
-    {
-      successMessage: "User created",
-      invalidateKeys: [["admin", "users"]],
-    }
-  );
+  return useApiMutation<User, Partial<User> & { password: string }>("post", "/admin/users", {
+    successMessage: "User created",
+    invalidateKeys: [["admin", "users"]],
+  });
 }
 export function useUpdateUser() {
   return useApiMutation<User, Partial<User> & { id: string }>(
@@ -404,14 +348,10 @@ export function useUpdateUser() {
   );
 }
 export function useDeleteUser() {
-  return useApiMutation<void, { id: string }>(
-    "delete",
-    (v) => `/admin/users/${v.id}`,
-    {
-      successMessage: "User deleted",
-      invalidateKeys: [["admin", "users"]],
-    }
-  );
+  return useApiMutation<void, { id: string }>("delete", (v) => `/admin/users/${v.id}`, {
+    successMessage: "User deleted",
+    invalidateKeys: [["admin", "users"]],
+  });
 }
 
 // ─── Roles ───────────────────────────────────────────────────────
@@ -435,18 +375,12 @@ export function useAdminAuditLogs(params?: QueryParams) {
       details: string;
       timestamp: string;
     }>
-  >(
-    ["admin", "audit-logs", JSON.stringify(params ?? {})],
-    "/admin/audit-logs",
-    params
-  );
+  >(["admin", "audit-logs", JSON.stringify(params ?? {})], "/admin/audit-logs", params);
 }
 
 // ─── Analytics ───────────────────────────────────────────────────
 export function useAdminAnalyticsRevenue(params?: QueryParams) {
-  return useApiQuery<
-    Array<{ date: string; revenue: number; predicted?: boolean }>
-  >(
+  return useApiQuery<Array<{ date: string; revenue: number; predicted?: boolean }>>(
     ["admin", "analytics", "revenue", JSON.stringify(params ?? {})],
     "/admin/analytics/revenue",
     params
@@ -469,9 +403,7 @@ export function useAdminAnalyticsOccupancy(params?: QueryParams) {
   );
 }
 export function useAdminAnalyticsCustomerSegments() {
-  return useApiQuery<
-    Array<{ segment: string; count: number; percentage: number }>
-  >(
+  return useApiQuery<Array<{ segment: string; count: number; percentage: number }>>(
     ["admin", "analytics", "customer-segments"],
     "/admin/analytics/customer-segments"
   );

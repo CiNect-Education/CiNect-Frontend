@@ -90,7 +90,7 @@ export default function ResetPasswordPage() {
         </Form>
       </CardContent>
       <CardFooter className="justify-center">
-        <Link href="/login" className="text-sm text-primary hover:underline">
+        <Link href="/login" className="text-primary text-sm hover:underline">
           {t("login")}
         </Link>
       </CardFooter>

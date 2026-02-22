@@ -37,7 +37,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
         {banners.map((banner) => (
           <CarouselItem key={banner.id} className="pl-0">
             <Link href={banner.linkUrl || "#"} className="block">
-              <div className="relative aspect-[21/9] w-full overflow-hidden rounded-lg bg-muted md:aspect-[3/1]">
+              <div className="bg-muted relative aspect-[21/9] w-full overflow-hidden rounded-lg md:aspect-[3/1]">
                 <img
                   src={banner.imageUrl}
                   alt={banner.title ?? "Banner"}

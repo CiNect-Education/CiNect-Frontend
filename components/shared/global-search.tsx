@@ -49,16 +49,14 @@ export function GlobalSearch() {
 
   const { data: moviesData, isLoading: moviesLoading } = useQuery({
     queryKey: ["search", "movies", debouncedQuery],
-    queryFn: () =>
-      apiClient.get<MovieListItem[]>("/movies", { q: debouncedQuery }),
+    queryFn: () => apiClient.get<MovieListItem[]>("/movies", { q: debouncedQuery }),
     enabled: debouncedQuery.length >= 2,
     staleTime: 30 * 1000,
   });
 
   const { data: cinemasData, isLoading: cinemasLoading } = useQuery({
     queryKey: ["search", "cinemas", debouncedQuery],
-    queryFn: () =>
-      apiClient.get<CinemaListItem[]>("/cinemas", { q: debouncedQuery }),
+    queryFn: () => apiClient.get<CinemaListItem[]>("/cinemas", { q: debouncedQuery }),
     enabled: debouncedQuery.length >= 2,
     staleTime: 30 * 1000,
   });
@@ -79,7 +77,7 @@ export function GlobalSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+        className="text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors"
         aria-label="Search"
       >
         <svg
@@ -103,7 +101,7 @@ export function GlobalSearch() {
           <DialogTitle className="sr-only">Search</DialogTitle>
           <Command
             shouldFilter={false}
-            className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
+            className="[&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
           >
             <CommandInput
               placeholder="Search movies and cinemas..."

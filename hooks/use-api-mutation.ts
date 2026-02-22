@@ -1,18 +1,13 @@
-import {
-  useMutation,
-  useQueryClient,
-  type UseMutationOptions,
-} from "@tanstack/react-query";
+import { useMutation, useQueryClient, type UseMutationOptions } from "@tanstack/react-query";
 import { apiClient, ApiError, type RequestOptions } from "@/lib/api-client";
 import type { ApiEnvelope } from "@/types/api";
 import type { ZodType, ZodTypeDef } from "zod";
 import { toast } from "sonner";
 
-interface UseApiMutationOptions<TData, TVariables>
-  extends Omit<
-    UseMutationOptions<ApiEnvelope<TData>, ApiError, TVariables>,
-    "mutationFn"
-  > {
+interface UseApiMutationOptions<TData, TVariables> extends Omit<
+  UseMutationOptions<ApiEnvelope<TData>, ApiError, TVariables>,
+  "mutationFn"
+> {
   /** Toast message shown on success. */
   successMessage?: string;
   /** Zod schema to validate the response. */
@@ -32,17 +27,13 @@ export function useApiMutation<TData, TVariables = unknown>(
   options?: UseApiMutationOptions<TData, TVariables>
 ) {
   const queryClient = useQueryClient();
-  const { successMessage, schema, invalidateKeys, ...mutationOptions } =
-    options ?? {};
+  const { successMessage, schema, invalidateKeys, ...mutationOptions } = options ?? {};
 
-  const requestOpts: RequestOptions | undefined = schema
-    ? { schema }
-    : undefined;
+  const requestOpts: RequestOptions | undefined = schema ? { schema } : undefined;
 
   return useMutation<ApiEnvelope<TData>, ApiError, TVariables>({
     mutationFn: (variables) => {
-      const resolvedPath =
-        typeof path === "function" ? path(variables) : path;
+      const resolvedPath = typeof path === "function" ? path(variables) : path;
 
       if (method === "delete") {
         return apiClient.delete<TData>(resolvedPath, requestOpts);

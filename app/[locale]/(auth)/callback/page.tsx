@@ -30,8 +30,8 @@ export default function OAuthCallbackPage() {
 
   return (
     <div className="flex min-h-[300px] flex-col items-center justify-center gap-4">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      <p className="text-sm text-muted-foreground">Signing you in...</p>
+      <Loader2 className="text-primary h-8 w-8 animate-spin" />
+      <p className="text-muted-foreground text-sm">Signing you in...</p>
     </div>
   );
 }

@@ -33,9 +33,7 @@ export default function OrderDetailPage() {
               <CardTitle className="text-lg">Order Details</CardTitle>
               <Badge variant="secondary">Pending</Badge>
             </div>
-            <CardDescription>
-              Connect to backend to load order data.
-            </CardDescription>
+            <CardDescription>Connect to backend to load order data.</CardDescription>
           </CardHeader>
           <CardContent>
             <EmptyState
@@ -73,7 +71,7 @@ export default function OrderDetailPage() {
             <CardHeader>
               <CardTitle className="text-lg">Showtime Info</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
+            <CardContent className="text-muted-foreground space-y-2 text-sm">
               <p>Cinema: --</p>
               <p>Room: --</p>
               <p>Date: --</p>
