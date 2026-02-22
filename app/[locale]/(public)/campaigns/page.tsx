@@ -32,7 +32,7 @@ export default function CampaignsPage() {
   if (isLoading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
-        <Skeleton className="h-8 w-48 mb-6" />
+        <Skeleton className="mb-6 h-8 w-48" />
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="aspect-video rounded-lg" />
@@ -55,17 +55,14 @@ export default function CampaignsPage() {
       <PageHeader
         title="Campaigns"
         description="Discover our latest campaigns, movie tie-ins, and special offers"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Campaigns" },
-        ]}
+        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Campaigns" }]}
       />
 
       {campaigns.length === 0 ? (
         <div className="rounded-lg border border-dashed p-12 text-center">
-          <Tag className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
+          <Tag className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
           <p className="mb-2 font-medium">No active campaigns</p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Check back soon for new campaigns and promotions.
           </p>
         </div>
@@ -73,8 +70,8 @@ export default function CampaignsPage() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {campaigns.map((campaign) => (
             <Link key={campaign.id} href={`/campaigns/${campaign.slug}`}>
-              <Card className="overflow-hidden transition-all hover:shadow-lg h-full">
-                <div className="aspect-video overflow-hidden bg-muted">
+              <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
+                <div className="bg-muted aspect-video overflow-hidden">
                   {campaign.imageUrl ? (
                     <img
                       src={campaign.imageUrl}
@@ -83,16 +80,16 @@ export default function CampaignsPage() {
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
-                      <Tag className="h-12 w-12 text-muted-foreground" />
+                      <Tag className="text-muted-foreground h-12 w-12" />
                     </div>
                   )}
                 </div>
                 <CardContent className="p-4">
-                  <h3 className="font-semibold line-clamp-2">{campaign.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+                  <h3 className="line-clamp-2 font-semibold">{campaign.title}</h3>
+                  <p className="text-muted-foreground mt-2 line-clamp-2 text-sm">
                     {campaign.description}
                   </p>
-                  <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="text-muted-foreground mt-3 flex items-center gap-2 text-xs">
                     <Calendar className="h-4 w-4" />
                     {format(new Date(campaign.startDate), "MMM d")} –{" "}
                     {format(new Date(campaign.endDate), "MMM d, yyyy")}

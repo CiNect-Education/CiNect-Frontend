@@ -22,9 +22,9 @@ export default function BookingSuccessPage() {
   if (isLoading) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16">
-        <div className="text-center space-y-4">
-          <Skeleton className="h-16 w-16 rounded-full mx-auto" />
-          <Skeleton className="h-8 w-64 mx-auto" />
+        <div className="space-y-4 text-center">
+          <Skeleton className="mx-auto h-16 w-16 rounded-full" />
+          <Skeleton className="mx-auto h-8 w-64" />
           <Skeleton className="h-96 w-full" />
         </div>
       </div>
@@ -41,12 +41,12 @@ export default function BookingSuccessPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16">
-      <div className="text-center space-y-4 mb-8">
+      <div className="mb-8 space-y-4 text-center">
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
           <CheckCircle className="h-10 w-10 text-green-600" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold mb-2">Booking Confirmed!</h1>
+          <h1 className="mb-2 text-3xl font-bold">Booking Confirmed!</h1>
           <p className="text-muted-foreground">
             Your booking has been confirmed. Check your email for details.
           </p>
@@ -54,20 +54,20 @@ export default function BookingSuccessPage() {
       </div>
 
       <Card>
-        <CardContent className="pt-6 space-y-6">
+        <CardContent className="space-y-6 pt-6">
           {/* Booking Info */}
           <div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Booking Details</h2>
-              <span className="text-sm text-muted-foreground">#{booking.id}</span>
+              <span className="text-muted-foreground text-sm">#{booking.id}</span>
             </div>
-            
+
             <div className="space-y-3">
               <div className="flex items-start gap-3">
-                <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <Calendar className="text-muted-foreground mt-0.5 h-5 w-5" />
                 <div>
                   <p className="font-medium">{booking.movieTitle}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     {new Date(booking.showtime || booking.createdAt).toLocaleDateString("en-US", {
                       weekday: "long",
                       year: "numeric",
@@ -79,7 +79,7 @@ export default function BookingSuccessPage() {
               </div>
 
               <div className="flex items-start gap-3">
-                <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <Clock className="text-muted-foreground mt-0.5 h-5 w-5" />
                 <div>
                   <p className="font-medium">
                     {new Date(booking.showtime || booking.createdAt).toLocaleTimeString("en-US", {
@@ -87,15 +87,15 @@ export default function BookingSuccessPage() {
                       minute: "2-digit",
                     })}
                   </p>
-                  <p className="text-sm text-muted-foreground">Show Time</p>
+                  <p className="text-muted-foreground text-sm">Show Time</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <MapPin className="text-muted-foreground mt-0.5 h-5 w-5" />
                 <div>
                   <p className="font-medium">{booking.cinemaName}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     {booking.roomName} • {booking.seats?.length || 0} seats
                   </p>
                 </div>
@@ -107,11 +107,15 @@ export default function BookingSuccessPage() {
 
           {/* Seats */}
           <div>
-            <h3 className="font-semibold mb-2">Seats</h3>
+            <h3 className="mb-2 font-semibold">Seats</h3>
             <div className="flex flex-wrap gap-2">
               {booking.seats?.map((seat) => (
-                <div key={seat.seatId} className="px-3 py-1 bg-muted rounded-md text-sm font-medium">
-                  {seat.row}{seat.number}
+                <div
+                  key={seat.seatId}
+                  className="bg-muted rounded-md px-3 py-1 text-sm font-medium"
+                >
+                  {seat.row}
+                  {seat.number}
                 </div>
               ))}
             </div>
@@ -121,14 +125,14 @@ export default function BookingSuccessPage() {
 
           {/* Payment */}
           <div>
-            <h3 className="font-semibold mb-3">Payment Summary</h3>
+            <h3 className="mb-3 font-semibold">Payment Summary</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Tickets</span>
                 <span>${booking.payment?.amount.toFixed(2)}</span>
               </div>
               <Separator />
-              <div className="flex justify-between font-semibold text-base">
+              <div className="flex justify-between text-base font-semibold">
                 <span>Total Paid</span>
                 <span>${booking.payment?.amount.toFixed(2)}</span>
               </div>

@@ -7,9 +7,7 @@ import type { Seat } from "@/types/domain";
 
 const POLL_INTERVAL_MS = 8000;
 
-function statusFromEventType(
-  type: SeatEvent["type"]
-): "AVAILABLE" | "HELD" | "BOOKED" | "BLOCKED" {
+function statusFromEventType(type: SeatEvent["type"]): "AVAILABLE" | "HELD" | "BOOKED" | "BLOCKED" {
   switch (type) {
     case "SEAT_HELD":
       return "HELD";
@@ -23,10 +21,7 @@ function statusFromEventType(
   }
 }
 
-export function useSeatRealtime(
-  showtimeId: string,
-  selectedSeatIds: string[] = []
-) {
+export function useSeatRealtime(showtimeId: string, selectedSeatIds: string[] = []) {
   const queryClient = useQueryClient();
   const connectionRef = useRef<RealtimeConnection | null>(null);
   const selectedRef = useRef(selectedSeatIds);
@@ -47,28 +42,21 @@ export function useSeatRealtime(
       queryClient.setQueryData(
         ["showtimes", showtimeId, "seats"],
         (old: { data?: Seat[] } | Seat[] | undefined) => {
-          const prev = Array.isArray(old) ? old : old?.data ?? [];
+          const prev = Array.isArray(old) ? old : (old?.data ?? []);
           const seats = Array.isArray(prev) ? prev : [];
           const updated = seats.map((seat) =>
-            seatIdsSet.has(seat.id)
-              ? { ...seat, status: newStatus }
-              : seat
+            seatIdsSet.has(seat.id) ? { ...seat, status: newStatus } : seat
           );
-          return Array.isArray(old)
-            ? updated
-            : { ...(old ?? {}), data: updated };
+          return Array.isArray(old) ? updated : { ...(old ?? {}), data: updated };
         }
       );
 
-      const unavailable =
-        event.type === "SEAT_HELD" || event.type === "SEAT_BOOKED";
+      const unavailable = event.type === "SEAT_HELD" || event.type === "SEAT_BOOKED";
       const selected = selectedRef.current;
       if (unavailable && selected.length > 0) {
         const conflicted = event.seatIds.filter((id) => selected.includes(id));
         if (conflicted.length > 0) {
-          setConflictedSeatIds((prev) =>
-            Array.from(new Set([...prev, ...conflicted]))
-          );
+          setConflictedSeatIds((prev) => Array.from(new Set([...prev, ...conflicted])));
         }
       }
     };

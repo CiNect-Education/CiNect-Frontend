@@ -5,22 +5,14 @@ import type { QueryParams } from "@/types/api";
 import { z } from "zod";
 
 export function useNews(params?: QueryParams) {
-  return useApiQuery<NewsArticle[]>(
-    ["news", JSON.stringify(params)],
-    "/news",
-    params,
-    { schema: z.array(newsArticleSchema) }
-  );
+  return useApiQuery<NewsArticle[]>(["news", JSON.stringify(params)], "/news", params, {
+    schema: z.array(newsArticleSchema),
+  });
 }
 
 export function useNewsArticle(slug: string) {
-  return useApiQuery<NewsArticle>(
-    ["news", slug],
-    `/news/${slug}`,
-    undefined,
-    {
-      schema: newsArticleSchema,
-      enabled: !!slug,
-    }
-  );
+  return useApiQuery<NewsArticle>(["news", slug], `/news/${slug}`, undefined, {
+    schema: newsArticleSchema,
+    enabled: !!slug,
+  });
 }

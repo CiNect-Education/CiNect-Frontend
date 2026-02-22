@@ -38,11 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -191,28 +187,18 @@ export default function AdminUsersPage() {
         accessorKey: "createdAt",
         header: "Created",
         cell: ({ row }) =>
-          row.original.createdAt
-            ? format(new Date(row.original.createdAt), "dd/MM/yyyy")
-            : "—",
+          row.original.createdAt ? format(new Date(row.original.createdAt), "dd/MM/yyyy") : "—",
       },
       {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => openEdit(row.original)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => openEdit(row.original)}>
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDeleteTarget(row.original)}
-            >
-              <Trash2 className="h-4 w-4 text-destructive" />
+            <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(row.original)}>
+              <Trash2 className="text-destructive h-4 w-4" />
             </Button>
           </div>
         ),
@@ -226,10 +212,7 @@ export default function AdminUsersPage() {
       <PageHeader
         title={t("users")}
         description="Manage users, roles, and staff cinema assignments."
-        breadcrumbs={[
-          { label: t("title"), href: "/admin" },
-          { label: t("users") },
-        ]}
+        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("users") }]}
         actions={
           <Button onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />
@@ -251,10 +234,7 @@ export default function AdminUsersPage() {
             <DialogTitle>Create User</DialogTitle>
           </DialogHeader>
           <Form {...createForm}>
-            <form
-              onSubmit={createForm.handleSubmit(onCreateSubmit)}
-              className="space-y-4"
-            >
+            <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
               <FormField
                 control={createForm.control}
                 name="fullName"
@@ -300,10 +280,7 @@ export default function AdminUsersPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select role" />
@@ -333,17 +310,10 @@ export default function AdminUsersPage() {
                 )}
               />
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCreateDialogOpen(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending}
-                >
+                <Button type="submit" disabled={createMutation.isPending}>
                   Create
                 </Button>
               </DialogFooter>
@@ -358,10 +328,7 @@ export default function AdminUsersPage() {
             <DialogTitle>Edit User</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
-            <form
-              onSubmit={editForm.handleSubmit(onEditSubmit)}
-              className="space-y-4"
-            >
+            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
               <FormField
                 control={editForm.control}
                 name="fullName"
@@ -394,10 +361,7 @@ export default function AdminUsersPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select role" />
@@ -450,12 +414,9 @@ export default function AdminUsersPage() {
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-full p-0" align="start">
-                          <div className="max-h-64 overflow-y-auto p-2 space-y-2">
+                          <div className="max-h-64 space-y-2 overflow-y-auto p-2">
                             {actualCinemas.map((c) => (
-                              <label
-                                key={c.id}
-                                className="flex items-center gap-2 cursor-pointer"
-                              >
+                              <label key={c.id} className="flex cursor-pointer items-center gap-2">
                                 <Checkbox
                                   checked={field.value?.includes(c.id) ?? false}
                                   onCheckedChange={(checked) => {
@@ -479,17 +440,10 @@ export default function AdminUsersPage() {
                 />
               )}
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setEditDialogOpen(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={updateMutation.isPending}
-                >
+                <Button type="submit" disabled={updateMutation.isPending}>
                   Update
                 </Button>
               </DialogFooter>
@@ -498,16 +452,13 @@ export default function AdminUsersPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-      >
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete User</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deleteTarget?.fullName}&quot;?
-              This action cannot be undone.
+              Are you sure you want to delete &quot;{deleteTarget?.fullName}&quot;? This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

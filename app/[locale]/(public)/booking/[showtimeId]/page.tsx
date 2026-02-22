@@ -16,11 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  useShowtimeSeats,
-  useHoldSeats,
-  useReleaseHold,
-} from "@/hooks/queries/use-booking-flow";
+import { useShowtimeSeats, useHoldSeats, useReleaseHold } from "@/hooks/queries/use-booking-flow";
 import { useSeatRealtime } from "@/hooks/use-seat-realtime";
 import { ApiError } from "@/lib/api-client";
 import { AlertCircle } from "lucide-react";
@@ -57,14 +53,10 @@ export default function BookingPage() {
   const seats = seatsData?.data ?? (seatsData as unknown as Seat[]);
   const holdMutation = useHoldSeats();
   const releaseMutation = useReleaseHold();
-  const {
-    conflictedSeatIds: realtimeConflicts,
-    clearConflicts: clearRealtimeConflicts,
-  } = useSeatRealtime(showtimeId, selectedSeats);
+  const { conflictedSeatIds: realtimeConflicts, clearConflicts: clearRealtimeConflicts } =
+    useSeatRealtime(showtimeId, selectedSeats);
 
-  const allConflicts = [
-    ...new Set([...conflictedSeatIds, ...realtimeConflicts]),
-  ];
+  const allConflicts = [...new Set([...conflictedSeatIds, ...realtimeConflicts])];
 
   const handleSeatClick = (seatId: string) => {
     setConflictedSeatIds([]);
@@ -83,12 +75,14 @@ export default function BookingPage() {
         seatIds: selectedSeats,
       });
       const payload = response?.data ?? response;
-      const holdIdVal = typeof payload === "object" && payload && "holdId" in payload
-        ? (payload as { holdId: string }).holdId
-        : (response as { holdId?: string }).holdId;
-      const expiresAtVal = typeof payload === "object" && payload && "expiresAt" in payload
-        ? (payload as { expiresAt: string }).expiresAt
-        : (response as { expiresAt?: string }).expiresAt;
+      const holdIdVal =
+        typeof payload === "object" && payload && "holdId" in payload
+          ? (payload as { holdId: string }).holdId
+          : (response as { holdId?: string }).holdId;
+      const expiresAtVal =
+        typeof payload === "object" && payload && "expiresAt" in payload
+          ? (payload as { expiresAt: string }).expiresAt
+          : (response as { expiresAt?: string }).expiresAt;
       setHoldId(holdIdVal ?? null);
       setExpiresAt(expiresAtVal ?? null);
     } catch (err) {
@@ -136,10 +130,7 @@ export default function BookingPage() {
 
   const seatArray = Array.isArray(seats) ? seats : [];
   const selectedSeatDetails = seatArray.filter((s) => selectedSeats.includes(s.id));
-  const totalPrice = selectedSeatDetails.reduce(
-    (sum, seat) => sum + (seat.price ?? 0),
-    0
-  );
+  const totalPrice = selectedSeatDetails.reduce((sum, seat) => sum + (seat.price ?? 0), 0);
 
   if (isLoading) {
     return (
@@ -178,31 +169,26 @@ export default function BookingPage() {
                 selectedSeats={selectedSeats}
                 onSeatClick={handleSeatClick}
                 disabled={!!holdId}
-                conflictedSeatIds={
-                  allConflicts.length > 0 ? allConflicts : undefined
-                }
+                conflictedSeatIds={allConflicts.length > 0 ? allConflicts : undefined}
               />
             </CardContent>
           </Card>
         </div>
 
         {/* Sticky sidebar (desktop) */}
-        <div className="hidden lg:block lg:sticky lg:top-4 lg:self-start">
+        <div className="hidden lg:sticky lg:top-4 lg:block lg:self-start">
           <Card>
             <CardHeader>
               <CardTitle>Booking Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {expiresAt && (
-                <CountdownTimer expiresAt={expiresAt} onExpire={handleExpire} />
-              )}
+              {expiresAt && <CountdownTimer expiresAt={expiresAt} onExpire={handleExpire} />}
 
               {allConflicts.length > 0 && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Some seats are no longer available. Please select different
-                    seats.
+                    Some seats are no longer available. Please select different seats.
                   </AlertDescription>
                 </Alert>
               )}
@@ -210,9 +196,7 @@ export default function BookingPage() {
               {selectedSeats.length === 0 && !holdId && allConflicts.length === 0 && (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Please select at least one seat
-                  </AlertDescription>
+                  <AlertDescription>Please select at least one seat</AlertDescription>
                 </Alert>
               )}
 
@@ -223,7 +207,7 @@ export default function BookingPage() {
                       <span className="text-muted-foreground">Seats:</span>
                       <span className="font-medium">{selectedSeats.length}</span>
                     </div>
-                    <div className="space-y-1 text-xs text-muted-foreground">
+                    <div className="text-muted-foreground space-y-1 text-xs">
                       {selectedSeatDetails.map((seat) => (
                         <div key={seat.id} className="flex justify-between">
                           <span>
@@ -234,18 +218,13 @@ export default function BookingPage() {
                               "Standard"}
                             )
                           </span>
-                          <span>
-                            $
-                            {(seat.price ?? 0).toFixed(2)}
-                          </span>
+                          <span>${(seat.price ?? 0).toFixed(2)}</span>
                         </div>
                       ))}
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Total:</span>
-                      <span className="text-lg font-bold">
-                        ${totalPrice.toFixed(2)}
-                      </span>
+                      <span className="text-lg font-bold">${totalPrice.toFixed(2)}</span>
                     </div>
                   </div>
                 </>
@@ -255,9 +234,7 @@ export default function BookingPage() {
                 <Button
                   className="w-full"
                   size="lg"
-                  disabled={
-                    selectedSeats.length === 0 || holdMutation.isPending
-                  }
+                  disabled={selectedSeats.length === 0 || holdMutation.isPending}
                   onClick={() => void handleHoldSeats()}
                 >
                   {holdMutation.isPending ? "Holding..." : "Continue"}
@@ -273,11 +250,9 @@ export default function BookingPage() {
       </div>
 
       {/* Mobile bottom bar */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background p-4 lg:hidden">
+      <div className="bg-background fixed inset-x-0 bottom-0 z-40 border-t p-4 lg:hidden">
         <div className="mx-auto flex max-w-7xl flex-col gap-2">
-          {expiresAt && (
-            <CountdownTimer expiresAt={expiresAt} onExpire={handleExpire} />
-          )}
+          {expiresAt && <CountdownTimer expiresAt={expiresAt} onExpire={handleExpire} />}
           <div className="flex items-center justify-between gap-4">
             <div>
               <div className="text-sm font-medium">
@@ -287,19 +262,19 @@ export default function BookingPage() {
               </div>
               <div className="text-lg font-bold">${totalPrice.toFixed(2)}</div>
             </div>
-          {!holdId ? (
-            <Button
-              size="lg"
-              disabled={selectedSeats.length === 0 || holdMutation.isPending}
-              onClick={() => void handleHoldSeats()}
-            >
-              {holdMutation.isPending ? "Holding..." : "Continue"}
-            </Button>
-          ) : (
-            <Button size="lg" onClick={handleProceed}>
-              Proceed
-            </Button>
-          )}
+            {!holdId ? (
+              <Button
+                size="lg"
+                disabled={selectedSeats.length === 0 || holdMutation.isPending}
+                onClick={() => void handleHoldSeats()}
+              >
+                {holdMutation.isPending ? "Holding..." : "Continue"}
+              </Button>
+            ) : (
+              <Button size="lg" onClick={handleProceed}>
+                Proceed
+              </Button>
+            )}
           </div>
         </div>
       </div>

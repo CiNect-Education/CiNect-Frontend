@@ -21,7 +21,7 @@ export function DemoBackendBadge() {
   return (
     <Badge
       variant="outline"
-      className="cursor-pointer select-none border-primary/40 text-xs font-medium text-primary hover:bg-primary/10"
+      className="border-primary/40 text-primary hover:bg-primary/10 cursor-pointer text-xs font-medium select-none"
       onClick={toggle}
     >
       {backend}

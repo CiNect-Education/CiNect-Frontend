@@ -4,12 +4,7 @@ import { useApiMutation } from "@/hooks/use-api-mutation";
 import { userSchema, authResponseSchema } from "@/lib/schemas/auth";
 import type { User } from "@/types/domain";
 import type { LoginInput, RegisterInput } from "@/lib/schemas/auth";
-import {
-  setAccessToken,
-  setRefreshToken,
-  clearTokens,
-  hasToken,
-} from "@/lib/auth-storage";
+import { setAccessToken, setRefreshToken, clearTokens, hasToken } from "@/lib/auth-storage";
 
 // ─── Queries ───────────────────────────────────────────────────────
 
@@ -27,39 +22,37 @@ export function useCurrentUser(apiReady = true) {
 export function useLogin() {
   const queryClient = useQueryClient();
 
-  return useApiMutation<{ user: User; tokens: { accessToken: string; refreshToken: string; expiresIn: number } }, LoginInput>(
-    "post",
-    "/auth/login",
-    {
-      schema: authResponseSchema,
-      successMessage: "Login successful",
-      onSuccess: (res) => {
-        const { user, tokens } = res.data;
-        setAccessToken(tokens.accessToken);
-        setRefreshToken(tokens.refreshToken);
-        queryClient.setQueryData(["auth", "me"], { data: user, timestamp: new Date().toISOString() });
-      },
-    }
-  );
+  return useApiMutation<
+    { user: User; tokens: { accessToken: string; refreshToken: string; expiresIn: number } },
+    LoginInput
+  >("post", "/auth/login", {
+    schema: authResponseSchema,
+    successMessage: "Login successful",
+    onSuccess: (res) => {
+      const { user, tokens } = res.data;
+      setAccessToken(tokens.accessToken);
+      setRefreshToken(tokens.refreshToken);
+      queryClient.setQueryData(["auth", "me"], { data: user, timestamp: new Date().toISOString() });
+    },
+  });
 }
 
 export function useRegister() {
   const queryClient = useQueryClient();
 
-  return useApiMutation<{ user: User; tokens: { accessToken: string; refreshToken: string; expiresIn: number } }, RegisterInput>(
-    "post",
-    "/auth/register",
-    {
-      schema: authResponseSchema,
-      successMessage: "Registration successful",
-      onSuccess: (res) => {
-        const { user, tokens } = res.data;
-        setAccessToken(tokens.accessToken);
-        setRefreshToken(tokens.refreshToken);
-        queryClient.setQueryData(["auth", "me"], { data: user, timestamp: new Date().toISOString() });
-      },
-    }
-  );
+  return useApiMutation<
+    { user: User; tokens: { accessToken: string; refreshToken: string; expiresIn: number } },
+    RegisterInput
+  >("post", "/auth/register", {
+    schema: authResponseSchema,
+    successMessage: "Registration successful",
+    onSuccess: (res) => {
+      const { user, tokens } = res.data;
+      setAccessToken(tokens.accessToken);
+      setRefreshToken(tokens.refreshToken);
+      queryClient.setQueryData(["auth", "me"], { data: user, timestamp: new Date().toISOString() });
+    },
+  });
 }
 
 export function useLogout() {
@@ -75,11 +68,9 @@ export function useLogout() {
 }
 
 export function useForgotPassword() {
-  return useApiMutation<void, { email: string }>(
-    "post",
-    "/auth/forgot-password",
-    { successMessage: "Password reset email sent" }
-  );
+  return useApiMutation<void, { email: string }>("post", "/auth/forgot-password", {
+    successMessage: "Password reset email sent",
+  });
 }
 
 export function useResetPassword() {

@@ -72,9 +72,7 @@ export default function AdminRoomsPage() {
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Room | null>(null);
 
-  const { data: roomsRes } = useAdminRooms(
-    cinemaFilter ? { cinemaId: cinemaFilter } : undefined
-  );
+  const { data: roomsRes } = useAdminRooms(cinemaFilter ? { cinemaId: cinemaFilter } : undefined);
   const { data: cinemasRes } = useAdminCinemas();
   const rooms = roomsRes?.data ?? [];
   const cinemas = cinemasRes?.data ?? [];
@@ -147,8 +145,7 @@ export default function AdminRoomsPage() {
       {
         id: "cinema",
         header: "Cinema",
-        cell: ({ row }) =>
-          row.original.cinemaName ?? row.original.cinemaId ?? "—",
+        cell: ({ row }) => row.original.cinemaName ?? row.original.cinemaId ?? "—",
       },
       {
         accessorKey: "format",
@@ -168,19 +165,11 @@ export default function AdminRoomsPage() {
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => openEdit(row.original)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => openEdit(row.original)}>
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDeleteTarget(row.original)}
-            >
-              <Trash2 className="h-4 w-4 text-destructive" />
+            <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(row.original)}>
+              <Trash2 className="text-destructive h-4 w-4" />
             </Button>
           </div>
         ),
@@ -194,10 +183,7 @@ export default function AdminRoomsPage() {
       <PageHeader
         title={t("rooms")}
         description="Manage screening rooms across all cinema locations."
-        breadcrumbs={[
-          { label: t("title"), href: "/admin" },
-          { label: t("rooms") },
-        ]}
+        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("rooms") }]}
         actions={
           <Button onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />
@@ -235,15 +221,10 @@ export default function AdminRoomsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>
-              {editingRoom ? "Edit Room" : "Add Room"}
-            </DialogTitle>
+            <DialogTitle>{editingRoom ? "Edit Room" : "Add Room"}</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -263,10 +244,7 @@ export default function AdminRoomsPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Cinema</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select cinema" />
@@ -290,10 +268,7 @@ export default function AdminRoomsPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Format</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -359,27 +334,18 @@ export default function AdminRoomsPage() {
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <FormLabel>Active</FormLabel>
                     <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
                   </FormItem>
                 )}
               />
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setDialogOpen(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  disabled={
-                    createMutation.isPending || updateMutation.isPending
-                  }
+                  disabled={createMutation.isPending || updateMutation.isPending}
                 >
                   {editingRoom ? "Update" : "Create"}
                 </Button>
@@ -389,16 +355,13 @@ export default function AdminRoomsPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-      >
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Room</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deleteTarget?.name}&quot;?
-              This action cannot be undone.
+              Are you sure you want to delete &quot;{deleteTarget?.name}&quot;? This action cannot
+              be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

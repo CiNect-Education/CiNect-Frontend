@@ -48,10 +48,10 @@ export function QuickBookingWidget() {
   const canBook = selectedMovie || selectedCinema || selectedDate;
 
   return (
-    <Card className="border-2 border-primary/20 bg-card/50 backdrop-blur">
+    <Card className="border-primary/20 bg-card/50 border-2 backdrop-blur">
       <CardContent className="p-6">
         <div className="mb-6 flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-primary" />
+          <Calendar className="text-primary h-5 w-5" />
           <h2 className="text-xl font-semibold text-balance">
             {t("quickBooking") || "Quick Booking"}
           </h2>
@@ -128,12 +128,7 @@ export function QuickBookingWidget() {
 
           {/* Book Button */}
           <div className="flex items-end">
-            <Button
-              onClick={handleQuickBook}
-              disabled={!canBook}
-              className="w-full"
-              size="lg"
-            >
+            <Button onClick={handleQuickBook} disabled={!canBook} className="w-full" size="lg">
               {t("findShowtimes") || "Find Showtimes"}
             </Button>
           </div>

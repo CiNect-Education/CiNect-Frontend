@@ -51,8 +51,8 @@ export default function CampaignPage() {
   if (isLoading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
-        <Skeleton className="h-12 w-96 mb-6" />
-        <Skeleton className="aspect-[21/9] w-full rounded-lg mb-8" />
+        <Skeleton className="mb-6 h-12 w-96" />
+        <Skeleton className="mb-8 aspect-[21/9] w-full rounded-lg" />
         <Skeleton className="h-32 w-full" />
       </div>
     );
@@ -70,7 +70,7 @@ export default function CampaignPage() {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
         <p className="text-muted-foreground">Campaign not found</p>
-        <Link href="/campaigns" className="text-primary hover:underline mt-2 inline-block">
+        <Link href="/campaigns" className="text-primary mt-2 inline-block hover:underline">
           Back to campaigns
         </Link>
       </div>
@@ -95,13 +95,13 @@ export default function CampaignPage() {
           <img
             src={campaign.bannerUrl ?? campaign.imageUrl}
             alt={campaign.title}
-            className="w-full aspect-[21/9] object-cover"
+            className="aspect-[21/9] w-full object-cover"
           />
         </div>
       )}
 
       {/* Campaign Content */}
-      <div className="prose prose-neutral dark:prose-invert max-w-none mb-10">
+      <div className="prose prose-neutral dark:prose-invert mb-10 max-w-none">
         {campaign.content ? (
           <div dangerouslySetInnerHTML={{ __html: campaign.content }} />
         ) : (
@@ -112,7 +112,7 @@ export default function CampaignPage() {
       {/* Date Range */}
       <Card className="mb-10">
         <CardContent className="flex items-center gap-2 pt-6">
-          <Calendar className="h-5 w-5 text-primary" />
+          <Calendar className="text-primary h-5 w-5" />
           <span className="text-sm">
             {format(new Date(campaign.startDate), "PPP")} –{" "}
             {format(new Date(campaign.endDate), "PPP")}
@@ -124,7 +124,7 @@ export default function CampaignPage() {
       {campaign.movies && campaign.movies.length > 0 && (
         <Card className="mb-10">
           <CardHeader className="pb-4">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
+            <h2 className="flex items-center gap-2 text-xl font-semibold">
               <Film className="h-5 w-5" />
               Featured Movies
             </h2>
@@ -133,8 +133,8 @@ export default function CampaignPage() {
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
               {campaign.movies.map((movie) => (
                 <Link key={movie.id} href={`/movies/${movie.id}`}>
-                  <div className="rounded-lg overflow-hidden border transition hover:border-primary/50">
-                    <div className="aspect-[2/3] bg-muted">
+                  <div className="hover:border-primary/50 overflow-hidden rounded-lg border transition">
+                    <div className="bg-muted aspect-[2/3]">
                       {movie.posterUrl ? (
                         <img
                           src={movie.posterUrl}
@@ -143,12 +143,12 @@ export default function CampaignPage() {
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center">
-                          <Film className="h-8 w-8 text-muted-foreground" />
+                          <Film className="text-muted-foreground h-8 w-8" />
                         </div>
                       )}
                     </div>
                     <div className="p-3">
-                      <h3 className="font-medium text-sm line-clamp-2">{movie.title}</h3>
+                      <h3 className="line-clamp-2 text-sm font-medium">{movie.title}</h3>
                     </div>
                   </div>
                 </Link>
@@ -162,7 +162,7 @@ export default function CampaignPage() {
       {campaign.promotions && campaign.promotions.length > 0 && (
         <Card>
           <CardHeader className="pb-4">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
+            <h2 className="flex items-center gap-2 text-xl font-semibold">
               <Tag className="h-5 w-5" />
               Related Promotions
             </h2>
@@ -171,7 +171,7 @@ export default function CampaignPage() {
             <div className="flex flex-wrap gap-3">
               {campaign.promotions.map((promo) => (
                 <Link key={promo.id} href="/promotions">
-                  <Badge variant="secondary" className="px-4 py-2 text-sm hover:bg-primary/20">
+                  <Badge variant="secondary" className="hover:bg-primary/20 px-4 py-2 text-sm">
                     {promo.title} – {promo.code}
                   </Badge>
                 </Link>

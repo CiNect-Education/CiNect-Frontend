@@ -29,12 +29,9 @@ export function useActiveCampaigns() {
 }
 
 export function useCampaign(slug: string) {
-  return useApiQuery<Campaign>(
-    ["campaigns", slug],
-    `/campaigns/${slug}`,
-    undefined,
-    { enabled: !!slug }
-  );
+  return useApiQuery<Campaign>(["campaigns", slug], `/campaigns/${slug}`, undefined, {
+    enabled: !!slug,
+  });
 }
 
 export function useBanners(position: string) {

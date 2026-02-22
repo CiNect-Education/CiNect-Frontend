@@ -13,11 +13,7 @@ interface MovieCarouselProps {
   viewAllHref?: string;
 }
 
-export function MovieCarousel({
-  movies,
-  title,
-  viewAllHref,
-}: MovieCarouselProps) {
+export function MovieCarousel({ movies, title, viewAllHref }: MovieCarouselProps) {
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
@@ -32,8 +28,8 @@ export function MovieCarousel({
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {movies.map((movie) => (
           <Link key={movie.id} href={`/movies/${movie.id}`}>
-            <Card className="group overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/20">
-              <div className="relative aspect-[2/3] overflow-hidden bg-muted">
+            <Card className="group hover:shadow-primary/20 overflow-hidden transition-all hover:shadow-lg">
+              <div className="bg-muted relative aspect-[2/3] overflow-hidden">
                 {movie.posterUrl ? (
                   <img
                     src={movie.posterUrl}
@@ -41,28 +37,30 @@ export function MovieCarousel({
                     className="h-full w-full object-cover transition-transform group-hover:scale-105"
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-muted-foreground">
+                  <div className="text-muted-foreground flex h-full items-center justify-center">
                     No Image
                   </div>
                 )}
                 {movie.rating && (
-                  <Badge className="absolute right-2 top-2 bg-black/80">
-                    {movie.rating}
-                  </Badge>
+                  <Badge className="absolute top-2 right-2 bg-black/80">{movie.rating}</Badge>
                 )}
               </div>
               <CardContent className="p-4">
-                <h3 className="mb-2 line-clamp-1 font-semibold text-balance">
-                  {movie.title}
-                </h3>
-                <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                <h3 className="mb-2 line-clamp-1 font-semibold text-balance">{movie.title}</h3>
+                <div className="text-muted-foreground flex flex-wrap gap-2 text-sm">
                   {movie.genres && movie.genres.length > 0 && (
                     <span className="line-clamp-1">
-                      {movie.genres.map((g) => (typeof g === "object" && g !== null && "name" in g ? (g as { name: string }).name : String(g))).join(", ")}
+                      {movie.genres
+                        .map((g) =>
+                          typeof g === "object" && g !== null && "name" in g
+                            ? (g as { name: string }).name
+                            : String(g)
+                        )
+                        .join(", ")}
                     </span>
                   )}
                 </div>
-                <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                <div className="text-muted-foreground mt-2 flex items-center gap-3 text-xs">
                   {movie.duration && (
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
@@ -71,7 +69,7 @@ export function MovieCarousel({
                   )}
                   {movie.rating != null && (
                     <span className="flex items-center gap-1">
-                      <Star className="h-3 w-3 fill-primary text-primary" />
+                      <Star className="fill-primary text-primary h-3 w-3" />
                       {movie.rating}
                     </span>
                   )}

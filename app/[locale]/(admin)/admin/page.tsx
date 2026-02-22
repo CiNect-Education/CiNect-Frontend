@@ -16,14 +16,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import {
-  Users,
-  Ticket,
-  Film,
-  DollarSign,
-  Building2,
-  TrendingUp,
-} from "lucide-react";
+import { Users, Ticket, Film, DollarSign, Building2, TrendingUp } from "lucide-react";
 import {
   useAdminKPIs,
   useAdminRevenue,
@@ -38,12 +31,9 @@ export default function AdminDashboardPage() {
   const [chartRange] = useState("30d");
 
   const { data: kpisRes, isLoading: kpisLoading } = useAdminKPIs(kpiRange);
-  const { data: revenueRes, isLoading: revenueLoading } =
-    useAdminRevenue(chartRange);
-  const { data: occupancyRes, isLoading: occupancyLoading } =
-    useAdminOccupancy(chartRange);
-  const { data: bookingsRes, isLoading: bookingsLoading } =
-    useAdminRecentBookings(10);
+  const { data: revenueRes, isLoading: revenueLoading } = useAdminRevenue(chartRange);
+  const { data: occupancyRes, isLoading: occupancyLoading } = useAdminOccupancy(chartRange);
+  const { data: bookingsRes, isLoading: bookingsLoading } = useAdminRecentBookings(10);
 
   const kpis = kpisRes?.data;
   const revenueData = revenueRes?.data ?? [];
@@ -92,16 +82,14 @@ export default function AdminDashboardPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  <p className="text-muted-foreground text-sm">{stat.label}</p>
                   <p className="mt-1 text-2xl font-bold">{stat.value}</p>
                   {"sublabel" in stat && (stat as any).sublabel && (
-                    <p className="text-xs text-muted-foreground">
-                      {(stat as any).sublabel}
-                    </p>
+                    <p className="text-muted-foreground text-xs">{(stat as any).sublabel}</p>
                   )}
                 </div>
-                <div className="rounded-full bg-primary/10 p-2.5">
-                  <stat.icon className="h-5 w-5 text-primary" />
+                <div className="bg-primary/10 rounded-full p-2.5">
+                  <stat.icon className="text-primary h-5 w-5" />
                 </div>
               </div>
             </CardContent>
@@ -119,7 +107,7 @@ export default function AdminDashboardPage() {
             {revenueLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : revenueData.length === 0 ? (
-              <div className="flex h-64 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+              <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed text-sm">
                 No revenue data
               </div>
             ) : (
@@ -127,17 +115,10 @@ export default function AdminDashboardPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={revenueData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="date"
-                      tickFormatter={(v) =>
-                        format(new Date(v), "MM/dd")
-                      }
-                    />
+                    <XAxis dataKey="date" tickFormatter={(v) => format(new Date(v), "MM/dd")} />
                     <YAxis />
                     <Tooltip
-                      formatter={(value) =>
-                        (value as number).toLocaleString()
-                      }
+                      formatter={(value) => (value as number).toLocaleString()}
                       labelFormatter={(v) => format(new Date(v), "MMM d, yyyy")}
                     />
                     <Line
@@ -162,7 +143,7 @@ export default function AdminDashboardPage() {
             {occupancyLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : occupancyData.length === 0 ? (
-              <div className="flex h-64 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+              <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed text-sm">
                 No occupancy data
               </div>
             ) : (
@@ -170,24 +151,13 @@ export default function AdminDashboardPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={occupancyData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="date"
-                      tickFormatter={(v) =>
-                        format(new Date(v), "MM/dd")
-                      }
-                    />
+                    <XAxis dataKey="date" tickFormatter={(v) => format(new Date(v), "MM/dd")} />
                     <YAxis tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} />
                     <Tooltip
-                      formatter={(value) =>
-                        `${(Number(value) * 100).toFixed(1)}%`
-                      }
+                      formatter={(value) => `${(Number(value) * 100).toFixed(1)}%`}
                       labelFormatter={(v) => format(new Date(v), "MMM d, yyyy")}
                     />
-                    <Bar
-                      dataKey="occupancy"
-                      fill="hsl(var(--primary))"
-                      radius={[4, 4, 0, 0]}
-                    />
+                    <Bar dataKey="occupancy" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -214,7 +184,7 @@ export default function AdminDashboardPage() {
                 ))}
               </div>
             ) : recentBookings.length === 0 ? (
-              <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
+              <div className="text-muted-foreground flex h-48 items-center justify-center text-sm">
                 No recent bookings
               </div>
             ) : (
@@ -226,21 +196,19 @@ export default function AdminDashboardPage() {
                   >
                     <div>
                       <p className="font-medium">{b.movieTitle}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-muted-foreground text-sm">
                         {b.cinemaName} · {format(new Date(b.createdAt), "MMM d, HH:mm")}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-mono font-medium">
-                        {b.finalAmount.toLocaleString()} ₫
-                      </p>
+                      <p className="font-mono font-medium">{b.finalAmount.toLocaleString()} ₫</p>
                       <span
                         className={`inline-block rounded px-2 py-0.5 text-xs ${
                           b.status === "CONFIRMED"
                             ? "bg-green-500/20 text-green-700 dark:text-green-400"
                             : b.status === "CANCELLED"
-                            ? "bg-red-500/20 text-red-700 dark:text-red-400"
-                            : "bg-muted text-muted-foreground"
+                              ? "bg-red-500/20 text-red-700 dark:text-red-400"
+                              : "bg-muted text-muted-foreground"
                         }`}
                       >
                         {b.status}

@@ -43,9 +43,7 @@ export function CitySelector() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="gap-1.5 text-sm">
           <MapPin className="h-4 w-4" />
-          <span className="hidden sm:inline">
-            {currentCity?.name || t("selectCity")}
-          </span>
+          <span className="hidden sm:inline">{currentCity?.name || t("selectCity")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">

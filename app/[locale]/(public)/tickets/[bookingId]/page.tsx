@@ -93,17 +93,12 @@ export default function TicketPage() {
         <CardContent className="space-y-6">
           {/* QR Code */}
           <div className="flex justify-center py-6">
-            <div className="rounded-lg border-4 border-primary/20 p-4">
-              <QRCodeSVG
-                value={qrCode ?? bookingId}
-                size={200}
-                level="H"
-                includeMargin={false}
-              />
+            <div className="border-primary/20 rounded-lg border-4 p-4">
+              <QRCodeSVG value={qrCode ?? bookingId} size={200} level="H" includeMargin={false} />
             </div>
           </div>
 
-          <div className="text-center text-sm text-muted-foreground">
+          <div className="text-muted-foreground text-center text-sm">
             Scan this code at the cinema entrance
           </div>
 
@@ -112,46 +107,42 @@ export default function TicketPage() {
           {/* Booking Details */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex items-start gap-3">
-              <Calendar className="mt-0.5 h-5 w-5 text-muted-foreground" />
+              <Calendar className="text-muted-foreground mt-0.5 h-5 w-5" />
               <div className="space-y-1">
                 <div className="text-sm font-medium">Date & Time</div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-muted-foreground text-sm">
                   {format(new Date(showtimeStr), "PPP")}
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-muted-foreground text-sm">
                   {format(new Date(showtimeStr), "p")}
                 </div>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <MapPin className="mt-0.5 h-5 w-5 text-muted-foreground" />
+              <MapPin className="text-muted-foreground mt-0.5 h-5 w-5" />
               <div className="space-y-1">
                 <div className="text-sm font-medium">Cinema</div>
-                <div className="text-sm text-muted-foreground">{cinemaName}</div>
-                <div className="text-sm text-muted-foreground">
-                  Room {roomName}
-                </div>
+                <div className="text-muted-foreground text-sm">{cinemaName}</div>
+                <div className="text-muted-foreground text-sm">Room {roomName}</div>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <Users className="mt-0.5 h-5 w-5 text-muted-foreground" />
+              <Users className="text-muted-foreground mt-0.5 h-5 w-5" />
               <div className="space-y-1">
                 <div className="text-sm font-medium">Seats</div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-muted-foreground text-sm">
                   {seats?.map((s) => `${s.row}${s.number}`).join(", ") ?? "—"}
                 </div>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <Clock className="mt-0.5 h-5 w-5 text-muted-foreground" />
+              <Clock className="text-muted-foreground mt-0.5 h-5 w-5" />
               <div className="space-y-1">
                 <div className="text-sm font-medium">Showtime</div>
-                <div className="text-sm text-muted-foreground">
-                  {showtimeStr}
-                </div>
+                <div className="text-muted-foreground text-sm">{showtimeStr}</div>
               </div>
             </div>
           </div>
@@ -168,11 +159,7 @@ export default function TicketPage() {
                         {snack.quantity}x {snack.name}
                       </span>
                       <span>
-                        $
-                        {(
-                          (snack.unitPrice ?? snack.totalPrice ?? 0) *
-                          snack.quantity
-                        ).toFixed(2)}
+                        ${((snack.unitPrice ?? snack.totalPrice ?? 0) * snack.quantity).toFixed(2)}
                       </span>
                     </div>
                   ))}
@@ -187,15 +174,8 @@ export default function TicketPage() {
           <div className="space-y-2">
             {seats && seats.length > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">
-                  Tickets ({seats.length})
-                </span>
-                <span>
-                  $
-                  {seats
-                    .reduce((s, seat) => s + (seat.price ?? 0), 0)
-                    .toFixed(2)}
-                </span>
+                <span className="text-muted-foreground">Tickets ({seats.length})</span>
+                <span>${seats.reduce((s, seat) => s + (seat.price ?? 0), 0).toFixed(2)}</span>
               </div>
             )}
             {snacks && snacks.length > 0 && (
@@ -206,9 +186,7 @@ export default function TicketPage() {
                   {snacks
                     .reduce(
                       (s, snack) =>
-                        s +
-                        (snack.totalPrice ??
-                          (snack.unitPrice ?? 0) * snack.quantity),
+                        s + (snack.totalPrice ?? (snack.unitPrice ?? 0) * snack.quantity),
                       0
                     )
                     .toFixed(2)}
@@ -231,14 +209,10 @@ export default function TicketPage() {
           </div>
 
           {/* Booking Info */}
-          <div className="space-y-1 rounded-lg bg-muted p-4 text-xs text-muted-foreground">
+          <div className="bg-muted text-muted-foreground space-y-1 rounded-lg p-4 text-xs">
             <div>Booking ID: {booking.id}</div>
-            <div>
-              Transaction ID: {payment?.transactionId ?? "N/A"}
-            </div>
-            <div>
-              Booked on: {format(new Date(booking.createdAt), "PPp")}
-            </div>
+            <div>Transaction ID: {payment?.transactionId ?? "N/A"}</div>
+            <div>Booked on: {format(new Date(booking.createdAt), "PPp")}</div>
           </div>
         </CardContent>
       </Card>

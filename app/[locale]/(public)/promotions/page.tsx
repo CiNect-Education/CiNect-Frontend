@@ -9,12 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePromotions } from "@/hooks/queries/use-promotions";
 import { Tag, Copy, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Promotion } from "@/types/domain";
@@ -87,9 +82,9 @@ export default function PromotionsPage() {
         <ApiErrorState error={error} onRetry={refetch} />
       ) : promotions.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-          <Tag className="mb-3 h-12 w-12 text-muted-foreground" />
+          <Tag className="text-muted-foreground mb-3 h-12 w-12" />
           <h3 className="mb-2 text-lg font-semibold">{t("emptyState") || "No promotions"}</h3>
-          <p className="text-sm text-muted-foreground">Check back later for new offers.</p>
+          <p className="text-muted-foreground text-sm">Check back later for new offers.</p>
         </div>
       ) : (
         <>
@@ -100,7 +95,7 @@ export default function PromotionsPage() {
                 className="cursor-pointer overflow-hidden transition-all hover:shadow-lg"
                 onClick={() => setSelectedPromo(promo)}
               >
-                <div className="aspect-video overflow-hidden bg-muted">
+                <div className="bg-muted aspect-video overflow-hidden">
                   {promo.imageUrl ? (
                     <img
                       src={promo.imageUrl}
@@ -109,13 +104,13 @@ export default function PromotionsPage() {
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
-                      <Tag className="h-16 w-16 text-muted-foreground" />
+                      <Tag className="text-muted-foreground h-16 w-16" />
                     </div>
                   )}
                 </div>
                 <CardContent className="p-4">
-                  <h3 className="mb-2 font-semibold line-clamp-1">{promo.title}</h3>
-                  <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
+                  <h3 className="mb-2 line-clamp-1 font-semibold">{promo.title}</h3>
+                  <p className="text-muted-foreground mb-3 line-clamp-2 text-sm">
                     {promo.description}
                   </p>
                   <div className="flex flex-wrap items-center gap-2">
@@ -126,11 +121,9 @@ export default function PromotionsPage() {
                           : `Save ${promo.discountValue}`}
                       </Badge>
                     )}
-                    {promo.code && (
-                      <Badge variant="outline">{promo.code}</Badge>
-                    )}
+                    {promo.code && <Badge variant="outline">{promo.code}</Badge>}
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
+                  <p className="text-muted-foreground mt-2 text-xs">
                     Valid: {new Date(promo.startDate).toLocaleDateString()} –{" "}
                     {new Date(promo.endDate).toLocaleDateString()}
                   </p>
@@ -149,7 +142,7 @@ export default function PromotionsPage() {
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="px-4 text-sm text-muted-foreground">
+              <span className="text-muted-foreground px-4 text-sm">
                 Page {currentPage} of {totalPages}
               </span>
               <Button
@@ -174,7 +167,7 @@ export default function PromotionsPage() {
               </DialogHeader>
               <div className="space-y-4">
                 {selectedPromo.imageUrl && (
-                  <div className="aspect-video overflow-hidden rounded-lg bg-muted">
+                  <div className="bg-muted aspect-video overflow-hidden rounded-lg">
                     <img
                       src={selectedPromo.imageUrl}
                       alt={selectedPromo.title}
@@ -182,9 +175,9 @@ export default function PromotionsPage() {
                     />
                   </div>
                 )}
-                <p className="text-sm text-muted-foreground">{selectedPromo.description}</p>
+                <p className="text-muted-foreground text-sm">{selectedPromo.description}</p>
                 {selectedPromo.conditions && (
-                  <p className="text-xs text-muted-foreground">{selectedPromo.conditions}</p>
+                  <p className="text-muted-foreground text-xs">{selectedPromo.conditions}</p>
                 )}
                 {selectedPromo.discountValue != null && (
                   <Badge variant="secondary" className="text-primary">
@@ -195,7 +188,7 @@ export default function PromotionsPage() {
                 )}
                 {selectedPromo.code && (
                   <div className="flex items-center gap-2">
-                    <code className="rounded border bg-muted px-3 py-2 font-mono text-sm">
+                    <code className="bg-muted rounded border px-3 py-2 font-mono text-sm">
                       {selectedPromo.code}
                     </code>
                     <Button
@@ -211,7 +204,7 @@ export default function PromotionsPage() {
                     </Button>
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   Valid: {new Date(selectedPromo.startDate).toLocaleDateString()} –{" "}
                   {new Date(selectedPromo.endDate).toLocaleDateString()}
                 </p>

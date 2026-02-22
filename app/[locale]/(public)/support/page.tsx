@@ -75,10 +75,8 @@ export default function SupportPage() {
           <Accordion type="single" collapsible className="w-full">
             {FAQ_ITEMS.map((item, i) => (
               <AccordionItem key={i} value={`faq-${i}`}>
-                <AccordionTrigger className="text-left text-sm">
-                  {item.q}
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground">
+                <AccordionTrigger className="text-left text-sm">{item.q}</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm">
                   {item.a}
                 </AccordionContent>
               </AccordionItem>
@@ -92,7 +90,7 @@ export default function SupportPage() {
             <CardHeader>
               <CardTitle className="text-base">{t("contact") || "Contact"}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <CardContent className="text-muted-foreground space-y-3 text-sm">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
                 support@cinect.vn
@@ -110,22 +108,15 @@ export default function SupportPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">
-                {t("contactForm") || "Send us a message"}
-              </CardTitle>
+              <CardTitle className="text-base">{t("contactForm") || "Send us a message"}</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
                   <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    placeholder="Your name"
-                    {...register("name")}
-                    className="mt-1"
-                  />
+                  <Input id="name" placeholder="Your name" {...register("name")} className="mt-1" />
                   {errors.name && (
-                    <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>
+                    <p className="text-destructive mt-1 text-xs">{errors.name.message}</p>
                   )}
                 </div>
                 <div>
@@ -138,7 +129,7 @@ export default function SupportPage() {
                     className="mt-1"
                   />
                   {errors.email && (
-                    <p className="mt-1 text-xs text-destructive">{errors.email.message}</p>
+                    <p className="text-destructive mt-1 text-xs">{errors.email.message}</p>
                   )}
                 </div>
                 <div>
@@ -150,7 +141,7 @@ export default function SupportPage() {
                     className="mt-1"
                   />
                   {errors.subject && (
-                    <p className="mt-1 text-xs text-destructive">{errors.subject.message}</p>
+                    <p className="text-destructive mt-1 text-xs">{errors.subject.message}</p>
                   )}
                 </div>
                 <div>
@@ -163,14 +154,10 @@ export default function SupportPage() {
                     className="mt-1"
                   />
                   {errors.message && (
-                    <p className="mt-1 text-xs text-destructive">{errors.message.message}</p>
+                    <p className="text-destructive mt-1 text-xs">{errors.message.message}</p>
                   )}
                 </div>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={submitForm.isPending}
-                >
+                <Button type="submit" className="w-full" disabled={submitForm.isPending}>
                   {submitForm.isPending ? "Sending..." : "Send"}
                 </Button>
               </form>

@@ -1,6 +1,7 @@
 # CinemaConnect (cinema-web-next)
 
 Next.js frontend for the cinema booking platform. Part of the **CiNect** multi-repo setup:
+
 - **cinema-web-next** – This frontend
 - **cinema-api-spring** – Spring Boot API (port 8080)
 - **cinema-api-nest** – NestJS API (port 3001)
@@ -55,9 +56,9 @@ App runs at [http://localhost:3000](http://localhost:3000).
 
 ## Environment Variables
 
-| Variable                    | Description                     | Default                         |
-|----------------------------|---------------------------------|---------------------------------|
-| `NEXT_PUBLIC_API_BASE_URL` | Base URL for the backend API    | `http://localhost:8080/api/v1`  |
+| Variable                   | Description                  | Default                        |
+| -------------------------- | ---------------------------- | ------------------------------ |
+| `NEXT_PUBLIC_API_BASE_URL` | Base URL for the backend API | `http://localhost:8080/api/v1` |
 
 Example `.env.example`:
 
@@ -70,16 +71,16 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api/v1
 
 ## Scripts
 
-| Script        | Description                                           |
-|---------------|-------------------------------------------------------|
-| `pnpm dev`    | Start dev server (uses `.env.local` or default API)   |
+| Script            | Description                                                   |
+| ----------------- | ------------------------------------------------------------- |
+| `pnpm dev`        | Start dev server (uses `.env.local` or default API)           |
 | `pnpm dev:spring` | Dev server with Spring Boot at `http://localhost:8080/api/v1` |
 | `pnpm dev:node`   | Dev server with NestJS at `http://localhost:3001/api/v1`      |
-| `pnpm build`  | Production build                                      |
-| `pnpm start`  | Start production server                               |
-| `pnpm lint`   | Run ESLint                                            |
-| `pnpm typecheck` | Run TypeScript check                               |
-| `pnpm format` | Format code with Prettier                             |
+| `pnpm build`      | Production build                                              |
+| `pnpm start`      | Start production server                                       |
+| `pnpm lint`       | Run ESLint                                                    |
+| `pnpm typecheck`  | Run TypeScript check                                          |
+| `pnpm format`     | Format code with Prettier                                     |
 
 ## Backend Context
 

@@ -9,11 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Select,
   SelectContent,
@@ -60,7 +56,14 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
   const formatParam = searchParams.get("format") || "";
 
   const hasActiveFilters =
-    !!q || !!status || !!genre || !!language || !!ageRating || !!durationMin || !!durationMax || !!formatParam;
+    !!q ||
+    !!status ||
+    !!genre ||
+    !!language ||
+    !!ageRating ||
+    !!durationMin ||
+    !!durationMax ||
+    !!formatParam;
 
   function updateFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -108,7 +111,10 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
 
       <div className="space-y-3">
         <Label className="text-sm font-semibold">{t("genres") || "Genre"}</Label>
-        <Select value={genre || "all"} onValueChange={(v) => updateFilter("genre", v === "all" ? "" : v)}>
+        <Select
+          value={genre || "all"}
+          onValueChange={(v) => updateFilter("genre", v === "all" ? "" : v)}
+        >
           <SelectTrigger>
             <SelectValue placeholder="All genres" />
           </SelectTrigger>
@@ -170,7 +176,10 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
 
       <div className="space-y-3">
         <Label className="text-sm font-semibold">{t("format") || "Format"}</Label>
-        <Select value={formatParam || "all"} onValueChange={(v) => updateFilter("format", v === "all" ? "" : v)}>
+        <Select
+          value={formatParam || "all"}
+          onValueChange={(v) => updateFilter("format", v === "all" ? "" : v)}
+        >
           <SelectTrigger>
             <SelectValue placeholder="All formats" />
           </SelectTrigger>
@@ -196,7 +205,12 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
             {t("filters") || "Filters"}
           </CardTitle>
           {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-8 px-2 text-xs">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllFilters}
+              className="h-8 px-2 text-xs"
+            >
               <X className="mr-1 h-3 w-3" />
               Clear
             </Button>
@@ -209,7 +223,9 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
             <CollapsibleTrigger asChild>
               <Button variant="ghost" className="w-full justify-between px-4 pb-4">
                 {open ? "Hide filters" : "Show filters"}
-                <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
+                />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>{filterContent}</CollapsibleContent>

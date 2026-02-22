@@ -36,7 +36,7 @@ export default function NewsArticlePage() {
   const relatedRaw = relatedRes?.data ?? relatedRes;
   const relatedList = Array.isArray(relatedRaw)
     ? relatedRaw
-    : (relatedRaw as { items?: NewsArticle[] })?.items ?? [];
+    : ((relatedRaw as { items?: NewsArticle[] })?.items ?? []);
   const relatedArticles = toList<NewsArticle>(relatedList).filter(
     (a) => a.id !== article?.id && relatedIds.includes(a.id)
   );
@@ -82,9 +82,9 @@ export default function NewsArticlePage() {
     return (
       <div className="mx-auto max-w-3xl px-4 py-8 lg:px-6">
         <div className="rounded-lg border border-dashed p-12 text-center">
-          <Newspaper className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
+          <Newspaper className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
           <p className="text-muted-foreground">Article not found</p>
-          <Link href="/news" className="mt-4 inline-block text-primary hover:underline">
+          <Link href="/news" className="text-primary mt-4 inline-block hover:underline">
             Back to News
           </Link>
         </div>
@@ -110,7 +110,7 @@ export default function NewsArticlePage() {
         <h1 className="mb-4 text-3xl font-bold tracking-tight text-balance lg:text-4xl">
           {article.title}
         </h1>
-        <div className="mb-6 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+        <div className="text-muted-foreground mb-6 flex flex-wrap items-center gap-4 text-sm">
           <span className="flex items-center gap-1">
             <User className="h-4 w-4" />
             {article.author}
@@ -128,7 +128,7 @@ export default function NewsArticlePage() {
         </div>
 
         {article.imageUrl && (
-          <div className="mb-8 aspect-video overflow-hidden rounded-lg bg-muted">
+          <div className="bg-muted mb-8 aspect-video overflow-hidden rounded-lg">
             <img
               src={article.imageUrl}
               alt={article.title}
@@ -144,17 +144,17 @@ export default function NewsArticlePage() {
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
           ) : (
-            <p className="whitespace-pre-wrap leading-relaxed text-muted-foreground">
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
               {article.content}
             </p>
           )
         ) : article.excerpt ? (
-          <p className="leading-relaxed text-muted-foreground">{article.excerpt}</p>
+          <p className="text-muted-foreground leading-relaxed">{article.excerpt}</p>
         ) : null}
 
         {article.tags?.length ? (
           <div className="mt-8 flex flex-wrap items-center gap-2">
-            <Tag className="h-4 w-4 text-muted-foreground" />
+            <Tag className="text-muted-foreground h-4 w-4" />
             {article.tags.map((tag) => (
               <Badge key={tag} variant="outline">
                 {tag}
@@ -173,7 +173,7 @@ export default function NewsArticlePage() {
                 <Card className="overflow-hidden transition-all hover:shadow-md">
                   <div className="flex gap-4 p-4">
                     {a.imageUrl ? (
-                      <div className="h-20 w-24 shrink-0 overflow-hidden rounded bg-muted">
+                      <div className="bg-muted h-20 w-24 shrink-0 overflow-hidden rounded">
                         <img
                           src={a.imageUrl}
                           alt={a.title}
@@ -185,11 +185,9 @@ export default function NewsArticlePage() {
                       <Badge variant="secondary" className="mb-1 text-xs">
                         {a.category}
                       </Badge>
-                      <h3 className="font-medium line-clamp-2">{a.title}</h3>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {a.publishedAt
-                          ? new Date(a.publishedAt).toLocaleDateString()
-                          : ""}
+                      <h3 className="line-clamp-2 font-medium">{a.title}</h3>
+                      <p className="text-muted-foreground mt-1 text-xs">
+                        {a.publishedAt ? new Date(a.publishedAt).toLocaleDateString() : ""}
                       </p>
                     </div>
                   </div>

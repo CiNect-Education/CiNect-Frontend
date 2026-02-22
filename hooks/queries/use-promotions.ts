@@ -5,12 +5,9 @@ import type { QueryParams } from "@/types/api";
 import { z } from "zod";
 
 export function usePromotions(params?: QueryParams) {
-  return useApiQuery<Promotion[]>(
-    ["promotions", JSON.stringify(params)],
-    "/promotions",
-    params,
-    { schema: z.array(promotionSchema) }
-  );
+  return useApiQuery<Promotion[]>(["promotions", JSON.stringify(params)], "/promotions", params, {
+    schema: z.array(promotionSchema),
+  });
 }
 
 export function useActivePromotions(limit = 8) {

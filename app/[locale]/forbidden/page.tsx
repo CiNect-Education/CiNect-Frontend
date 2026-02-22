@@ -10,13 +10,12 @@ export default function ForbiddenPage() {
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
-      <ShieldX className="h-20 w-20 text-destructive mb-6" />
-      <h1 className="text-4xl font-bold mb-2">403</h1>
-      <h2 className="text-xl font-semibold text-muted-foreground mb-4">
-        Access Denied
-      </h2>
+      <ShieldX className="text-destructive mb-6 h-20 w-20" />
+      <h1 className="mb-2 text-4xl font-bold">403</h1>
+      <h2 className="text-muted-foreground mb-4 text-xl font-semibold">Access Denied</h2>
       <p className="text-muted-foreground mb-8 max-w-md">
-        You do not have permission to access this page. Please contact an administrator if you believe this is an error.
+        You do not have permission to access this page. Please contact an administrator if you
+        believe this is an error.
       </p>
       <div className="flex gap-3">
         <Button variant="outline" asChild>

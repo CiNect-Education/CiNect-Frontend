@@ -19,7 +19,7 @@ export default function GiftPage() {
   if (isLoading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
-        <Skeleton className="h-8 w-64 mb-8" />
+        <Skeleton className="mb-8 h-8 w-64" />
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-96" />
@@ -42,24 +42,21 @@ export default function GiftPage() {
       <PageHeader
         title="Gift Cards"
         description="Give the gift of entertainment with cinema gift cards"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Gift Cards" },
-        ]}
+        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Gift Cards" }]}
       />
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {giftCards?.map((card) => (
-          <Card key={card.id} className="overflow-hidden hover:border-primary/50 transition-colors">
-            <div className="aspect-video bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-              <Gift className="h-16 w-16 text-primary/40" />
+          <Card key={card.id} className="hover:border-primary/50 overflow-hidden transition-colors">
+            <div className="from-primary/10 to-primary/5 flex aspect-video items-center justify-center bg-gradient-to-br">
+              <Gift className="text-primary/40 h-16 w-16" />
             </div>
             <CardHeader>
               <CardTitle className="text-lg">{card.title}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">{card.description}</p>
-              
+              <p className="text-muted-foreground text-sm">{card.description}</p>
+
               <div className="flex items-baseline justify-between">
                 <div>
                   <span className="text-2xl font-bold">{card.value.toLocaleString()}đ</span>
@@ -72,7 +69,7 @@ export default function GiftPage() {
               </div>
 
               {card.expiresAt && (
-                <div className="text-xs text-muted-foreground">
+                <div className="text-muted-foreground text-xs">
                   Valid until {new Date(card.expiresAt).toLocaleDateString()}
                 </div>
               )}
@@ -92,7 +89,7 @@ export default function GiftPage() {
         <CardHeader>
           <CardTitle>Why Choose Our Gift Cards?</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-muted-foreground">
+        <CardContent className="text-muted-foreground space-y-3 text-sm">
           <p>• Perfect gift for movie lovers - redeemable for tickets, snacks, and merchandise</p>
           <p>• Digital delivery - instant email delivery or schedule for a special date</p>
           <p>• Flexible amounts - choose from preset amounts or create a custom value</p>

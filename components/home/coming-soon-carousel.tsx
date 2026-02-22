@@ -19,11 +19,7 @@ interface ComingSoonCarouselProps {
   viewAllHref?: string;
 }
 
-export function ComingSoonCarousel({
-  movies,
-  title,
-  viewAllHref,
-}: ComingSoonCarouselProps) {
+export function ComingSoonCarousel({ movies, title, viewAllHref }: ComingSoonCarouselProps) {
   if (!movies.length) return null;
 
   return (
@@ -31,10 +27,7 @@ export function ComingSoonCarousel({
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-balance">{title}</h2>
         {viewAllHref && (
-          <Link
-            href={viewAllHref}
-            className="text-sm font-medium text-primary hover:underline"
-          >
+          <Link href={viewAllHref} className="text-primary text-sm font-medium hover:underline">
             View All →
           </Link>
         )}
@@ -48,8 +41,8 @@ export function ComingSoonCarousel({
               className="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5"
             >
               <Link href={`/movies/${movie.id}`}>
-                <Card className="group overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/20">
-                  <div className="relative aspect-[2/3] overflow-hidden bg-muted">
+                <Card className="group hover:shadow-primary/20 overflow-hidden transition-all hover:shadow-lg">
+                  <div className="bg-muted relative aspect-[2/3] overflow-hidden">
                     {movie.posterUrl ? (
                       <img
                         src={movie.posterUrl}
@@ -57,29 +50,23 @@ export function ComingSoonCarousel({
                         className="h-full w-full object-cover transition-transform group-hover:scale-105"
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-muted-foreground">
+                      <div className="text-muted-foreground flex h-full items-center justify-center">
                         No Image
                       </div>
                     )}
-                    <Badge className="absolute left-2 top-2 bg-primary">
-                      Coming Soon
-                    </Badge>
+                    <Badge className="bg-primary absolute top-2 left-2">Coming Soon</Badge>
                     {movie.rating && (
-                      <Badge className="absolute right-2 top-2 bg-black/80">
-                        {movie.rating}
-                      </Badge>
+                      <Badge className="absolute top-2 right-2 bg-black/80">{movie.rating}</Badge>
                     )}
                   </div>
                   <CardContent className="p-4">
-                    <h3 className="mb-2 line-clamp-2 font-semibold text-balance">
-                      {movie.title}
-                    </h3>
+                    <h3 className="mb-2 line-clamp-2 font-semibold text-balance">{movie.title}</h3>
                     {movie.genres?.length ? (
-                      <p className="mb-2 line-clamp-1 text-xs text-muted-foreground">
+                      <p className="text-muted-foreground mb-2 line-clamp-1 text-xs">
                         {movie.genres.map((g) => ("name" in g ? g.name : String(g))).join(", ")}
                       </p>
                     ) : null}
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                    <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-xs">
                       {movie.duration && (
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />

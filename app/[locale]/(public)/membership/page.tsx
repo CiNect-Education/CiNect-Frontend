@@ -47,8 +47,8 @@ export default function MembershipPage() {
   const { data: tiersRes, isLoading, error, refetch } = useMembershipTiers();
   const { data: eventsRes } = useMembershipEvents();
 
-  const tiers = toArray<
-    {
+  const tiers =
+    toArray<{
       id: string;
       name: string;
       displayName?: string;
@@ -59,16 +59,16 @@ export default function MembershipPage() {
       discount?: number;
       discountPercent?: number;
       level?: number;
-    }
-  >(tiersRes?.data ?? tiersRes) ?? [];
-  const events = toArray<{
-    id: string;
-    title: string;
-    description: string;
-    startDate: string;
-    endDate: string;
-    type: string;
-  }>(eventsRes?.data ?? eventsRes) ?? [];
+    }>(tiersRes?.data ?? tiersRes) ?? [];
+  const events =
+    toArray<{
+      id: string;
+      title: string;
+      description: string;
+      startDate: string;
+      endDate: string;
+      type: string;
+    }>(eventsRes?.data ?? eventsRes) ?? [];
 
   const sortedTiers = useMemo(() => {
     return [...tiers].sort((a, b) => {
@@ -92,7 +92,7 @@ export default function MembershipPage() {
   if (isLoading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
-        <Skeleton className="h-8 w-64 mb-8" />
+        <Skeleton className="mb-8 h-8 w-64" />
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-96" />
@@ -115,27 +115,25 @@ export default function MembershipPage() {
       <PageHeader
         title={t("title") ?? "Membership Tiers"}
         description="Choose the perfect membership tier and unlock exclusive cinema benefits"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Membership" },
-        ]}
+        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Membership" }]}
       />
 
       {/* Animated Tier Badges - Cards */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-10">
+      <div className="mb-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {tiersWithRange.map((tier) => {
           const Icon = TIER_ICONS[tier.name as keyof typeof TIER_ICONS] || Star;
-          const colorClasses = TIER_COLORS[tier.name as keyof typeof TIER_COLORS] || TIER_COLORS.MEMBER;
+          const colorClasses =
+            TIER_COLORS[tier.name as keyof typeof TIER_COLORS] || TIER_COLORS.MEMBER;
 
           return (
             <Card
               key={tier.id}
-              className="relative border-border/50 hover:border-primary/50 transition-colors overflow-hidden group"
+              className="border-border/50 hover:border-primary/50 group relative overflow-hidden transition-colors"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="from-primary/5 absolute inset-0 bg-gradient-to-br to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
               <CardHeader>
                 <div
-                  className={`mb-3 inline-flex rounded-full p-2.5 animate-tier-glow ${colorClasses}`}
+                  className={`animate-tier-glow mb-3 inline-flex rounded-full p-2.5 ${colorClasses}`}
                 >
                   <Icon className="h-5 w-5" />
                 </div>
@@ -150,19 +148,19 @@ export default function MembershipPage() {
                     <ul className="space-y-2">
                       {tier.benefits.slice(0, 3).map((benefit, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm">
-                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                          <Check className="text-primary mt-0.5 h-4 w-4 shrink-0" />
                           <span>{benefit}</span>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-sm text-muted-foreground">No benefits listed</p>
+                    <p className="text-muted-foreground text-sm">No benefits listed</p>
                   )}
 
                   {tier.discount > 0 && (
-                    <div className="rounded-lg bg-primary/5 p-3 text-center">
-                      <div className="text-2xl font-bold text-primary">{tier.discount}%</div>
-                      <div className="text-xs text-muted-foreground">Ticket Discount</div>
+                    <div className="bg-primary/5 rounded-lg p-3 text-center">
+                      <div className="text-primary text-2xl font-bold">{tier.discount}%</div>
+                      <div className="text-muted-foreground text-xs">Ticket Discount</div>
                     </div>
                   )}
                 </div>
@@ -192,7 +190,8 @@ export default function MembershipPage() {
               <TableBody>
                 {tiersWithRange.map((tier) => {
                   const Icon = TIER_ICONS[tier.name as keyof typeof TIER_ICONS] || Star;
-                  const colorClasses = TIER_COLORS[tier.name as keyof typeof TIER_COLORS] || TIER_COLORS.MEMBER;
+                  const colorClasses =
+                    TIER_COLORS[tier.name as keyof typeof TIER_COLORS] || TIER_COLORS.MEMBER;
                   return (
                     <TableRow key={tier.id}>
                       <TableCell>
@@ -208,15 +207,13 @@ export default function MembershipPage() {
                       <TableCell className="text-right">
                         {tier.minPoints?.toLocaleString()} - {tier.maxPoints?.toLocaleString()}
                       </TableCell>
-                      <TableCell className="text-right">
-                        {tier.discount}%
-                      </TableCell>
+                      <TableCell className="text-right">{tier.discount}%</TableCell>
                       <TableCell>
                         {tier.benefits && tier.benefits.length > 0 ? (
-                          <ul className="space-y-1 text-sm text-muted-foreground">
+                          <ul className="text-muted-foreground space-y-1 text-sm">
                             {tier.benefits.map((b, i) => (
                               <li key={i} className="flex items-center gap-2">
-                                <Check className="h-3 w-3 text-primary shrink-0" />
+                                <Check className="text-primary h-3 w-3 shrink-0" />
                                 {b}
                               </li>
                             ))}
@@ -240,7 +237,7 @@ export default function MembershipPage() {
           <CardTitle>How to Earn Points</CardTitle>
           <CardDescription>Points earning rules and bonus opportunities</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-muted-foreground">
+        <CardContent className="text-muted-foreground space-y-3 text-sm">
           <p>• Earn 1 point for every $1 spent on tickets</p>
           <p>• Double points on your birthday month</p>
           <p>• Bonus points for early bird bookings (weekday morning shows)</p>
@@ -258,7 +255,7 @@ export default function MembershipPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
+              <Calendar className="text-primary h-5 w-5" />
               Member Events
             </CardTitle>
             <CardDescription>Exclusive events and promotions for members</CardDescription>
@@ -269,15 +266,15 @@ export default function MembershipPage() {
                 <Card key={evt.id} className="border-dashed">
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-3">
-                      <div className="rounded-full bg-primary/10 p-2">
-                        <Gift className="h-5 w-5 text-primary" />
+                      <div className="bg-primary/10 rounded-full p-2">
+                        <Gift className="text-primary h-5 w-5" />
                       </div>
                       <div>
                         <h4 className="font-semibold">{evt.title}</h4>
-                        <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                        <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">
                           {evt.description}
                         </p>
-                        <p className="mt-2 text-xs text-muted-foreground">
+                        <p className="text-muted-foreground mt-2 text-xs">
                           {format(new Date(evt.startDate), "MMM d")} -{" "}
                           {format(new Date(evt.endDate), "MMM d, yyyy")}
                         </p>
@@ -290,7 +287,6 @@ export default function MembershipPage() {
           </CardContent>
         </Card>
       )}
-
     </div>
   );
 }
