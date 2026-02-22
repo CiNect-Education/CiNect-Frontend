@@ -35,10 +35,10 @@ export function GlobalLoadingProvider({ children }: { children: ReactNode }) {
     <GlobalLoadingContext.Provider value={{ showLoading, hideLoading }}>
       {children}
       {loading && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm">
+        <div className="bg-background/80 fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm">
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            {message && <p className="text-sm text-muted-foreground">{message}</p>}
+            <Loader2 className="text-primary h-10 w-10 animate-spin" />
+            {message && <p className="text-muted-foreground text-sm">{message}</p>}
           </div>
         </div>
       )}

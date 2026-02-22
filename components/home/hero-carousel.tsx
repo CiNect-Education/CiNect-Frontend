@@ -30,7 +30,7 @@ export function HeroCarousel({ movies }: HeroCarouselProps) {
       <CarouselContent className="-ml-0">
         {movies.map((movie) => (
           <CarouselItem key={movie.id} className="pl-0">
-            <div className="relative aspect-[21/9] w-full overflow-hidden rounded-lg bg-muted md:aspect-[3/1]">
+            <div className="bg-muted relative aspect-[21/9] w-full overflow-hidden rounded-lg md:aspect-[3/1]">
               {movie.posterUrl ? (
                 <img
                   src={movie.posterUrl}
@@ -38,19 +38,25 @@ export function HeroCarousel({ movies }: HeroCarouselProps) {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 text-muted-foreground">
+                <div className="from-primary/20 to-primary/5 text-muted-foreground flex h-full w-full items-center justify-center bg-gradient-to-br">
                   {movie.title}
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+              <div className="from-background via-background/40 absolute inset-0 bg-gradient-to-t to-transparent" />
+              <div className="absolute right-0 bottom-0 left-0 p-6 md:p-8">
                 <div className="mx-auto max-w-7xl">
                   <h2 className="mb-2 text-2xl font-bold text-white drop-shadow-md md:text-4xl">
                     {movie.title}
                   </h2>
                   {movie.genres?.length ? (
                     <p className="mb-4 text-sm text-white/90 md:text-base">
-                      {movie.genres.map((g) => (typeof g === "object" && g !== null && "name" in g ? (g as { name: string }).name : String(g))).join(", ")}
+                      {movie.genres
+                        .map((g) =>
+                          typeof g === "object" && g !== null && "name" in g
+                            ? (g as { name: string }).name
+                            : String(g)
+                        )
+                        .join(", ")}
                     </p>
                   ) : null}
                   <div className="flex flex-wrap gap-3">
@@ -61,9 +67,7 @@ export function HeroCarousel({ movies }: HeroCarouselProps) {
                       </Link>
                     </Button>
                     <Button size="lg" variant="secondary" asChild>
-                      <Link href={`/showtimes?movie=${movie.id}`}>
-                        Book Tickets
-                      </Link>
+                      <Link href={`/showtimes?movie=${movie.id}`}>Book Tickets</Link>
                     </Button>
                   </div>
                 </div>

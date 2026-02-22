@@ -6,13 +6,7 @@ import { useLocale } from "next-intl";
 import { useTheme } from "next-themes";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Settings, Sun, Moon, Monitor, MapPin, Languages, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -65,7 +59,7 @@ export function SettingsPanel() {
       <SheetContent side="right" className="w-80 p-0">
         <SheetHeader className="border-b px-5 py-4">
           <SheetTitle className="flex items-center gap-2 text-left text-base">
-            <Settings className="h-4 w-4 text-primary" />
+            <Settings className="text-primary h-4 w-4" />
             {t("settings")}
           </SheetTitle>
         </SheetHeader>
@@ -73,7 +67,7 @@ export function SettingsPanel() {
         <div className="flex flex-col gap-6 p-5">
           {/* Theme */}
           <div>
-            <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <h4 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
               {t("theme")}
             </h4>
             <div className="grid grid-cols-3 gap-2">
@@ -90,7 +84,7 @@ export function SettingsPanel() {
                     "flex flex-col items-center gap-2 rounded-lg border-2 p-3 text-xs font-medium transition-all",
                     theme === value
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-transparent bg-muted/50 text-muted-foreground hover:bg-muted"
+                      : "bg-muted/50 text-muted-foreground hover:bg-muted border-transparent"
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -102,7 +96,7 @@ export function SettingsPanel() {
 
           {/* Language */}
           <div>
-            <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <h4 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
               {t("language")}
             </h4>
             <div className="flex flex-col gap-1.5">
@@ -128,7 +122,7 @@ export function SettingsPanel() {
 
           {/* City */}
           <div>
-            <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <h4 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
               {t("city")}
             </h4>
             <div className="grid grid-cols-2 gap-1.5">

@@ -1,16 +1,12 @@
 import { Link } from "@/i18n/navigation";
 import { Film } from "lucide-react";
 
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+    <div className="bg-background flex min-h-screen flex-col items-center justify-center p-4">
       <div className="mb-8">
-        <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-          <Film className="h-7 w-7 text-primary" />
+        <Link href="/" className="flex items-center gap-2 text-xl font-bold">
+          <Film className="text-primary h-7 w-7" />
           <span>CinemaConnect</span>
         </Link>
       </div>

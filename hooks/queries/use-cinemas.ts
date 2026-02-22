@@ -12,12 +12,9 @@ import { z } from "zod";
 // ─── Cinema list ───────────────────────────────────────────────────
 
 export function useCinemas(params?: QueryParams) {
-  return useApiQuery<CinemaListItem[]>(
-    ["cinemas", JSON.stringify(params)],
-    "/cinemas",
-    params,
-    { schema: z.array(cinemaListItemSchema) }
-  );
+  return useApiQuery<CinemaListItem[]>(["cinemas", JSON.stringify(params)], "/cinemas", params, {
+    schema: z.array(cinemaListItemSchema),
+  });
 }
 
 export function useCinema(id: string) {
@@ -30,12 +27,9 @@ export function useCinema(id: string) {
 // ─── Showtimes ─────────────────────────────────────────────────────
 
 export function useShowtimes(params?: QueryParams) {
-  return useApiQuery<Showtime[]>(
-    ["showtimes", JSON.stringify(params)],
-    "/showtimes",
-    params,
-    { schema: z.array(showtimeSchema) }
-  );
+  return useApiQuery<Showtime[]>(["showtimes", JSON.stringify(params)], "/showtimes", params, {
+    schema: z.array(showtimeSchema),
+  });
 }
 
 export function useShowtimeSearch(params?: QueryParams) {
@@ -50,10 +44,7 @@ export function useShowtimeSearch(params?: QueryParams) {
   );
 }
 
-export function useMovieShowtimes(
-  movieId: string,
-  params?: { city?: string; date?: string }
-) {
+export function useMovieShowtimes(movieId: string, params?: { city?: string; date?: string }) {
   return useApiQuery<Showtime[]>(
     ["movie-showtimes", movieId, JSON.stringify(params)],
     `/movies/${movieId}/showtimes`,

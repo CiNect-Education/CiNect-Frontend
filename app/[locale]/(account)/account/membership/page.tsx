@@ -15,7 +15,18 @@ import {
   useMyCoupons,
   useRedeemCoupon,
 } from "@/hooks/queries/use-membership";
-import { Crown, Star, Gift, Zap, TrendingUp, Calendar, Cake, Clock, Ticket, Copy } from "lucide-react";
+import {
+  Crown,
+  Star,
+  Gift,
+  Zap,
+  TrendingUp,
+  Calendar,
+  Cake,
+  Clock,
+  Ticket,
+  Copy,
+} from "lucide-react";
 import { format, formatDistanceToNow, isPast } from "date-fns";
 import { toast } from "sonner";
 
@@ -23,7 +34,12 @@ export default function AccountMembershipPage() {
   const t = useTranslations("membership");
   const tCommon = useTranslations("common");
 
-  const { data: profileRes, isLoading: profileLoading, error: profileError, refetch } = useMembershipProfile();
+  const {
+    data: profileRes,
+    isLoading: profileLoading,
+    error: profileError,
+    refetch,
+  } = useMembershipProfile();
   const { data: tiersRes } = useMembershipTiers();
   const { data: pointsRes } = usePointsHistory();
   const { data: couponsRes } = useMyCoupons();
@@ -31,7 +47,12 @@ export default function AccountMembershipPage() {
 
   const profile = profileRes?.data as import("@/types/domain").MembershipProfile | undefined;
   const tiers = (tiersRes?.data ?? []) as import("@/types/domain").MembershipTier[];
-  const pointsHistory = (pointsRes?.data ?? []) as Array<{ id: string; description: string; points: number; createdAt: string }>;
+  const pointsHistory = (pointsRes?.data ?? []) as Array<{
+    id: string;
+    description: string;
+    points: number;
+    createdAt: string;
+  }>;
   const coupons = (couponsRes?.data ?? []) as import("@/types/domain").Coupon[];
 
   if (profileLoading) {
@@ -58,7 +79,7 @@ export default function AccountMembershipPage() {
         <PageHeader title={t("title")} />
         <Card>
           <CardContent className="py-12 text-center">
-            <Crown className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
+            <Crown className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
             <p className="text-muted-foreground">No membership data available</p>
             <Button className="mt-4" asChild>
               <a href="/membership">{t("joinNow")}</a>
@@ -87,29 +108,27 @@ export default function AccountMembershipPage() {
 
       <div className="flex flex-col gap-6">
         {/* Animated Tier Badge Card */}
-        <Card className="overflow-hidden border-primary/20">
-          <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-8">
+        <Card className="border-primary/20 overflow-hidden">
+          <div className="from-primary/10 via-primary/5 relative bg-gradient-to-br to-transparent p-8">
             <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
               {/* Animated Badge */}
               <div className="relative">
-                <div className="animate-tier-glow flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/30">
-                  <Crown className="h-12 w-12 text-primary-foreground" />
+                <div className="animate-tier-glow from-primary to-primary/70 shadow-primary/30 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br shadow-lg">
+                  <Crown className="text-primary-foreground h-12 w-12" />
                 </div>
                 <div className="absolute -bottom-1 left-1/2 -translate-x-1/2">
-                  <Badge className="animate-tier-scale text-xs font-bold uppercase tracking-wider">
+                  <Badge className="animate-tier-scale text-xs font-bold tracking-wider uppercase">
                     {currentTier?.name || "Member"}
                   </Badge>
                 </div>
               </div>
 
               <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-2xl font-bold">
-                  {currentTier?.name || "Member"} Tier
-                </h2>
+                <h2 className="text-2xl font-bold">{currentTier?.name || "Member"} Tier</h2>
                 <p className="text-muted-foreground">
                   {profile.currentPoints.toLocaleString()} {t("points")}
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="text-muted-foreground mt-1 text-sm">
                   Member since {format(new Date(profile.memberSince), "MMMM yyyy")}
                 </p>
 
@@ -117,13 +136,16 @@ export default function AccountMembershipPage() {
                 {nextTier && (
                   <div className="mt-4 max-w-md">
                     <div className="mb-1 flex justify-between text-sm">
-                      <span className="text-muted-foreground">{t("progress")} to {nextTier.name}</span>
+                      <span className="text-muted-foreground">
+                        {t("progress")} to {nextTier.name}
+                      </span>
                       <span className="font-medium">
-                        {profile.currentPoints.toLocaleString()} / {nextTier.pointsRequired.toLocaleString()}
+                        {profile.currentPoints.toLocaleString()} /{" "}
+                        {nextTier.pointsRequired.toLocaleString()}
                       </span>
                     </div>
                     <Progress value={Math.min(progressToNext, 100)} className="h-3" />
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <p className="text-muted-foreground mt-1 text-xs">
                       {profile.pointsToNextTier?.toLocaleString()} points to {nextTier.name}
                     </p>
                   </div>
@@ -132,9 +154,9 @@ export default function AccountMembershipPage() {
 
               {/* Discount badge */}
               {currentTier?.discountPercent && (
-                <div className="rounded-lg border bg-background/50 p-4 text-center">
-                  <p className="text-3xl font-bold text-primary">{currentTier.discountPercent}%</p>
-                  <p className="text-xs text-muted-foreground">Discount</p>
+                <div className="bg-background/50 rounded-lg border p-4 text-center">
+                  <p className="text-primary text-3xl font-bold">{currentTier.discountPercent}%</p>
+                  <p className="text-muted-foreground text-xs">Discount</p>
                 </div>
               )}
             </div>
@@ -145,12 +167,12 @@ export default function AccountMembershipPage() {
         <div className="grid gap-4 sm:grid-cols-3">
           <Card>
             <CardContent className="flex items-center gap-4 pt-6">
-              <div className="rounded-full bg-primary/10 p-3">
-                <TrendingUp className="h-5 w-5 text-primary" />
+              <div className="bg-primary/10 rounded-full p-3">
+                <TrendingUp className="text-primary h-5 w-5" />
               </div>
               <div>
                 <div className="text-2xl font-bold">{profile.totalPoints.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">Total Points Earned</div>
+                <div className="text-muted-foreground text-sm">Total Points Earned</div>
               </div>
             </CardContent>
           </Card>
@@ -161,7 +183,7 @@ export default function AccountMembershipPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold">{coupons.length}</div>
-                <div className="text-sm text-muted-foreground">Active Coupons</div>
+                <div className="text-muted-foreground text-sm">Active Coupons</div>
               </div>
             </CardContent>
           </Card>
@@ -172,7 +194,7 @@ export default function AccountMembershipPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold">{profile.currentPoints.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">Available Points</div>
+                <div className="text-muted-foreground text-sm">Available Points</div>
               </div>
             </CardContent>
           </Card>
@@ -186,9 +208,9 @@ export default function AccountMembershipPage() {
             </div>
             <div className="flex-1">
               <h3 className="font-semibold">{t("birthdayGift")}</h3>
-              <p className="text-sm text-muted-foreground">
-                Enjoy special birthday perks and bonus points during your birthday month!
-                Make sure your date of birth is set in your profile.
+              <p className="text-muted-foreground text-sm">
+                Enjoy special birthday perks and bonus points during your birthday month! Make sure
+                your date of birth is set in your profile.
               </p>
             </div>
             <Gift className="h-8 w-8 text-pink-400" />
@@ -218,11 +240,11 @@ export default function AccountMembershipPage() {
                       className={`rounded-lg border p-4 ${
                         isExpired
                           ? "border-muted bg-muted/30 opacity-60"
-                          : "border-dashed border-primary/30 bg-primary/5"
+                          : "border-primary/30 bg-primary/5 border-dashed"
                       }`}
                     >
                       <div className="mb-1 flex items-center justify-between">
-                        <span className="font-mono font-bold text-primary">{coupon.code}</span>
+                        <span className="text-primary font-mono font-bold">{coupon.code}</span>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -234,7 +256,7 @@ export default function AccountMembershipPage() {
                           <Copy className="h-3 w-3" />
                         </Button>
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-muted-foreground text-sm">
                         {coupon.discountType === "PERCENTAGE"
                           ? `${coupon.discountValue}% off`
                           : `${coupon.discountValue.toLocaleString()}đ off`}
@@ -273,7 +295,7 @@ export default function AccountMembershipPage() {
                 })}
               </div>
             ) : (
-              <p className="py-6 text-center text-muted-foreground">No coupons available</p>
+              <p className="text-muted-foreground py-6 text-center">No coupons available</p>
             )}
           </CardContent>
         </Card>
@@ -296,14 +318,12 @@ export default function AccountMembershipPage() {
                   >
                     <div>
                       <div className="font-medium">{item.description}</div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-muted-foreground text-sm">
                         {format(new Date(item.createdAt), "PPp")}
                       </div>
                     </div>
                     <div
-                      className={`font-bold ${
-                        item.points > 0 ? "text-green-600" : "text-red-600"
-                      }`}
+                      className={`font-bold ${item.points > 0 ? "text-green-600" : "text-red-600"}`}
                     >
                       {item.points > 0 ? "+" : ""}
                       {item.points.toLocaleString()}
@@ -312,7 +332,7 @@ export default function AccountMembershipPage() {
                 ))}
               </div>
             ) : (
-              <p className="py-6 text-center text-muted-foreground">No points activity yet</p>
+              <p className="text-muted-foreground py-6 text-center">No points activity yet</p>
             )}
           </CardContent>
         </Card>
@@ -328,7 +348,7 @@ export default function AccountMembershipPage() {
               <ul className="grid gap-2 sm:grid-cols-2">
                 {currentTier.benefits.map((benefit, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm">
-                    <div className="h-2 w-2 rounded-full bg-primary" />
+                    <div className="bg-primary h-2 w-2 rounded-full" />
                     {benefit}
                   </li>
                 ))}

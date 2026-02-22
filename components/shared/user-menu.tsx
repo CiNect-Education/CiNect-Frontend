@@ -12,14 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  User,
-  ShoppingBag,
-  Crown,
-  Bell,
-  LogOut,
-  Shield,
-} from "lucide-react";
+import { User, ShoppingBag, Crown, Bell, LogOut, Shield } from "lucide-react";
 
 export function UserMenu() {
   const t = useTranslations("nav");
@@ -92,7 +85,7 @@ export function UserMenu() {
         )}
         <DropdownMenuItem
           onClick={() => logout()}
-          className="flex items-center gap-2 text-destructive cursor-pointer"
+          className="text-destructive flex cursor-pointer items-center gap-2"
         >
           <LogOut className="h-4 w-4" />
           {t("logout")}

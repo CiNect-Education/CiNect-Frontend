@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import type { User } from '@/types/domain';
-import { setAccessToken, setRefreshToken, clearTokens } from '@/lib/auth-storage';
-import { initApiClient } from '@/lib/api-client';
-import { useCurrentUser, useLogin, useRegister, useLogout } from '@/hooks/queries/use-auth';
+import { createContext, useContext, useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type { User } from "@/types/domain";
+import { setAccessToken, setRefreshToken, clearTokens } from "@/lib/auth-storage";
+import { initApiClient } from "@/lib/api-client";
+import { useCurrentUser, useLogin, useRegister, useLogout } from "@/hooks/queries/use-auth";
 
 interface AuthContextValue {
   user: User | null;
@@ -50,12 +50,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Auto-logout on 401 errors - listen to query errors
   useEffect(() => {
     const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
-      if (event?.type === 'updated' && event.query.state.error) {
+      if (event?.type === "updated" && event.query.state.error) {
         const error = event.query.state.error as any;
         if (error?.status === 401) {
           clearTokens();
-          queryClient.setQueryData(['auth', 'me'], null);
-          router.push('/login');
+          queryClient.setQueryData(["auth", "me"], null);
+          router.push("/login");
         }
       }
     });
@@ -73,9 +73,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setRefreshToken(tokens.refreshToken);
         }
         await refetch();
-        toast.success('Welcome back!');
+        toast.success("Welcome back!");
       } catch (error: any) {
-        toast.error(error?.message || 'Login failed');
+        toast.error(error?.message || "Login failed");
         throw error;
       }
     },
@@ -98,9 +98,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setRefreshToken(tokens.refreshToken);
         }
         await refetch();
-        toast.success('Account created successfully!');
+        toast.success("Account created successfully!");
       } catch (error: any) {
-        toast.error(error?.message || 'Registration failed');
+        toast.error(error?.message || "Registration failed");
         throw error;
       }
     },
@@ -114,10 +114,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Ignore logout API errors
     } finally {
       clearTokens();
-      queryClient.setQueryData(['auth', 'me'], null);
+      queryClient.setQueryData(["auth", "me"], null);
       queryClient.clear();
-      toast.success('Logged out successfully');
-      router.push('/');
+      toast.success("Logged out successfully");
+      router.push("/");
     }
   }, [logoutMutation, queryClient, router]);
 
@@ -137,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 }

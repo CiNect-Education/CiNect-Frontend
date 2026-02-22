@@ -166,8 +166,7 @@ export default function AdminPricingPage() {
       {
         accessorKey: "price",
         header: "Price",
-        cell: ({ row }) =>
-          (row.original.price?.toLocaleString() ?? "0") + " ₫",
+        cell: ({ row }) => (row.original.price?.toLocaleString() ?? "0") + " ₫",
       },
       {
         accessorKey: "isActive",
@@ -179,19 +178,11 @@ export default function AdminPricingPage() {
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => openEdit(row.original)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => openEdit(row.original)}>
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDeleteTarget(row.original)}
-            >
-              <Trash2 className="h-4 w-4 text-destructive" />
+            <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(row.original)}>
+              <Trash2 className="text-destructive h-4 w-4" />
             </Button>
           </div>
         ),
@@ -205,10 +196,7 @@ export default function AdminPricingPage() {
       <PageHeader
         title={t("pricing")}
         description="Configure ticket pricing rules by cinema, room type, day, and time."
-        breadcrumbs={[
-          { label: t("title"), href: "/admin" },
-          { label: t("pricing") },
-        ]}
+        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("pricing") }]}
         actions={
           <Button onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />
@@ -217,24 +205,15 @@ export default function AdminPricingPage() {
         }
       />
 
-      <DataTable
-        columns={columns}
-        data={rules}
-        searchPlaceholder="Search rules..."
-      />
+      <DataTable columns={columns} data={rules} searchPlaceholder="Search rules..." />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>
-              {editingRule ? "Edit Rule" : "Add Rule"}
-            </DialogTitle>
+            <DialogTitle>{editingRule ? "Edit Rule" : "Add Rule"}</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -242,10 +221,7 @@ export default function AdminPricingPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Seat Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -269,10 +245,7 @@ export default function AdminPricingPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Day Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -298,10 +271,7 @@ export default function AdminPricingPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Time Slot</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -325,10 +295,7 @@ export default function AdminPricingPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Room Format</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -395,27 +362,18 @@ export default function AdminPricingPage() {
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <FormLabel>Active</FormLabel>
                     <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
                   </FormItem>
                 )}
               />
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setDialogOpen(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  disabled={
-                    createMutation.isPending || updateMutation.isPending
-                  }
+                  disabled={createMutation.isPending || updateMutation.isPending}
                 >
                   {editingRule ? "Update" : "Create"}
                 </Button>
@@ -425,16 +383,12 @@ export default function AdminPricingPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-      >
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Pricing Rule</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this rule? This action cannot be
-              undone.
+              Are you sure you want to delete this rule? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

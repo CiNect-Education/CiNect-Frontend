@@ -15,11 +15,9 @@ export function useNotifications(params?: QueryParams) {
 }
 
 export function useMarkNotificationRead() {
-  return useApiMutation<void, { id: string }>(
-    "patch",
-    (vars) => `/notifications/${vars.id}/read`,
-    { invalidateKeys: [["notifications"]] }
-  );
+  return useApiMutation<void, { id: string }>("patch", (vars) => `/notifications/${vars.id}/read`, {
+    invalidateKeys: [["notifications"]],
+  });
 }
 
 export function useMarkAllNotificationsRead() {

@@ -26,9 +26,7 @@ export default function CinemaDetailPage() {
   const params = useParams();
   const t = useTranslations("cinemas");
   const cinemaId = params.id as string;
-  const [selectedDate, setSelectedDate] = useState(() =>
-    new Date().toISOString().split("T")[0]
-  );
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
 
   const { data: cinemaRes, isLoading, error, refetch } = useCinema(cinemaId);
   const { data: showtimesRes } = useCinemaShowtimes(cinemaId, selectedDate);
@@ -97,23 +95,19 @@ export default function CinemaDetailPage() {
         ]}
       />
 
-      <div className="mb-6 aspect-video max-w-2xl overflow-hidden rounded-lg bg-muted">
+      <div className="bg-muted mb-6 aspect-video max-w-2xl overflow-hidden rounded-lg">
         {cinema.imageUrl ? (
-          <img
-            src={cinema.imageUrl}
-            alt={cinema.name}
-            className="h-full w-full object-cover"
-          />
+          <img src={cinema.imageUrl} alt={cinema.name} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <Film className="h-24 w-24 text-muted-foreground" />
+            <Film className="text-muted-foreground h-24 w-24" />
           </div>
         )}
       </div>
 
       <div className="mb-6 space-y-2">
         <h2 className="text-2xl font-bold">{cinema.name}</h2>
-        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
           {cinema.address && (
             <span className="flex items-center gap-1">
               <MapPin className="h-4 w-4" />
@@ -190,7 +184,7 @@ export default function CinemaDetailPage() {
                     className="flex items-center justify-between rounded-lg border p-3"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="relative h-14 w-10 overflow-hidden rounded bg-muted">
+                      <div className="bg-muted relative h-14 w-10 overflow-hidden rounded">
                         {st.moviePosterUrl ? (
                           <img
                             src={st.moviePosterUrl}
@@ -198,12 +192,12 @@ export default function CinemaDetailPage() {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <Film className="absolute inset-0 m-auto h-5 w-5 text-muted-foreground" />
+                          <Film className="text-muted-foreground absolute inset-0 m-auto h-5 w-5" />
                         )}
                       </div>
                       <div>
                         <p className="font-medium">{st.movieTitle || "Movie"}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-muted-foreground text-xs">
                           {st.roomName} • {st.format}
                           {st.language ? ` • ${st.language}` : ""}
                         </p>
@@ -227,7 +221,7 @@ export default function CinemaDetailPage() {
                 ))}
               </div>
             ) : (
-              <p className="py-8 text-center text-sm text-muted-foreground">
+              <p className="text-muted-foreground py-8 text-center text-sm">
                 No showtimes for this date
               </p>
             )}

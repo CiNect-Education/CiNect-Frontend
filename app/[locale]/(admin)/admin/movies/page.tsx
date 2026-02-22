@@ -155,7 +155,7 @@ export default function AdminMoviesPage() {
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => (
-          <span className="rounded bg-muted px-2 py-0.5 text-xs">
+          <span className="bg-muted rounded px-2 py-0.5 text-xs">
             {row.original.status.replace("_", " ")}
           </span>
         ),
@@ -163,41 +163,29 @@ export default function AdminMoviesPage() {
       {
         accessorKey: "genres",
         header: "Genres",
-        cell: ({ row }) =>
-          row.original.genres?.map((g) => g.name).join(", ") || "—",
+        cell: ({ row }) => row.original.genres?.map((g) => g.name).join(", ") || "—",
       },
       {
         accessorKey: "releaseDate",
         header: "Release",
         cell: ({ row }) =>
-          row.original.releaseDate
-            ? new Date(row.original.releaseDate).toLocaleDateString()
-            : "—",
+          row.original.releaseDate ? new Date(row.original.releaseDate).toLocaleDateString() : "—",
       },
       {
         accessorKey: "rating",
         header: "Rating",
-        cell: ({ row }) =>
-          row.original.rating != null ? row.original.rating.toFixed(1) : "—",
+        cell: ({ row }) => (row.original.rating != null ? row.original.rating.toFixed(1) : "—"),
       },
       {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => openEdit(row.original)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => openEdit(row.original)}>
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDeleteTarget(row.original)}
-            >
-              <Trash2 className="h-4 w-4 text-destructive" />
+            <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(row.original)}>
+              <Trash2 className="text-destructive h-4 w-4" />
             </Button>
           </div>
         ),
@@ -211,10 +199,7 @@ export default function AdminMoviesPage() {
       <PageHeader
         title={t("movies")}
         description="Manage movie catalog, add new releases, and update movie information."
-        breadcrumbs={[
-          { label: t("title"), href: "/admin" },
-          { label: t("movies") },
-        ]}
+        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("movies") }]}
         actions={
           <Button onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />
@@ -233,15 +218,10 @@ export default function AdminMoviesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>
-              {editingMovie ? "Edit Movie" : "Add Movie"}
-            </DialogTitle>
+            <DialogTitle>{editingMovie ? "Edit Movie" : "Add Movie"}</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="title"
@@ -316,10 +296,7 @@ export default function AdminMoviesPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Status</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -341,10 +318,7 @@ export default function AdminMoviesPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Age Rating</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -389,18 +363,12 @@ export default function AdminMoviesPage() {
                 )}
               />
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setDialogOpen(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  disabled={
-                    createMutation.isPending || updateMutation.isPending
-                  }
+                  disabled={createMutation.isPending || updateMutation.isPending}
                 >
                   {editingMovie ? "Update" : "Create"}
                 </Button>
@@ -410,16 +378,13 @@ export default function AdminMoviesPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-      >
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Movie</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deleteTarget?.title}&quot;?
-              This action cannot be undone.
+              Are you sure you want to delete &quot;{deleteTarget?.title}&quot;? This action cannot
+              be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

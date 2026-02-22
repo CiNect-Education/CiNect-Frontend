@@ -10,37 +10,36 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t bg-card">
+    <footer className="bg-card border-t">
       <div className="mx-auto max-w-7xl px-4 py-12 lg:px-6">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
             <Link href="/" className="flex items-center gap-2 font-bold">
-              <Film className="h-5 w-5 text-primary" />
+              <Film className="text-primary h-5 w-5" />
               <span>CinemaConnect</span>
             </Link>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Trai nghiem dien anh dinh cao. Dat ve truc tuyen, nhanh chong va
-              tien loi.
+            <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
+              Trai nghiem dien anh dinh cao. Dat ve truc tuyen, nhanh chong va tien loi.
             </p>
           </div>
 
           {/* Company */}
           <div>
             <h4 className="mb-3 text-sm font-semibold">{t("about")}</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <ul className="text-muted-foreground space-y-2 text-sm">
               <li>
-                <Link href="/" className="transition-colors hover:text-foreground">
+                <Link href="/" className="hover:text-foreground transition-colors">
                   {t("about")}
                 </Link>
               </li>
               <li>
-                <Link href="/" className="transition-colors hover:text-foreground">
+                <Link href="/" className="hover:text-foreground transition-colors">
                   {t("careers")}
                 </Link>
               </li>
               <li>
-                <Link href="/news" className="transition-colors hover:text-foreground">
+                <Link href="/news" className="hover:text-foreground transition-colors">
                   Blog
                 </Link>
               </li>
@@ -50,14 +49,14 @@ export function Footer() {
           {/* Legal */}
           <div>
             <h4 className="mb-3 text-sm font-semibold">{t("terms")}</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <ul className="text-muted-foreground space-y-2 text-sm">
               <li>
-                <Link href="/" className="transition-colors hover:text-foreground">
+                <Link href="/" className="hover:text-foreground transition-colors">
                   {t("terms")}
                 </Link>
               </li>
               <li>
-                <Link href="/" className="transition-colors hover:text-foreground">
+                <Link href="/" className="hover:text-foreground transition-colors">
                   {t("privacy")}
                 </Link>
               </li>
@@ -67,14 +66,14 @@ export function Footer() {
           {/* Support */}
           <div>
             <h4 className="mb-3 text-sm font-semibold">{t("contact")}</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <ul className="text-muted-foreground space-y-2 text-sm">
               <li>
-                <Link href="/support" className="transition-colors hover:text-foreground">
+                <Link href="/support" className="hover:text-foreground transition-colors">
                   {t("faq")}
                 </Link>
               </li>
               <li>
-                <Link href="/support" className="transition-colors hover:text-foreground">
+                <Link href="/support" className="hover:text-foreground transition-colors">
                   {t("contact")}
                 </Link>
               </li>
@@ -84,13 +83,13 @@ export function Footer() {
           {/* Social */}
           <div>
             <h4 className="mb-3 text-sm font-semibold">Follow Us</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <ul className="text-muted-foreground space-y-2 text-sm">
               <li>
                 <a
                   href="https://facebook.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition-colors hover:text-foreground"
+                  className="hover:text-foreground transition-colors"
                 >
                   Facebook
                 </a>
@@ -100,7 +99,7 @@ export function Footer() {
                   href="https://instagram.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition-colors hover:text-foreground"
+                  className="hover:text-foreground transition-colors"
                 >
                   Instagram
                 </a>
@@ -110,7 +109,7 @@ export function Footer() {
                   href="https://youtube.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition-colors hover:text-foreground"
+                  className="hover:text-foreground transition-colors"
                 >
                   YouTube
                 </a>
@@ -120,7 +119,7 @@ export function Footer() {
                   href="https://x.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition-colors hover:text-foreground"
+                  className="hover:text-foreground transition-colors"
                 >
                   X (Twitter)
                 </a>
@@ -131,9 +130,7 @@ export function Footer() {
 
         <Separator className="my-8" />
 
-        <p className="text-center text-xs text-muted-foreground">
-          {t("copyright", { year })}
-        </p>
+        <p className="text-muted-foreground text-center text-xs">{t("copyright", { year })}</p>
       </div>
     </footer>
   );

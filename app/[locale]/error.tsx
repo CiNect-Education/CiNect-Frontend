@@ -15,7 +15,8 @@ export default function LocaleError({
   reset: () => void;
 }) {
   const t = useTranslations("common");
-  const requestId = error instanceof ApiError ? error.requestId : (error as { requestId?: string }).requestId;
+  const requestId =
+    error instanceof ApiError ? error.requestId : (error as { requestId?: string }).requestId;
   const isDev = process.env.NODE_ENV === "development";
 
   useEffect(() => {
@@ -27,14 +28,12 @@ export default function LocaleError({
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center p-4 text-center">
-      <div className="mb-4 rounded-full bg-destructive/10 p-4">
-        <AlertTriangle className="h-12 w-12 text-destructive" />
+      <div className="bg-destructive/10 mb-4 rounded-full p-4">
+        <AlertTriangle className="text-destructive h-12 w-12" />
       </div>
       <h2 className="mb-2 text-2xl font-bold">{t("errorTitle")}</h2>
-      <p className="mb-6 max-w-md text-sm text-muted-foreground">
-        {t("errorDesc")}
-      </p>
-      <div className="flex flex-col sm:flex-row gap-3">
+      <p className="text-muted-foreground mb-6 max-w-md text-sm">{t("errorDesc")}</p>
+      <div className="flex flex-col gap-3 sm:flex-row">
         <Button onClick={reset} variant="default">
           {t("retry")}
         </Button>
@@ -43,9 +42,7 @@ export default function LocaleError({
         </Button>
       </div>
       {isDev && requestId && (
-        <p className="mt-6 text-xs text-muted-foreground font-mono">
-          Request ID: {requestId}
-        </p>
+        <p className="text-muted-foreground mt-6 font-mono text-xs">Request ID: {requestId}</p>
       )}
     </div>
   );

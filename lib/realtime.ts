@@ -19,8 +19,7 @@ export class RealtimeConnection {
   }
 
   connect() {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
     const wsUrl = baseUrl.replace(/^http/, "ws").replace(/\/api\/v1$/, "");
 
     try {
@@ -53,10 +52,7 @@ export class RealtimeConnection {
 
   private attemptReconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) return;
-    const delay = Math.min(
-      1000 * Math.pow(2, this.reconnectAttempts),
-      30000
-    );
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
     this.reconnectTimeout = setTimeout(() => {
       this.reconnectAttempts++;
       this.connect();

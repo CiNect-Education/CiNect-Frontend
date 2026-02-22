@@ -42,10 +42,9 @@ function downloadCSV(headers: string[], rows: (string | number)[][], filename: s
     }
     return s;
   };
-  const csv = [
-    headers.map(escape).join(","),
-    ...rows.map((r) => r.map(escape).join(",")),
-  ].join("\n");
+  const csv = [headers.map(escape).join(","), ...rows.map((r) => r.map(escape).join(","))].join(
+    "\n"
+  );
   const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -60,9 +59,7 @@ export default function AdminReportsPage() {
   const [dateFrom, setDateFrom] = useState<string>(
     new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
   );
-  const [dateTo, setDateTo] = useState<string>(
-    new Date().toISOString().slice(0, 10)
-  );
+  const [dateTo, setDateTo] = useState<string>(new Date().toISOString().slice(0, 10));
 
   const params = useMemo(
     () => ({
@@ -109,13 +106,10 @@ export default function AdminReportsPage() {
       <PageHeader
         title={t("reports")}
         description="Business analytics and performance reports for your cinema chain."
-        breadcrumbs={[
-          { label: t("title"), href: "/admin" },
-          { label: t("reports") },
-        ]}
+        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("reports") }]}
         actions={
-          <div className="flex gap-2 items-center">
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-2">
+            <CalendarDays className="text-muted-foreground h-4 w-4" />
             <Input
               type="date"
               value={dateFrom}
@@ -151,18 +145,15 @@ export default function AdminReportsPage() {
             </CardHeader>
             <CardContent>
               {salesData.length === 0 ? (
-                <div className="flex h-64 items-center justify-center rounded-lg border border-dashed text-muted-foreground">
+                <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
                   No sales data for this period
                 </div>
               ) : (
-                <div className="h-64 mb-6">
+                <div className="mb-6 h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={salesData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="date"
-                        tickFormatter={(v) => format(new Date(v), "MM/dd")}
-                      />
+                      <XAxis dataKey="date" tickFormatter={(v) => format(new Date(v), "MM/dd")} />
                       <YAxis />
                       <Tooltip
                         formatter={(value) => (value as number).toLocaleString()}
@@ -200,20 +191,14 @@ export default function AdminReportsPage() {
                   <TableBody>
                     {salesData.map((r) => (
                       <TableRow key={r.date}>
-                        <TableCell>
-                          {format(new Date(r.date), "MMM d, yyyy")}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {r.revenue.toLocaleString()} ₫
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {r.bookings}
-                        </TableCell>
+                        <TableCell>{format(new Date(r.date), "MMM d, yyyy")}</TableCell>
+                        <TableCell className="text-right">{r.revenue.toLocaleString()} ₫</TableCell>
+                        <TableCell className="text-right">{r.bookings}</TableCell>
                       </TableRow>
                     ))}
                     {salesData.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={3} className="text-center text-muted-foreground">
+                        <TableCell colSpan={3} className="text-muted-foreground text-center">
                           No data
                         </TableCell>
                       </TableRow>
@@ -236,11 +221,11 @@ export default function AdminReportsPage() {
             </CardHeader>
             <CardContent>
               {moviesData.length === 0 ? (
-                <div className="flex h-64 items-center justify-center rounded-lg border border-dashed text-muted-foreground">
+                <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
                   No movie data for this period
                 </div>
               ) : (
-                <div className="h-64 mb-6">
+                <div className="mb-6 h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={moviesData.slice(0, 10)}
@@ -275,20 +260,16 @@ export default function AdminReportsPage() {
                     {moviesData.map((r) => (
                       <TableRow key={r.movieId}>
                         <TableCell>{r.movieTitle}</TableCell>
-                        <TableCell className="text-right">
-                          {r.revenue.toLocaleString()} ₫
-                        </TableCell>
+                        <TableCell className="text-right">{r.revenue.toLocaleString()} ₫</TableCell>
                         <TableCell className="text-right">{r.bookings}</TableCell>
                         <TableCell className="text-right">
-                          {r.occupancy != null
-                            ? `${(r.occupancy * 100).toFixed(1)}%`
-                            : "—"}
+                          {r.occupancy != null ? `${(r.occupancy * 100).toFixed(1)}%` : "—"}
                         </TableCell>
                       </TableRow>
                     ))}
                     {moviesData.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground">
+                        <TableCell colSpan={4} className="text-muted-foreground text-center">
                           No data
                         </TableCell>
                       </TableRow>
@@ -311,11 +292,11 @@ export default function AdminReportsPage() {
             </CardHeader>
             <CardContent>
               {cinemasData.length === 0 ? (
-                <div className="flex h-64 items-center justify-center rounded-lg border border-dashed text-muted-foreground">
+                <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
                   No cinema data for this period
                 </div>
               ) : (
-                <div className="h-64 mb-6">
+                <div className="mb-6 h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={cinemasData.slice(0, 10)}
@@ -350,20 +331,16 @@ export default function AdminReportsPage() {
                     {cinemasData.map((r) => (
                       <TableRow key={r.cinemaId}>
                         <TableCell>{r.cinemaName}</TableCell>
-                        <TableCell className="text-right">
-                          {r.revenue.toLocaleString()} ₫
-                        </TableCell>
+                        <TableCell className="text-right">{r.revenue.toLocaleString()} ₫</TableCell>
                         <TableCell className="text-right">{r.bookings}</TableCell>
                         <TableCell className="text-right">
-                          {r.occupancy != null
-                            ? `${(r.occupancy * 100).toFixed(1)}%`
-                            : "—"}
+                          {r.occupancy != null ? `${(r.occupancy * 100).toFixed(1)}%` : "—"}
                         </TableCell>
                       </TableRow>
                     ))}
                     {cinemasData.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground">
+                        <TableCell colSpan={4} className="text-muted-foreground text-center">
                           No data
                         </TableCell>
                       </TableRow>

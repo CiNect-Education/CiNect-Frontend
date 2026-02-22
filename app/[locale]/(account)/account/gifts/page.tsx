@@ -31,7 +31,7 @@ export default function AccountGiftsPage() {
   if (isLoading) {
     return (
       <div>
-        <Skeleton className="h-8 w-64 mb-6" />
+        <Skeleton className="mb-6 h-8 w-64" />
         <div className="grid gap-4 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-48" />
@@ -55,10 +55,7 @@ export default function AccountGiftsPage() {
       <PageHeader
         title={t("gifts")}
         description={t("giftsDesc")}
-        breadcrumbs={[
-          { label: t("title"), href: "/account/profile" },
-          { label: t("gifts") },
-        ]}
+        breadcrumbs={[{ label: t("title"), href: "/account/profile" }, { label: t("gifts") }]}
       />
 
       {!gifts || gifts.length === 0 ? (
@@ -77,13 +74,13 @@ export default function AccountGiftsPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           {gifts.map((gift) => (
             <Card key={gift.id} className="relative overflow-hidden">
-              <div className="absolute right-0 top-0 h-32 w-32 -translate-y-8 translate-x-8 rounded-full bg-primary/5" />
-              
+              <div className="bg-primary/5 absolute top-0 right-0 h-32 w-32 translate-x-8 -translate-y-8 rounded-full" />
+
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-lg">{gift.title}</CardTitle>
-                    <div className="mt-1 text-sm text-muted-foreground">
+                    <div className="text-muted-foreground mt-1 text-sm">
                       {gift.recipientEmail || "Self"}
                     </div>
                   </div>
@@ -97,13 +94,13 @@ export default function AccountGiftsPage() {
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-bold">{gift.value.toLocaleString()}đ</span>
                   {gift.price < gift.value && (
-                    <span className="text-sm text-muted-foreground line-through">
+                    <span className="text-muted-foreground text-sm line-through">
                       {gift.price.toLocaleString()}đ
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between rounded-lg border border-dashed border-primary/30 bg-primary/5 p-3">
+                <div className="border-primary/30 bg-primary/5 flex items-center justify-between rounded-lg border border-dashed p-3">
                   <code className="font-mono text-sm font-semibold">{gift.code}</code>
                   <Button
                     variant="ghost"
@@ -118,13 +115,11 @@ export default function AccountGiftsPage() {
                   </Button>
                 </div>
 
-                <div className="space-y-1 text-xs text-muted-foreground">
+                <div className="text-muted-foreground space-y-1 text-xs">
                   {gift.purchasedAt && (
                     <div>Purchased: {format(new Date(gift.purchasedAt), "PP")}</div>
                   )}
-                  {gift.expiresAt && (
-                    <div>Expires: {format(new Date(gift.expiresAt), "PP")}</div>
-                  )}
+                  {gift.expiresAt && <div>Expires: {format(new Date(gift.expiresAt), "PP")}</div>}
                 </div>
 
                 {gift.status === "AVAILABLE" && (

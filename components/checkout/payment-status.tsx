@@ -13,11 +13,7 @@ interface PaymentStatusProps {
   onFailed?: () => void;
 }
 
-export function PaymentStatus({
-  paymentId,
-  onSuccess,
-  onFailed,
-}: PaymentStatusProps) {
+export function PaymentStatus({ paymentId, onSuccess, onFailed }: PaymentStatusProps) {
   const [timedOut, setTimedOut] = useState(false);
   const { data, isLoading, refetch } = usePaymentStatus(paymentId);
 
@@ -42,11 +38,11 @@ export function PaymentStatus({
   if (timedOut && status !== "SUCCESS" && status !== "FAILED") {
     return (
       <div className="flex flex-col items-center justify-center gap-4 rounded-lg border p-8 text-center">
-        <XCircle className="h-16 w-16 text-destructive" />
+        <XCircle className="text-destructive h-16 w-16" />
         <h3 className="text-lg font-semibold">Payment Timed Out</h3>
-        <p className="text-sm text-muted-foreground">
-          The payment verification took too long. Please check your payment
-          status in your account or contact support.
+        <p className="text-muted-foreground text-sm">
+          The payment verification took too long. Please check your payment status in your account
+          or contact support.
         </p>
       </div>
     );
@@ -59,13 +55,9 @@ export function PaymentStatus({
           <CheckCircle2 className="h-10 w-10 text-green-600" />
         </div>
         <h3 className="text-lg font-semibold">Payment Successful</h3>
-        <p className="text-sm text-muted-foreground">
-          Your payment has been confirmed.
-        </p>
+        <p className="text-muted-foreground text-sm">Your payment has been confirmed.</p>
         {transactionId && (
-          <p className="text-xs text-muted-foreground font-mono">
-            Transaction: {transactionId}
-          </p>
+          <p className="text-muted-foreground font-mono text-xs">Transaction: {transactionId}</p>
         )}
       </div>
     );
@@ -73,10 +65,10 @@ export function PaymentStatus({
 
   if (status === "FAILED") {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-destructive/50 p-8 text-center">
-        <XCircle className="h-16 w-16 text-destructive" />
+      <div className="border-destructive/50 flex flex-col items-center justify-center gap-4 rounded-lg border p-8 text-center">
+        <XCircle className="text-destructive h-16 w-16" />
         <h3 className="text-lg font-semibold">Payment Failed</h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           {errorReason ?? "Your payment could not be processed."}
         </p>
         <Button variant="outline" onClick={() => refetch()}>
@@ -88,11 +80,9 @@ export function PaymentStatus({
 
   return (
     <div className="flex flex-col items-center justify-center gap-4 rounded-lg border p-8 text-center">
-      <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      <Loader2 className="text-primary h-12 w-12 animate-spin" />
       <h3 className="text-lg font-semibold">Verifying Payment</h3>
-      <p className="text-sm text-muted-foreground">
-        Please wait while we confirm your payment...
-      </p>
+      <p className="text-muted-foreground text-sm">Please wait while we confirm your payment...</p>
     </div>
   );
 }

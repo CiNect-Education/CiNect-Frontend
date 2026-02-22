@@ -14,13 +14,7 @@ import { Newspaper, ChevronLeft, ChevronRight } from "lucide-react";
 import type { NewsArticle } from "@/types/domain";
 import type { NewsCategory } from "@/types/domain";
 
-const CATEGORIES: NewsCategory[] = [
-  "REVIEWS",
-  "TRAILERS",
-  "PROMOTIONS",
-  "GUIDES",
-  "GENERAL",
-];
+const CATEGORIES: NewsCategory[] = ["REVIEWS", "TRAILERS", "PROMOTIONS", "GUIDES", "GENERAL"];
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -108,9 +102,9 @@ export default function NewsPage() {
         <ApiErrorState error={error} onRetry={refetch} />
       ) : articles.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-          <Newspaper className="mb-3 h-12 w-12 text-muted-foreground" />
+          <Newspaper className="text-muted-foreground mb-3 h-12 w-12" />
           <h3 className="mb-2 text-lg font-semibold">{t("emptyState") || "No articles"}</h3>
-          <p className="text-sm text-muted-foreground">Check back later for new content.</p>
+          <p className="text-muted-foreground text-sm">Check back later for new content.</p>
         </div>
       ) : (
         <>
@@ -118,7 +112,7 @@ export default function NewsPage() {
             {articles.map((article) => (
               <Link key={article.id} href={`/news/${article.slug}`}>
                 <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
-                  <div className="aspect-video overflow-hidden bg-muted">
+                  <div className="bg-muted aspect-video overflow-hidden">
                     {article.imageUrl ? (
                       <img
                         src={article.imageUrl}
@@ -127,7 +121,7 @@ export default function NewsPage() {
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
-                        <Newspaper className="h-12 w-12 text-muted-foreground" />
+                        <Newspaper className="text-muted-foreground h-12 w-12" />
                       </div>
                     )}
                   </div>
@@ -135,11 +129,11 @@ export default function NewsPage() {
                     <Badge variant="secondary" className="mb-2">
                       {article.category}
                     </Badge>
-                    <h3 className="mb-2 font-semibold line-clamp-2">{article.title}</h3>
-                    <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
+                    <h3 className="mb-2 line-clamp-2 font-semibold">{article.title}</h3>
+                    <p className="text-muted-foreground mb-3 line-clamp-2 text-sm">
                       {article.excerpt}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       {article.publishedAt
                         ? new Date(article.publishedAt).toLocaleDateString()
                         : ""}{" "}
@@ -161,7 +155,7 @@ export default function NewsPage() {
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="px-4 text-sm text-muted-foreground">
+              <span className="text-muted-foreground px-4 text-sm">
                 Page {currentPage} of {totalPages}
               </span>
               <Button

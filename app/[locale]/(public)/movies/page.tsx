@@ -65,7 +65,9 @@ function MoviesContent() {
 
   const { data, isLoading, error, refetch } = useMovies(params);
 
-  const items = Array.isArray(data?.data) ? data.data : ((data?.data as unknown as { items?: MovieListItem[] })?.items ?? []);
+  const items = Array.isArray(data?.data)
+    ? data.data
+    : ((data?.data as unknown as { items?: MovieListItem[] })?.items ?? []);
   const meta = data?.meta as PaginationMeta | undefined;
   const movies = Array.isArray(items) ? items : [];
   const totalPages = meta?.totalPages ?? 1;
@@ -101,14 +103,11 @@ function MoviesContent() {
 
         <div className="flex-1">
           {/* Sticky Sort Bar */}
-          <div className="sticky top-0 z-10 mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <span className="text-sm text-muted-foreground">
+          <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border px-4 py-3 backdrop-blur">
+            <span className="text-muted-foreground text-sm">
               {total > 0 ? `${total} movies` : "No results"}
             </span>
-            <Select
-              value={sort || "releaseDate:desc"}
-              onValueChange={updateSort}
-            >
+            <Select value={sort || "releaseDate:desc"} onValueChange={updateSort}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
@@ -125,18 +124,16 @@ function MoviesContent() {
           {isLoading ? (
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
               {Array.from({ length: 12 }).map((_, i) => (
-                <div key={i} className="h-96 animate-pulse rounded-lg bg-muted" />
+                <div key={i} className="bg-muted h-96 animate-pulse rounded-lg" />
               ))}
             </div>
           ) : error ? (
             <ApiErrorState error={error} onRetry={refetch} />
           ) : movies.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-              <Film className="mb-3 h-12 w-12 text-muted-foreground" />
-              <h3 className="mb-2 text-lg font-semibold">
-                {t("noResults") || "No movies found"}
-              </h3>
-              <p className="text-sm text-muted-foreground">
+              <Film className="text-muted-foreground mb-3 h-12 w-12" />
+              <h3 className="mb-2 text-lg font-semibold">{t("noResults") || "No movies found"}</h3>
+              <p className="text-muted-foreground text-sm">
                 {t("tryDifferentFilters") || "Try adjusting your filters"}
               </p>
             </div>
@@ -158,7 +155,7 @@ function MoviesContent() {
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <span className="px-4 text-sm text-muted-foreground">
+                  <span className="text-muted-foreground px-4 text-sm">
                     Page {currentPage} of {totalPages}
                   </span>
                   <Button
@@ -180,11 +177,14 @@ function MoviesContent() {
 }
 
 function MovieCard({ movie }: { movie: MovieListItem }) {
-  const genres = movie.genres?.map((g) => (typeof g === "object" && g !== null && "name" in g ? g.name : String(g))) ?? [];
+  const genres =
+    movie.genres?.map((g) =>
+      typeof g === "object" && g !== null && "name" in g ? g.name : String(g)
+    ) ?? [];
   return (
     <Link href={`/movies/${movie.id}`}>
-      <Card className="group h-full overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/20">
-        <div className="relative aspect-[2/3] overflow-hidden bg-muted">
+      <Card className="group hover:shadow-primary/20 h-full overflow-hidden transition-all hover:shadow-lg">
+        <div className="bg-muted relative aspect-[2/3] overflow-hidden">
           {movie.posterUrl ? (
             <img
               src={movie.posterUrl}
@@ -192,17 +192,13 @@ function MovieCard({ movie }: { movie: MovieListItem }) {
               className="h-full w-full object-cover transition-transform group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-muted-foreground">
+            <div className="text-muted-foreground flex h-full items-center justify-center">
               <Film className="h-12 w-12" />
             </div>
           )}
-          <div className="absolute left-2 top-2 flex flex-wrap gap-1">
-            {movie.status === "NOW_SHOWING" && (
-              <Badge className="bg-primary">Now Showing</Badge>
-            )}
-            {movie.status === "COMING_SOON" && (
-              <Badge className="bg-secondary">Coming Soon</Badge>
-            )}
+          <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+            {movie.status === "NOW_SHOWING" && <Badge className="bg-primary">Now Showing</Badge>}
+            {movie.status === "COMING_SOON" && <Badge className="bg-secondary">Coming Soon</Badge>}
             {movie.ageRating && (
               <Badge variant="outline" className="bg-background/80">
                 {movie.ageRating}
@@ -210,12 +206,10 @@ function MovieCard({ movie }: { movie: MovieListItem }) {
             )}
           </div>
           {movie.rating && (
-            <Badge className="absolute right-2 top-2 bg-black/80">
-              {movie.rating}
-            </Badge>
+            <Badge className="absolute top-2 right-2 bg-black/80">{movie.rating}</Badge>
           )}
           {movie.formats?.length ? (
-            <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-1">
+            <div className="absolute right-2 bottom-2 left-2 flex flex-wrap gap-1">
               {movie.formats.slice(0, 3).map((f) => (
                 <Badge key={f} variant="secondary" className="text-xs">
                   {f}
@@ -225,15 +219,11 @@ function MovieCard({ movie }: { movie: MovieListItem }) {
           ) : null}
         </div>
         <CardContent className="p-4">
-          <h3 className="mb-2 line-clamp-2 font-semibold text-balance">
-            {movie.title}
-          </h3>
+          <h3 className="mb-2 line-clamp-2 font-semibold text-balance">{movie.title}</h3>
           {genres.length > 0 && (
-            <p className="mb-2 line-clamp-1 text-xs text-muted-foreground">
-              {genres.join(", ")}
-            </p>
+            <p className="text-muted-foreground mb-2 line-clamp-1 text-xs">{genres.join(", ")}</p>
           )}
-          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-xs">
             {movie.duration && (
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
@@ -242,7 +232,7 @@ function MovieCard({ movie }: { movie: MovieListItem }) {
             )}
             {movie.rating && (
               <span className="flex items-center gap-1">
-                <Star className="h-3 w-3 fill-primary text-primary" />
+                <Star className="fill-primary text-primary h-3 w-3" />
                 {movie.rating}
               </span>
             )}
@@ -264,7 +254,7 @@ export default function MoviesPage() {
     <Suspense
       fallback={
         <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
-          <div className="h-96 animate-pulse rounded-lg bg-muted" />
+          <div className="bg-muted h-96 animate-pulse rounded-lg" />
         </div>
       }
     >

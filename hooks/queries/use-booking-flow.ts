@@ -25,10 +25,9 @@ interface HoldResponse {
 
 export function useHoldSeats() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (data: HoldSeatsPayload) =>
-      apiClient.post<HoldResponse>("/holds", data),
+    mutationFn: (data: HoldSeatsPayload) => apiClient.post<HoldResponse>("/holds", data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["showtimes", variables.showtimeId, "seats"] });
     },
@@ -73,8 +72,7 @@ export function useHold(holdId?: string) {
 export function useSnacks(cinemaId?: string) {
   return useQuery({
     queryKey: ["snacks", cinemaId],
-    queryFn: () =>
-      apiClient.get<SnackItem[]>("/snacks", cinemaId ? { cinemaId } : undefined),
+    queryFn: () => apiClient.get<SnackItem[]>("/snacks", cinemaId ? { cinemaId } : undefined),
   });
 }
 
@@ -89,8 +87,7 @@ interface CreateBookingPayload {
 
 export function useCreateBooking() {
   return useMutation({
-    mutationFn: (data: CreateBookingPayload) =>
-      apiClient.post<Booking>("/bookings", data),
+    mutationFn: (data: CreateBookingPayload) => apiClient.post<Booking>("/bookings", data),
     onError: (error: any) => {
       toast.error(error?.message || "Failed to create booking");
     },
@@ -109,7 +106,7 @@ export function useBooking(bookingId?: string) {
 // Apply promo code
 export function useApplyPromo() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ bookingId, promoCode }: { bookingId: string; promoCode: string }) =>
       apiClient.post(`/bookings/${bookingId}/apply-promo`, { promoCode }),
@@ -126,10 +123,9 @@ export function useApplyPromo() {
 // Confirm booking
 export function useConfirmBooking() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (bookingId: string) =>
-      apiClient.post(`/bookings/${bookingId}/confirm`),
+    mutationFn: (bookingId: string) => apiClient.post(`/bookings/${bookingId}/confirm`),
     onSuccess: (_, bookingId) => {
       queryClient.invalidateQueries({ queryKey: ["bookings", bookingId] });
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
@@ -140,10 +136,9 @@ export function useConfirmBooking() {
 // Cancel booking
 export function useCancelBooking() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (bookingId: string) =>
-      apiClient.post(`/bookings/${bookingId}/cancel`),
+    mutationFn: (bookingId: string) => apiClient.post(`/bookings/${bookingId}/cancel`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
       toast.success("Booking cancelled");
@@ -214,10 +209,9 @@ export function usePaymentCallback(transactionId?: string) {
   return useQuery({
     queryKey: ["payments", "callback", transactionId],
     queryFn: () =>
-      apiClient.get<{ paymentId: string; bookingId: string }>(
-        "/payments/callback",
-        { transactionId: transactionId ?? "" }
-      ),
+      apiClient.get<{ paymentId: string; bookingId: string }>("/payments/callback", {
+        transactionId: transactionId ?? "",
+      }),
     enabled: !!transactionId,
   });
 }
@@ -226,13 +220,7 @@ export function usePaymentCallback(transactionId?: string) {
 export function useApplyGiftCard() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      bookingId,
-      giftCardCode,
-    }: {
-      bookingId: string;
-      giftCardCode: string;
-    }) =>
+    mutationFn: ({ bookingId, giftCardCode }: { bookingId: string; giftCardCode: string }) =>
       apiClient.post(`/bookings/${bookingId}/apply-gift-card`, { giftCardCode }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["bookings", variables.bookingId] });

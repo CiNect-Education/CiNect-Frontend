@@ -205,8 +205,8 @@ export default function AdminPromotionsPage() {
               row.original.status === "ACTIVE"
                 ? "bg-green-500/20 text-green-700 dark:text-green-400"
                 : row.original.status === "EXPIRED"
-                ? "bg-red-500/20 text-red-700 dark:text-red-400"
-                : "bg-muted text-muted-foreground"
+                  ? "bg-red-500/20 text-red-700 dark:text-red-400"
+                  : "bg-muted text-muted-foreground"
             }`}
           >
             {row.original.status}
@@ -218,19 +218,11 @@ export default function AdminPromotionsPage() {
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => openEdit(row.original)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => openEdit(row.original)}>
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDeleteTarget(row.original)}
-            >
-              <Trash2 className="h-4 w-4 text-destructive" />
+            <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(row.original)}>
+              <Trash2 className="text-destructive h-4 w-4" />
             </Button>
           </div>
         ),
@@ -244,10 +236,7 @@ export default function AdminPromotionsPage() {
       <PageHeader
         title={t("promotions")}
         description="Create and manage promotional campaigns, discount codes, and special offers."
-        breadcrumbs={[
-          { label: t("title"), href: "/admin" },
-          { label: t("promotions") },
-        ]}
+        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("promotions") }]}
         actions={
           <Button onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />
@@ -266,15 +255,10 @@ export default function AdminPromotionsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>
-              {editingPromotion ? "Edit Promotion" : "Create Promotion"}
-            </DialogTitle>
+            <DialogTitle>{editingPromotion ? "Edit Promotion" : "Create Promotion"}</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="title"
@@ -321,10 +305,7 @@ export default function AdminPromotionsPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Discount Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -428,10 +409,7 @@ export default function AdminPromotionsPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -448,18 +426,12 @@ export default function AdminPromotionsPage() {
                 )}
               />
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setDialogOpen(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  disabled={
-                    createMutation.isPending || updateMutation.isPending
-                  }
+                  disabled={createMutation.isPending || updateMutation.isPending}
                 >
                   {editingPromotion ? "Update" : "Create"}
                 </Button>
@@ -469,16 +441,13 @@ export default function AdminPromotionsPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-      >
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Promotion</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deleteTarget?.title}&quot;?
-              This action cannot be undone.
+              Are you sure you want to delete &quot;{deleteTarget?.title}&quot;? This action cannot
+              be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

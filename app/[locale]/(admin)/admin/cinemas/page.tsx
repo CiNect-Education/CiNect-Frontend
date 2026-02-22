@@ -142,27 +142,18 @@ export default function AdminCinemasPage() {
       {
         id: "rooms",
         header: "Rooms",
-        cell: ({ row }) =>
-          row.original.rooms?.length ?? 0,
+        cell: ({ row }) => row.original.rooms?.length ?? 0,
       },
       {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => openEdit(row.original)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => openEdit(row.original)}>
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDeleteTarget(row.original)}
-            >
-              <Trash2 className="h-4 w-4 text-destructive" />
+            <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(row.original)}>
+              <Trash2 className="text-destructive h-4 w-4" />
             </Button>
           </div>
         ),
@@ -176,10 +167,7 @@ export default function AdminCinemasPage() {
       <PageHeader
         title={t("cinemas")}
         description="Manage cinema locations, addresses, and configurations."
-        breadcrumbs={[
-          { label: t("title"), href: "/admin" },
-          { label: t("cinemas") },
-        ]}
+        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("cinemas") }]}
         actions={
           <Button onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />
@@ -198,15 +186,10 @@ export default function AdminCinemasPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>
-              {editingCinema ? "Edit Cinema" : "Add Cinema"}
-            </DialogTitle>
+            <DialogTitle>{editingCinema ? "Edit Cinema" : "Add Cinema"}</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -290,18 +273,12 @@ export default function AdminCinemasPage() {
                 />
               </div>
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setDialogOpen(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  disabled={
-                    createMutation.isPending || updateMutation.isPending
-                  }
+                  disabled={createMutation.isPending || updateMutation.isPending}
                 >
                   {editingCinema ? "Update" : "Create"}
                 </Button>
@@ -311,16 +288,13 @@ export default function AdminCinemasPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-      >
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Cinema</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deleteTarget?.name}&quot;?
-              This action cannot be undone.
+              Are you sure you want to delete &quot;{deleteTarget?.name}&quot;? This action cannot
+              be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

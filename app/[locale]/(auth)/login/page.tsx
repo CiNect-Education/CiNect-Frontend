@@ -65,9 +65,7 @@ export default function LoginPage() {
     <Card>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">{t("login")}</CardTitle>
-        <CardDescription>
-          Enter your credentials to access your account
-        </CardDescription>
+        <CardDescription>Enter your credentials to access your account</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -79,11 +77,7 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>{t("email")}</FormLabel>
                   <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="name@example.com"
-                      {...field}
-                    />
+                    <Input type="email" placeholder="name@example.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -96,10 +90,7 @@ export default function LoginPage() {
                 <FormItem>
                   <div className="flex items-center justify-between">
                     <FormLabel>{t("password")}</FormLabel>
-                    <Link
-                      href="/forgot-password"
-                      className="text-xs text-primary hover:underline"
-                    >
+                    <Link href="/forgot-password" className="text-primary text-xs hover:underline">
                       {t("forgotPassword")}
                     </Link>
                   </div>
@@ -120,9 +111,9 @@ export default function LoginPage() {
         </div>
       </CardContent>
       <CardFooter className="justify-center">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           {t("noAccount")}{" "}
-          <Link href="/register" className="font-medium text-primary hover:underline">
+          <Link href="/register" className="text-primary font-medium hover:underline">
             {t("register")}
           </Link>
         </p>

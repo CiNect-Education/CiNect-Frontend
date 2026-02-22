@@ -11,8 +11,7 @@ class Logger {
   private level: LogLevel;
 
   constructor() {
-    this.level =
-      process.env.NEXT_PUBLIC_ENV === "prod" ? "warn" : "debug";
+    this.level = process.env.NEXT_PUBLIC_ENV === "prod" ? "warn" : "debug";
   }
 
   private shouldLog(level: LogLevel) {

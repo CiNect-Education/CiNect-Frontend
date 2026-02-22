@@ -7,12 +7,9 @@ import type { QueryParams } from "@/types/api";
 import { z } from "zod";
 
 export function useBookings(params?: QueryParams) {
-  return useApiQuery<Booking[]>(
-    ["bookings", JSON.stringify(params)],
-    "/bookings",
-    params,
-    { schema: z.array(bookingSchema) }
-  );
+  return useApiQuery<Booking[]>(["bookings", JSON.stringify(params)], "/bookings", params, {
+    schema: z.array(bookingSchema),
+  });
 }
 
 export function useBooking(id: string) {
@@ -31,21 +28,14 @@ export function useCreateBooking() {
 }
 
 export function useCancelBooking() {
-  return useApiMutation<void, { id: string }>(
-    "post",
-    (vars) => `/bookings/${vars.id}/cancel`,
-    {
-      successMessage: "Booking cancelled",
-      invalidateKeys: [["bookings"]],
-    }
-  );
+  return useApiMutation<void, { id: string }>("post", (vars) => `/bookings/${vars.id}/cancel`, {
+    successMessage: "Booking cancelled",
+    invalidateKeys: [["bookings"]],
+  });
 }
 
 export function usePricingRules(params?: QueryParams) {
-  return useApiQuery<PricingRule[]>(
-    ["pricing-rules", JSON.stringify(params)],
-    "/pricing",
-    params,
-    { schema: z.array(pricingRuleSchema) }
-  );
+  return useApiQuery<PricingRule[]>(["pricing-rules", JSON.stringify(params)], "/pricing", params, {
+    schema: z.array(pricingRuleSchema),
+  });
 }

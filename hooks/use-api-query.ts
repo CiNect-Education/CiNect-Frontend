@@ -3,8 +3,10 @@ import { apiClient, ApiError, type RequestOptions } from "@/lib/api-client";
 import type { ApiEnvelope, QueryParams } from "@/types/api";
 import type { ZodType, ZodTypeDef } from "zod";
 
-interface UseApiQueryOptions<T>
-  extends Omit<UseQueryOptions<ApiEnvelope<T>, ApiError>, "queryKey" | "queryFn"> {
+interface UseApiQueryOptions<T> extends Omit<
+  UseQueryOptions<ApiEnvelope<T>, ApiError>,
+  "queryKey" | "queryFn"
+> {
   /** Zod schema to validate the response `data` field at runtime. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   schema?: ZodType<T, ZodTypeDef, any>;
@@ -22,14 +24,11 @@ export function useApiQuery<T>(
 ) {
   const { schema, ...queryOptions } = options ?? {};
 
-  const requestOpts: RequestOptions | undefined = schema
-    ? { schema }
-    : undefined;
+  const requestOpts: RequestOptions | undefined = schema ? { schema } : undefined;
 
   return useQuery<ApiEnvelope<T>, ApiError>({
     queryKey: key,
-    queryFn: ({ signal }) =>
-      apiClient.get<T>(path, params, { ...requestOpts, signal }),
+    queryFn: ({ signal }) => apiClient.get<T>(path, params, { ...requestOpts, signal }),
     ...queryOptions,
   });
 }

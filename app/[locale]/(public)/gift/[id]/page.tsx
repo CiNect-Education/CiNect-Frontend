@@ -66,7 +66,7 @@ export default function GiftDetailPage() {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
         <div className="rounded-lg border border-dashed p-12 text-center">
-          <Gift className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
+          <Gift className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
           <p className="text-muted-foreground">Gift card not found</p>
         </div>
       </div>
@@ -86,17 +86,12 @@ export default function GiftDetailPage() {
 
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Image */}
-        <div className="relative aspect-video overflow-hidden rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
+        <div className="from-primary/20 to-primary/5 relative aspect-video overflow-hidden rounded-lg bg-gradient-to-br">
           {giftCard.imageUrl ? (
-            <Image
-              src={giftCard.imageUrl}
-              alt={giftCard.title}
-              fill
-              className="object-cover"
-            />
+            <Image src={giftCard.imageUrl} alt={giftCard.title} fill className="object-cover" />
           ) : (
             <div className="flex h-full items-center justify-center">
-              <Gift className="h-24 w-24 text-primary/30" />
+              <Gift className="text-primary/30 h-24 w-24" />
             </div>
           )}
         </div>
@@ -110,16 +105,12 @@ export default function GiftDetailPage() {
 
           <div className="flex items-center gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">Value</p>
-              <p className="text-3xl font-bold text-primary">
-                {giftCard.value.toLocaleString()}đ
-              </p>
+              <p className="text-muted-foreground text-sm">Value</p>
+              <p className="text-primary text-3xl font-bold">{giftCard.value.toLocaleString()}đ</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Price</p>
-              <p className="text-2xl font-semibold">
-                {giftCard.price.toLocaleString()}đ
-              </p>
+              <p className="text-muted-foreground text-sm">Price</p>
+              <p className="text-2xl font-semibold">{giftCard.price.toLocaleString()}đ</p>
             </div>
             <Badge variant={giftCard.status === "AVAILABLE" ? "default" : "secondary"}>
               {giftCard.status}
@@ -127,7 +118,7 @@ export default function GiftDetailPage() {
           </div>
 
           {giftCard.expiresAt && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               Valid until: {new Date(giftCard.expiresAt).toLocaleDateString()}
             </p>
           )}

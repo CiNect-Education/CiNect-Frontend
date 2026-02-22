@@ -22,29 +22,24 @@ export default function GlobalError({
   }, [error, requestId]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center bg-background">
-      <div className="mb-4 rounded-full bg-destructive/10 p-4">
-        <AlertTriangle className="h-12 w-12 text-destructive" />
+    <div className="bg-background flex min-h-screen flex-col items-center justify-center p-4 text-center">
+      <div className="bg-destructive/10 mb-4 rounded-full p-4">
+        <AlertTriangle className="text-destructive h-12 w-12" />
       </div>
       <h2 className="mb-2 text-2xl font-bold">Something went wrong</h2>
-      <p className="mb-6 max-w-md text-sm text-muted-foreground">
+      <p className="text-muted-foreground mb-6 max-w-md text-sm">
         We encountered an issue. Please try again.
       </p>
       <div className="flex flex-col gap-3">
         <Button onClick={reset} variant="default">
           Try again
         </Button>
-        <a
-          href="/support"
-          className="text-sm text-primary hover:underline"
-        >
+        <a href="/support" className="text-primary text-sm hover:underline">
           Report this issue
         </a>
       </div>
       {isDev && requestId && (
-        <p className="mt-6 text-xs text-muted-foreground font-mono">
-          Request ID: {requestId}
-        </p>
+        <p className="text-muted-foreground mt-6 font-mono text-xs">Request ID: {requestId}</p>
       )}
     </div>
   );

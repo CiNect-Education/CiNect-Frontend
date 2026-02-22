@@ -30,11 +30,9 @@ export function RateLimitBanner() {
   if (retryAfter === null) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[90] bg-yellow-500 text-yellow-950 px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-2">
+    <div className="fixed top-0 right-0 left-0 z-[90] flex items-center justify-center gap-2 bg-yellow-500 px-4 py-2 text-center text-sm font-medium text-yellow-950">
       <AlertTriangle className="h-4 w-4" />
-      <span>
-        Too many requests. Please wait {countdown > 0 ? `${countdown}s` : "..."}
-      </span>
+      <span>Too many requests. Please wait {countdown > 0 ? `${countdown}s` : "..."}</span>
     </div>
   );
 }
