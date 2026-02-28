@@ -1,4 +1,4 @@
-# CinemaConnect (cinema-web-next)
+# CiNect (cinema-web-next)
 
 Next.js frontend for the cinema booking platform. Part of the **CiNect** multi-repo setup:
 

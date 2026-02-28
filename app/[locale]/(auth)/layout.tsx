@@ -7,7 +7,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="mb-8">
         <Link href="/" className="flex items-center gap-2 text-xl font-bold">
           <Film className="text-primary h-7 w-7" />
-          <span>CinemaConnect</span>
+          <span>CiNect</span>
         </Link>
       </div>
       <div className="w-full max-w-md">{children}</div>
