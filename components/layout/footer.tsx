@@ -17,7 +17,7 @@ export function Footer() {
           <div className="sm:col-span-2 lg:col-span-1">
             <Link href="/" className="flex items-center gap-2 font-bold">
               <Film className="text-primary h-5 w-5" />
-              <span>CinemaConnect</span>
+              <span>CiNect</span>
             </Link>
             <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
               Trai nghiem dien anh dinh cao. Dat ve truc tuyen, nhanh chong va tien loi.

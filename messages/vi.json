@@ -30,7 +30,7 @@
     "more": "Thêm"
   },
   "common": {
-    "appName": "CinemaConnect",
+    "appName": "CiNect",
     "loading": "Đang tải...",
     "error": "Đã xảy ra lỗi",
     "retry": "Thử lại",
@@ -78,7 +78,7 @@
     "careers": "Tuyển Dụng",
     "contact": "Liên Hệ",
     "faq": "Câu Hỏi Thường Gặp",
-    "copyright": "Bản quyền {year} CinemaConnect. Mọi quyền được bảo lưu.",
+    "copyright": "Bản quyền {year} CiNect. Mọi quyền được bảo lưu.",
     "followUs": "Theo dõi chúng tôi"
   },
   "auth": {
@@ -127,7 +127,7 @@
     "latestNews": "Tin Mới Nhất",
     "trendingNow": "Đang Hot",
     "featuredCinemas": "Rạp Nổi Bật",
-    "welcomeBadge": "Chào mừng đến CinemaConnect",
+    "welcomeBadge": "Chào mừng đến CiNect",
     "promotionsTitle": "Khuyến Mãi & Ưu Đãi",
     "newsTitle": "Tin Tức Mới Nhất",
     "anyMovie": "Tất cả phim",

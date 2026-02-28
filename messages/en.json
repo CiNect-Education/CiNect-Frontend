@@ -30,7 +30,7 @@
     "more": "More"
   },
   "common": {
-    "appName": "CinemaConnect",
+    "appName": "CiNect",
     "loading": "Loading...",
     "error": "An error occurred",
     "retry": "Try again",
@@ -78,7 +78,7 @@
     "careers": "Careers",
     "contact": "Contact",
     "faq": "FAQ",
-    "copyright": "Copyright {year} CinemaConnect. All rights reserved.",
+    "copyright": "Copyright {year} CiNect. All rights reserved.",
     "followUs": "Follow Us"
   },
   "auth": {
@@ -127,7 +127,7 @@
     "latestNews": "Latest News",
     "trendingNow": "Trending Now",
     "featuredCinemas": "Featured Cinemas",
-    "welcomeBadge": "Welcome to CinemaConnect",
+    "welcomeBadge": "Welcome to CiNect",
     "promotionsTitle": "Promotions & Offers",
     "newsTitle": "Latest News",
     "anyMovie": "Any Movie",

@@ -81,7 +81,7 @@ export default function RegisterPage() {
     <Card>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">{t("register")}</CardTitle>
-        <CardDescription>Create your CinemaConnect account</CardDescription>
+        <CardDescription>Create your CiNect account</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
