@@ -9,11 +9,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "CinemaConnect - Trai Nghiem Dien Anh Dinh Cao",
-    template: "%s | CinemaConnect",
+    default: "CiNect - Trai Nghiem Dien Anh Dinh Cao",
+    template: "%s | CiNect",
   },
   description:
-    "Kham pha phim moi nhat, dat ve truc tuyen va tan huong uu dai doc quyen tai CinemaConnect.",
+    "Kham pha phim moi nhat, dat ve truc tuyen va tan huong uu dai doc quyen tai CiNect.",
 };
 
 export const viewport: Viewport = {

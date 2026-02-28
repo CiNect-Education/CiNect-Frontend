@@ -75,7 +75,7 @@ export default function MovieDetailPage() {
   // SEO - set document title
   useEffect(() => {
     if (movie) {
-      document.title = `${movie.title} | CinemaConnect`;
+      document.title = `${movie.title} | CiNect`;
     }
   }, [movie]);
 
