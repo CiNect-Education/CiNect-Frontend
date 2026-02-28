@@ -7,11 +7,13 @@ import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePromotions } from "@/hooks/queries/use-promotions";
-import { Tag, Copy, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { apiClient } from "@/lib/api-client";
+import { Tag, Copy, Check, ChevronLeft, ChevronRight, TicketPercent } from "lucide-react";
 import type { Promotion } from "@/types/domain";
 import { toast } from "sonner";
 
@@ -29,6 +31,9 @@ export default function PromotionsPage() {
   const router = useRouter();
   const [selectedPromo, setSelectedPromo] = useState<Promotion | null>(null);
   const [copied, setCopied] = useState(false);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherLookup, setVoucherLookup] = useState<Promotion | null>(null);
+  const [voucherLoading, setVoucherLoading] = useState(false);
 
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
   const limit = 12;
@@ -58,6 +63,31 @@ export default function PromotionsPage() {
     }
   }
 
+  async function handleVoucherLookup() {
+    const code = voucherCode.trim();
+    if (!code) {
+      toast.error("Vui lòng nhập mã voucher");
+      return;
+    }
+    setVoucherLoading(true);
+    setVoucherLookup(null);
+    try {
+      const res = await apiClient.get<Promotion>("/promotions/lookup", { code });
+      const promo = (res?.data ?? res) as Promotion;
+      setVoucherLookup(promo);
+      toast.success("Tìm thấy voucher!");
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status === 404) {
+        toast.error("Mã không tồn tại hoặc đã hết hạn");
+      } else {
+        toast.error("Không thể tra cứu mã. Thử lại sau.");
+      }
+    } finally {
+      setVoucherLoading(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
       <PageHeader
@@ -65,6 +95,70 @@ export default function PromotionsPage() {
         description={t("description") || "Special offers and discounts"}
         breadcrumbs={[{ label: "Home", href: "/" }, { label: t("title") || "Promotions" }]}
       />
+
+      {/* Voucher code lookup — exclusive vouchers only visible when user enters code */}
+      <Card className="mb-8 border-primary/20 bg-primary/5">
+        <CardContent className="flex flex-wrap items-end gap-3 p-4 sm:flex-nowrap">
+          <div className="flex-1 space-y-1">
+            <label className="text-foreground flex items-center gap-2 text-sm font-medium">
+              <TicketPercent className="h-4 w-4" />
+              Nhập mã voucher
+            </label>
+            <Input
+              placeholder="VD: SUMMER2025"
+              value={voucherCode}
+              onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === "Enter" && handleVoucherLookup()}
+              className="max-w-xs font-mono"
+            />
+          </div>
+          <Button onClick={handleVoucherLookup} disabled={voucherLoading}>
+            {voucherLoading ? "Đang tra cứu..." : "Tra cứu"}
+          </Button>
+        </CardContent>
+        <p className="text-muted-foreground px-4 pb-2 text-xs">
+          Mã exclusive chỉ hiển thị khi bạn nhập đúng. Voucher thành viên xem tại trang Thành viên.
+        </p>
+        {voucherLookup && (
+          <CardContent className="border-t pt-4">
+            <p className="text-muted-foreground mb-2 text-xs">
+              Voucher của bạn (chỉ hiển thị khi nhập đúng mã):
+            </p>
+            <Card
+              className="cursor-pointer overflow-hidden transition-all hover:shadow-lg"
+              onClick={() => setSelectedPromo(voucherLookup)}
+            >
+              <div className="bg-muted flex gap-4 p-4">
+                {voucherLookup.imageUrl && (
+                  <img
+                    src={voucherLookup.imageUrl}
+                    alt={voucherLookup.title}
+                    className="h-20 w-28 rounded object-cover"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold">{voucherLookup.title}</h3>
+                  <p className="text-muted-foreground line-clamp-2 text-sm">
+                    {voucherLookup.description}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {voucherLookup.discountValue != null && (
+                      <Badge variant="secondary" className="text-primary">
+                        {voucherLookup.discountType === "PERCENTAGE"
+                          ? `${voucherLookup.discountValue}% off`
+                          : `Save ${voucherLookup.discountValue}`}
+                      </Badge>
+                    )}
+                    {voucherLookup.code && (
+                      <Badge variant="outline">{voucherLookup.code}</Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </CardContent>
+        )}
+      </Card>
 
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
