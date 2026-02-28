@@ -59,12 +59,12 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full">
       {/* ─── Top Bar ─── */}
-      <div className="border-border/30 bg-muted/60 hidden border-b backdrop-blur-sm lg:block">
+      <div className="border-border/50 bg-background/95 hidden border-b shadow-sm lg:block">
         <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 lg:px-6">
           {/* Left: city + secondary links */}
           <div className="flex items-center gap-4">
             {cityName && (
-              <span className="text-muted-foreground flex items-center gap-1 text-xs">
+              <span className="text-foreground/90 flex items-center gap-1 text-xs font-medium">
                 <MapPin className="h-3 w-3" />
                 {cityName}
               </span>
@@ -75,7 +75,7 @@ export function Header() {
                 <Link
                   key={item.key}
                   href={item.href}
-                  className="text-muted-foreground hover:text-foreground rounded px-2 py-1 text-xs transition-colors"
+                  className="text-foreground/85 hover:text-foreground rounded px-2 py-1 text-xs font-medium transition-colors"
                 >
                   {t(item.key)}
                 </Link>
@@ -92,7 +92,7 @@ export function Header() {
       </div>
 
       {/* ─── Main Nav Bar ─── */}
-      <div className="border-border/40 bg-background/90 border-b backdrop-blur-md">
+      <div className="border-border/50 bg-background/95 border-b shadow-sm">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4 lg:px-6">
           {/* Mobile nav trigger */}
           <div className="lg:hidden">
@@ -114,7 +114,7 @@ export function Header() {
                 <li key={item.key}>
                   <Link
                     href={item.href}
-                    className="text-muted-foreground hover:text-foreground after:bg-primary relative px-4 py-2 text-sm font-medium transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:w-0 after:-translate-x-1/2 after:rounded-full after:transition-all hover:after:w-2/3"
+                    className="text-foreground/90 hover:text-foreground after:bg-primary relative px-4 py-2 text-sm font-medium transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:w-0 after:-translate-x-1/2 after:rounded-full after:transition-all hover:after:w-2/3"
                   >
                     {t(item.key)}
                   </Link>

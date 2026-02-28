@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -34,9 +34,28 @@ export default function CinemasPage() {
   if (amenities.length) params.amenities = amenities.join(",");
 
   const { data, isLoading, error, refetch } = useCinemas(params);
-  const cinemas = toList<CinemaListItem>(data?.data ?? data);
+  const rawCinemas = toList<CinemaListItem>(data?.data ?? data);
 
-  const allAmenities = Array.from(new Set(cinemas.flatMap((c) => c.amenities ?? []))).sort();
+  // Client-side filter so city + amenities always apply (backend supports city; amenities filtered here)
+  const cinemas = useMemo(() => {
+    let list = rawCinemas;
+    if (city) list = list.filter((c) => (c.city ?? "").toLowerCase() === city.toLowerCase());
+    if (amenities.length)
+      list = list.filter((c) =>
+        amenities.every((a) => (c.amenities ?? []).includes(a))
+      );
+    return list;
+  }, [rawCinemas, city, amenities]);
+
+  const allAmenities = useMemo(
+    () => Array.from(new Set(rawCinemas.flatMap((c) => c.amenities ?? []))).sort(),
+    [rawCinemas]
+  );
+
+  const cityOptions = useMemo(() => {
+    const fromData = [...new Set(rawCinemas.map((c) => c.city).filter(Boolean))];
+    return fromData.length > 0 ? fromData : ["Ho Chi Minh", "Hanoi", "Da Nang"];
+  }, [rawCinemas]);
 
   function setCity(c: string) {
     const p = new URLSearchParams(searchParams.toString());
@@ -71,18 +90,11 @@ export default function CinemasPage() {
             className="rounded-md border px-3 py-2 text-sm"
           >
             <option value="">All cities</option>
-            {[...new Set(cinemas.map((c) => c.city))].map((c) => (
+            {cityOptions.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>
             ))}
-            {cinemas.length === 0 && (
-              <>
-                <option value="Ho Chi Minh">Ho Chi Minh</option>
-                <option value="Hanoi">Hanoi</option>
-                <option value="Da Nang">Da Nang</option>
-              </>
-            )}
           </select>
         </div>
         {allAmenities.length > 0 && (
