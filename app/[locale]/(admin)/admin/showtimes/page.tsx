@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { PageHeader } from "@/components/shared/page-header";
+import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -197,19 +197,17 @@ export default function AdminShowtimesPage() {
   }
 
   return (
-    <div>
-      <PageHeader
-        title={t("showtimes")}
-        description="Schedule and manage movie showtimes across all cinemas."
-        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("showtimes") }]}
-        actions={
-          <Button onClick={openCreate}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Showtime
-          </Button>
-        }
-      />
-
+    <AdminPageShell
+      title={t("showtimes")}
+      description="Schedule and manage movie showtimes across all cinemas."
+      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("showtimes") }]}
+      actions={
+        <Button onClick={openCreate}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Showtime
+        </Button>
+      }
+    >
       <div className="mb-6 flex flex-wrap gap-3">
         <Select
           value={cinemaFilter || "all"}
@@ -258,10 +256,20 @@ export default function AdminShowtimesPage() {
                       {st.movieTitle ?? st.movieId} • {format(parseISO(st.startTime), "HH:mm")}–
                       {format(parseISO(st.endTime), "HH:mm")}
                     </span>
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(st)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => openEdit(st)}
+                      aria-label="Edit showtime"
+                    >
                       <Pencil className="h-3 w-3" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(st)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeleteTarget(st)}
+                      aria-label="Delete showtime"
+                    >
                       <Trash2 className="text-destructive h-3 w-3" />
                     </Button>
                   </div>
@@ -451,6 +459,6 @@ export default function AdminShowtimesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AdminPageShell>
   );
 }

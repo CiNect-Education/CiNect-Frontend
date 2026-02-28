@@ -23,6 +23,10 @@ export const promotionSchema = z.object({
   imageUrl: nullish(z.string()),
   conditions: nullish(z.string()),
   status: z.enum(["ACTIVE", "INACTIVE", "EXPIRED"]),
+  // Optional list of payment methods this promo applies to (if backend provides it)
+  eligiblePaymentMethods: nullish(
+    z.array(z.enum(["CARD", "MOMO", "ZALOPAY", "VNPAY", "BANK_TRANSFER", "CASH"]))
+  ),
   createdAt: z.string(),
 });
 

@@ -7,8 +7,13 @@ import type { QueryParams } from "@/types/api";
 import { z } from "zod";
 
 export function useMembershipTiers() {
+  const tiersSchema = z
+    .array(membershipTierSchema)
+    // Some backends may return an empty object when no tiers configured
+    .or(z.object({}).transform(() => [] as MembershipTier[]));
+
   return useApiQuery<MembershipTier[]>(["membership-tiers"], "/membership/tiers", undefined, {
-    schema: z.array(membershipTierSchema),
+    schema: tiersSchema,
   });
 }
 

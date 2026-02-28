@@ -34,6 +34,27 @@ export default function CinemaDetailPage() {
   const cinema = cinemaRes?.data as import("@/types/domain").Cinema | undefined;
   const showtimes = toList<Showtime>(showtimesRes?.data ?? showtimesRes);
 
+  // Group showtimes by movie for nicer display
+  const showtimesByMovie = showtimes.reduce(
+    (acc, st) => {
+      const key = st.movieId || st.movieTitle || st.id;
+      if (!acc[key]) {
+        acc[key] = {
+          movieId: st.movieId,
+          movieTitle: st.movieTitle || "Movie",
+          moviePosterUrl: st.moviePosterUrl,
+          items: [] as Showtime[],
+        };
+      }
+      acc[key].items.push(st);
+      return acc;
+    },
+    {} as Record<
+      string,
+      { movieId?: string; movieTitle: string; moviePosterUrl?: string | null; items: Showtime[] }
+    >
+  );
+
   if (isLoading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
@@ -177,18 +198,18 @@ export default function CinemaDetailPage() {
               })}
             </div>
             {showtimes.length > 0 ? (
-              <div className="space-y-3">
-                {showtimes.map((st) => (
+              <div className="space-y-4">
+                {Object.values(showtimesByMovie).map((group) => (
                   <div
-                    key={st.id}
-                    className="flex items-center justify-between rounded-lg border p-3"
+                    key={group.movieId ?? group.movieTitle}
+                    className="rounded-lg border p-3 space-y-3"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="bg-muted relative h-14 w-10 overflow-hidden rounded">
-                        {st.moviePosterUrl ? (
+                      <div className="bg-muted relative h-16 w-12 overflow-hidden rounded">
+                        {group.moviePosterUrl ? (
                           <img
-                            src={st.moviePosterUrl}
-                            alt={st.movieTitle || "Movie"}
+                            src={group.moviePosterUrl}
+                            alt={group.movieTitle}
                             className="h-full w-full object-cover"
                           />
                         ) : (
@@ -196,26 +217,29 @@ export default function CinemaDetailPage() {
                         )}
                       </div>
                       <div>
-                        <p className="font-medium">{st.movieTitle || "Movie"}</p>
+                        <p className="font-medium">{group.movieTitle}</p>
                         <p className="text-muted-foreground text-xs">
-                          {st.roomName} • {st.format}
-                          {st.language ? ` • ${st.language}` : ""}
+                          {cinema.name}
+                          {cinema.city ? ` • ${cinema.city}` : ""}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">
-                        {new Date(st.startTime).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                      <Button size="sm" asChild>
-                        <Link href={`/booking?showtime=${st.id}`}>
-                          <Ticket className="mr-1 h-4 w-4" />
-                          Book
-                        </Link>
-                      </Button>
+                    <div className="flex flex-wrap gap-2">
+                      {group.items.map((st) => (
+                        <Button key={st.id} size="sm" variant="outline" asChild>
+                          <Link href={`/booking/${st.id}`}>
+                            {new Date(st.startTime).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                            {st.format && st.format !== "2D" && (
+                              <Badge variant="secondary" className="ml-1 text-[10px]">
+                                {st.format}
+                              </Badge>
+                            )}
+                          </Link>
+                        </Button>
+                      ))}
                     </div>
                   </div>
                 ))}

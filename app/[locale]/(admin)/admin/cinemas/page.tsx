@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { PageHeader } from "@/components/shared/page-header";
+import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { DataTable } from "@/components/admin/data-table";
 import { Button } from "@/components/ui/button";
 import {
@@ -149,10 +149,20 @@ export default function AdminCinemasPage() {
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex gap-2">
-            <Button variant="ghost" size="icon" onClick={() => openEdit(row.original)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => openEdit(row.original)}
+              aria-label="Edit cinema"
+            >
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(row.original)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDeleteTarget(row.original)}
+              aria-label="Delete cinema"
+            >
               <Trash2 className="text-destructive h-4 w-4" />
             </Button>
           </div>
@@ -163,19 +173,17 @@ export default function AdminCinemasPage() {
   );
 
   return (
-    <div>
-      <PageHeader
-        title={t("cinemas")}
-        description="Manage cinema locations, addresses, and configurations."
-        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("cinemas") }]}
-        actions={
-          <Button onClick={openCreate}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Cinema
-          </Button>
-        }
-      />
-
+    <AdminPageShell
+      title={t("cinemas")}
+      description="Manage cinema locations, addresses, and configurations."
+      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("cinemas") }]}
+      actions={
+        <Button onClick={openCreate}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Cinema
+        </Button>
+      }
+    >
       <DataTable
         columns={columns}
         data={cinemas}
@@ -308,6 +316,6 @@ export default function AdminCinemasPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AdminPageShell>
   );
 }

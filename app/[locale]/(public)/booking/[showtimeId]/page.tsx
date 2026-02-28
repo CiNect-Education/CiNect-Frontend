@@ -132,6 +132,62 @@ export default function BookingPage() {
   const selectedSeatDetails = seatArray.filter((s) => selectedSeats.includes(s.id));
   const totalPrice = selectedSeatDetails.reduce((sum, seat) => sum + (seat.price ?? 0), 0);
 
+  const handleAutoPickSeats = () => {
+    const availableSeats = seatArray.filter((seat) => {
+      const status =
+        (seat as { status?: string }).status !== undefined
+          ? (seat as { status?: string }).status
+          : seat.status;
+      const type =
+        (seat as { type?: string }).type ??
+        (seat as { seatType?: string }).seatType ??
+        "STANDARD";
+      return status === "AVAILABLE" && type !== "DISABLED";
+    });
+    if (availableSeats.length === 0 || holdId) return;
+
+    const seatsByRow = availableSeats.reduce(
+      (acc, seat) => {
+        if (!acc[seat.row]) acc[seat.row] = [];
+        acc[seat.row].push(seat);
+        return acc;
+      },
+      {} as Record<string, Seat[]>
+    );
+
+    Object.values(seatsByRow).forEach((rowSeats) =>
+      rowSeats.sort((a, b) => a.number - b.number)
+    );
+
+    const desiredCount = selectedSeats.length > 0 ? selectedSeats.length : 2;
+    let bestGroup: Seat[] | null = null;
+    let bestScore = Number.POSITIVE_INFINITY;
+
+    for (const rowSeats of Object.values(seatsByRow)) {
+      if (rowSeats.length < desiredCount) continue;
+      const rowCenter = (rowSeats.length - 1) / 2;
+      for (let i = 0; i <= rowSeats.length - desiredCount; i++) {
+        const group = rowSeats.slice(i, i + desiredCount);
+        const isContiguous = group.every(
+          (seat, idx) => idx === 0 || seat.number === group[idx - 1].number + 1
+        );
+        if (!isContiguous) continue;
+        const groupCenter = i + (desiredCount - 1) / 2;
+        const score = Math.abs(groupCenter - rowCenter);
+        if (score < bestScore) {
+          bestScore = score;
+          bestGroup = group;
+        }
+      }
+    }
+
+    if (bestGroup && bestGroup.length > 0) {
+      setConflictedSeatIds([]);
+      clearRealtimeConflicts();
+      setSelectedSeats(bestGroup.map((s) => s.id));
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8">
@@ -196,9 +252,21 @@ export default function BookingPage() {
               {selectedSeats.length === 0 && !holdId && allConflicts.length === 0 && (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>Please select at least one seat</AlertDescription>
+                  <AlertDescription>
+                    Please select at least one seat or use \"Choose Best Seats\".
+                  </AlertDescription>
                 </Alert>
               )}
+
+              <Button
+                variant="outline"
+                className="w-full"
+                size="sm"
+                disabled={holdId != null || seatArray.length === 0}
+                onClick={handleAutoPickSeats}
+              >
+                Choose Best Seats
+              </Button>
 
               {selectedSeats.length > 0 && (
                 <>

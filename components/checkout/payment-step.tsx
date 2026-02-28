@@ -34,7 +34,12 @@ interface PaymentStepProps {
   onApplyPoints: () => void;
   isApplyingPoints?: boolean;
   availablePoints?: number;
-  eligiblePromotions?: Array<{ id: string; title: string; code?: string }>;
+  eligiblePromotions?: Array<{
+    id: string;
+    title: string;
+    code?: string;
+    eligiblePaymentMethods?: PaymentMethod[];
+  }>;
 }
 
 export function PaymentStep({
@@ -57,6 +62,15 @@ export function PaymentStep({
   eligiblePromotions = [],
 }: PaymentStepProps) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CARD");
+  const visiblePromotions =
+    eligiblePromotions?.filter(
+      (p) =>
+        !p.eligiblePaymentMethods ||
+        p.eligiblePaymentMethods.length === 0 ||
+        p.eligiblePaymentMethods.includes(paymentMethod)
+    ) ?? [];
+  const hiddenPromotionsCount =
+    (eligiblePromotions?.length ?? 0) - (visiblePromotions?.length ?? 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,17 +86,48 @@ export function PaymentStep({
             <Tag className="h-4 w-4" />
             Available Promotions
           </Label>
+          <p className="text-muted-foreground mb-1 text-xs">
+            Chọn một ưu đãi bên dưới để tự động áp dụng mã vào đơn hàng.
+          </p>
+          {hiddenPromotionsCount > 0 && (
+            <p className="text-muted-foreground mb-2 text-[11px]">
+              Một số ưu đãi chỉ áp dụng cho phương thức thanh toán khác (ví dụ VNPay, MoMo).
+            </p>
+          )}
           <div className="space-y-2">
-            {eligiblePromotions.map((p) => (
-              <div
+            {visiblePromotions.map((p) => (
+              <button
                 key={p.id}
-                className="flex items-center justify-between rounded-md border p-2 text-sm"
+                type="button"
+                className="hover:bg-muted/70 flex w-full items-center justify-between rounded-md border p-2 text-left text-sm transition-colors"
+                onClick={() => {
+                  if (!p.code) return;
+                  onPromoCodeChange(p.code);
+                  onApplyPromo();
+                }}
               >
-                <span>{p.title}</span>
+                <span className="pr-2">
+                  {p.title}
+                  {p.eligiblePaymentMethods && p.eligiblePaymentMethods.length > 0 && (
+                    <span className="text-muted-foreground ml-2 text-[11px]">
+                      (
+                      {p.eligiblePaymentMethods
+                        .map((m) =>
+                          m === "CARD"
+                            ? "Card"
+                            : m === "BANK_TRANSFER"
+                              ? "Bank"
+                              : m.toLowerCase()
+                        )
+                        .join(", ")}
+                      )
+                    </span>
+                  )}
+                </span>
                 {p.code && (
-                  <span className="text-muted-foreground font-mono text-xs">{p.code}</span>
+                  <span className="text-primary font-mono text-xs font-semibold">{p.code}</span>
                 )}
-              </div>
+              </button>
             ))}
           </div>
         </Card>

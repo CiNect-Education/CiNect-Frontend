@@ -98,3 +98,30 @@ export function useRefreshToken() {
     },
   });
 }
+
+// ─── Profile update ────────────────────────────────────────────────
+
+type UpdateProfileInput = {
+  fullName?: string;
+  phone?: string;
+  avatar?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  city?: string;
+};
+
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+
+  return useApiMutation<User, UpdateProfileInput>("put", "/auth/profile", {
+    schema: userSchema,
+    successMessage: "Profile updated",
+    onSuccess: (res) => {
+      const user = res.data;
+      queryClient.setQueryData(["auth", "me"], {
+        data: user,
+        timestamp: new Date().toISOString(),
+      });
+    },
+  });
+}

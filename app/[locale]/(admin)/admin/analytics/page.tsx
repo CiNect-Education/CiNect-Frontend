@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { PageHeader } from "@/components/shared/page-header";
+import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -168,56 +168,54 @@ export default function AdminAnalyticsPage() {
     );
 
   return (
-    <div>
-      <PageHeader
-        title={t("analytics") ?? "Analytics"}
-        description="Enterprise analytics dashboard for revenue, occupancy, and customer insights."
-        breadcrumbs={[
-          { label: t("title"), href: "/admin" },
-          { label: t("analytics") ?? "Analytics" },
-        ]}
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex rounded-md border">
-              {(["7d", "30d", "90d"] as const).map((r) => (
-                <Button
-                  key={r}
-                  variant={range === r ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setRange(r)}
-                >
-                  {r}
-                </Button>
-              ))}
+    <AdminPageShell
+      title={t("analytics") ?? "Analytics"}
+      description="Enterprise analytics dashboard for revenue, occupancy, and customer insights."
+      breadcrumbs={[
+        { label: t("title"), href: "/admin" },
+        { label: t("analytics") ?? "Analytics" },
+      ]}
+      actions={
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex rounded-md border">
+            {(["7d", "30d", "90d"] as const).map((r) => (
               <Button
-                variant={range === "custom" ? "default" : "ghost"}
+                key={r}
+                variant={range === r ? "default" : "ghost"}
                 size="sm"
-                onClick={() => setRange("custom")}
+                onClick={() => setRange(r)}
               >
-                Custom
+                {r}
               </Button>
-            </div>
-            {range === "custom" && (
-              <div className="flex items-center gap-1">
-                <Input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-36"
-                />
-                <span className="text-muted-foreground">–</span>
-                <Input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="w-36"
-                />
-              </div>
-            )}
+            ))}
+            <Button
+              variant={range === "custom" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setRange("custom")}
+            >
+              Custom
+            </Button>
           </div>
-        }
-      />
-
+          {range === "custom" && (
+            <div className="flex items-center gap-1">
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-36"
+              />
+              <span className="text-muted-foreground">–</span>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-36"
+              />
+            </div>
+          )}
+        </div>
+      }
+    >
       <div className="space-y-8">
         {/* Revenue Trend */}
         <Card id="revenue-section">
@@ -549,6 +547,6 @@ export default function AdminAnalyticsPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </AdminPageShell>
   );
 }

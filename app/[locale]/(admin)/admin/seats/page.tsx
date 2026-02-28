@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { PageHeader } from "@/components/shared/page-header";
+import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -283,13 +283,11 @@ export default function AdminSeatsPage() {
   };
 
   return (
-    <div>
-      <PageHeader
-        title={t("seats")}
-        description="Design and manage seat maps for each screening room."
-        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("seats") }]}
-      />
-
+    <AdminPageShell
+      title={t("seats")}
+      description="Design and manage seat maps for each screening room."
+      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("seats") }]}
+    >
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-lg">Seat Map Editor</CardTitle>
@@ -467,6 +465,6 @@ export default function AdminSeatsPage() {
           </p>
         </CardContent>
       </Card>
-    </div>
+    </AdminPageShell>
   );
 }

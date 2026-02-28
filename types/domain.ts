@@ -204,6 +204,8 @@ export interface Booking {
   status: BookingStatus;
   payment?: Payment;
   promotionCode?: string;
+  pointsUsed?: number;
+  giftCardCode?: string;
   movieTitle: string;
   moviePosterUrl?: string;
   cinemaName: string;
@@ -244,6 +246,8 @@ export interface Promotion {
   imageUrl?: string;
   conditions?: string;
   status: PromotionStatus;
+  /** Optional list of payment methods this promo applies to */
+  eligiblePaymentMethods?: PaymentMethod[];
   createdAt: string;
 }
 
