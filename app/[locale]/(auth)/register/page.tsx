@@ -139,6 +139,7 @@ export default function RegisterPage() {
                       <Input
                         type={showPassword ? "text" : "password"}
                         className="pr-10"
+                        data-hide-password-toggle="true"
                         {...field}
                       />
                       <Button
@@ -168,6 +169,7 @@ export default function RegisterPage() {
                       <Input
                         type={showConfirmPassword ? "text" : "password"}
                         className="pr-10"
+                        data-hide-password-toggle="true"
                         {...field}
                       />
                       <Button

@@ -82,6 +82,21 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
+
+  [data-hide-password-toggle="true"]::-ms-reveal,
+  [data-hide-password-toggle="true"]::-ms-clear {
+    display: none;
+  }
+
+  [data-hide-password-toggle="true"]::-webkit-credentials-auto-fill-button,
+  [data-hide-password-toggle="true"]::-webkit-textfield-decoration-container {
+    display: none;
+    pointer-events: none;
+  }
+
+  [data-hide-password-toggle="true"] {
+    padding-inline-start: 0.75rem;
+  }
 }
 
 @keyframes tier-glow {
