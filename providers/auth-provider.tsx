@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { User } from "@/types/domain";
+import type { RegisterInput } from "@/lib/schemas/auth";
 import { setAccessToken, setRefreshToken, clearTokens } from "@/lib/auth-storage";
 import { initApiClient } from "@/lib/api-client";
 import { useCurrentUser, useLogin, useRegister, useLogout } from "@/hooks/queries/use-auth";
@@ -14,13 +15,7 @@ interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (credentials: { email: string; password: string }) => Promise<void>;
-  register: (data: {
-    email: string;
-    password: string;
-    confirmPassword: string;
-    fullName: string;
-    phone?: string;
-  }) => Promise<void>;
+  register: (data: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
   refetchUser: () => void;
 }
@@ -83,13 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const register = useCallback(
-    async (data: {
-      email: string;
-      password: string;
-      confirmPassword: string;
-      fullName: string;
-      phone?: string;
-    }) => {
+    async (data: RegisterInput) => {
       try {
         const response = await registerMutation.mutateAsync(data);
         const { tokens } = response.data;

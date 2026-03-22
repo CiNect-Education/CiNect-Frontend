@@ -5,9 +5,9 @@ import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import { registerSchema, type RegisterInput } from "@/lib/schemas/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,26 +22,15 @@ import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 
-const registerSchema = z
-  .object({
-    fullName: z.string().min(2),
-    email: z.string().email(),
-    phone: z.string().optional(),
-    password: z.string().min(6),
-    confirmPassword: z.string().min(6),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-type RegisterFormValues = z.infer<typeof registerSchema>;
+type RegisterFormValues = RegisterInput;
+const GMAIL_SUGGESTION = "@gmail.com";
 
 export default function RegisterPage() {
   const t = useTranslations("auth");
@@ -53,10 +42,12 @@ export default function RegisterPage() {
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: {
       fullName: "",
       email: "",
-      phone: "",
+      phoneNumber: "",
       password: "",
       confirmPassword: "",
     },
@@ -68,7 +59,7 @@ export default function RegisterPage() {
       await register({
         fullName: data.fullName,
         email: data.email,
-        phone: data.phone || "",
+        phoneNumber: data.phoneNumber,
         password: data.password,
         confirmPassword: data.confirmPassword,
       });
@@ -109,21 +100,53 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>{t("email")}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="name@example.com" {...field} />
+                    <div className="relative">
+                      <Input
+                        type="email"
+                        placeholder="name"
+                        {...field}
+                        onKeyDown={(event) => {
+                          const target = event.currentTarget;
+                          const shouldSuggest = field.value.length > 0 && !field.value.includes("@");
+                          if (shouldSuggest && event.key === "Tab") {
+                            event.preventDefault();
+                            const nextValue = `${field.value}${GMAIL_SUGGESTION}`;
+                            field.onChange(nextValue);
+                            requestAnimationFrame(() => {
+                              if (
+                                target &&
+                                typeof target.setSelectionRange === "function" &&
+                                target.type !== "email"
+                              ) {
+                                target.setSelectionRange(nextValue.length, nextValue.length);
+                              }
+                            });
+                          }
+                        }}
+                      />
+                      {field.value.length > 0 && !field.value.includes("@") && (
+                        <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground/60 text-sm">
+                          <span className="opacity-0 whitespace-pre">{field.value}</span>
+                          <span>{GMAIL_SUGGESTION}</span>
+                        </div>
+                      )}
+                    </div>
                   </FormControl>
+                  <FormDescription>Press TAB to autocomplete @gmail.com</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="phone"
+              name="phoneNumber"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("phone")}</FormLabel>
                   <FormControl>
                     <Input placeholder="0901234567" {...field} />
                   </FormControl>
+                  <FormDescription>Press TAB to autocomplete @gmail.com</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
