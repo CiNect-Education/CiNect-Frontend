@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { PageHeader } from "@/components/shared/page-header";
+import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { DataTable } from "@/components/admin/data-table";
 import { Button } from "@/components/ui/button";
 import {
@@ -178,10 +178,20 @@ export default function AdminPricingPage() {
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex gap-2">
-            <Button variant="ghost" size="icon" onClick={() => openEdit(row.original)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => openEdit(row.original)}
+              aria-label="Edit pricing rule"
+            >
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(row.original)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDeleteTarget(row.original)}
+              aria-label="Delete pricing rule"
+            >
               <Trash2 className="text-destructive h-4 w-4" />
             </Button>
           </div>
@@ -192,19 +202,17 @@ export default function AdminPricingPage() {
   );
 
   return (
-    <div>
-      <PageHeader
-        title={t("pricing")}
-        description="Configure ticket pricing rules by cinema, room type, day, and time."
-        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("pricing") }]}
-        actions={
-          <Button onClick={openCreate}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Rule
-          </Button>
-        }
-      />
-
+    <AdminPageShell
+      title={t("pricing")}
+      description="Configure ticket pricing rules by cinema, room type, day, and time."
+      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("pricing") }]}
+      actions={
+        <Button onClick={openCreate}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Rule
+        </Button>
+      }
+    >
       <DataTable columns={columns} data={rules} searchPlaceholder="Search rules..." />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -402,6 +410,6 @@ export default function AdminPricingPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AdminPageShell>
   );
 }

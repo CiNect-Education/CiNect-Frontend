@@ -12,6 +12,9 @@ interface SnacksStepProps {
   onSnackChange: (snackId: string, quantity: number) => void;
   onSkip: () => void;
   onContinue: () => void;
+  onSaveFavorite?: () => void;
+  onApplyFavorite?: () => void;
+  hasFavorite?: boolean;
 }
 
 export function SnacksStep({
@@ -20,12 +23,19 @@ export function SnacksStep({
   onSnackChange,
   onSkip,
   onContinue,
+  onSaveFavorite,
+  onApplyFavorite,
+  hasFavorite,
 }: SnacksStepProps) {
   const getQuantity = (snackId: string) => {
     return selectedSnacks.find((s) => s.snackId === snackId)?.quantity || 0;
   };
 
   const hasSelection = selectedSnacks.some((s) => s.quantity > 0);
+
+  // Simple heuristic: mark the first snack whose name contains \"combo\" as Best value
+  const bestValueSnackId =
+    snacks.find((snack) => snack.name.toLowerCase().includes("combo"))?.id ?? snacks[0]?.id;
 
   return (
     <div className="space-y-6">
@@ -43,6 +53,9 @@ export function SnacksStep({
                 <div className="flex-1 space-y-2">
                   <div>
                     <h3 className="font-semibold">{snack.name}</h3>
+                    {snack.id === bestValueSnackId && (
+                      <p className="text-emerald-600 text-xs font-semibold">Best value</p>
+                    )}
                     {snack.description && (
                       <p className="text-muted-foreground line-clamp-2 text-sm">
                         {snack.description}
@@ -89,13 +102,39 @@ export function SnacksStep({
         })}
       </div>
 
-      <div className="flex gap-4">
-        <Button type="button" variant="outline" className="flex-1" onClick={onSkip}>
-          Skip
-        </Button>
-        <Button type="button" className="flex-1" onClick={onContinue}>
-          Continue to Payment
-        </Button>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="flex flex-1 gap-2">
+          {onSaveFavorite && (
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={onSaveFavorite}
+              disabled={!hasSelection}
+            >
+              Save as favorite
+            </Button>
+          )}
+          {onApplyFavorite && (
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={onApplyFavorite}
+              disabled={!hasFavorite}
+            >
+              Use favorite
+            </Button>
+          )}
+        </div>
+        <div className="flex flex-1 gap-2">
+          <Button type="button" variant="outline" className="flex-1" onClick={onSkip}>
+            Skip
+          </Button>
+          <Button type="button" className="flex-1" onClick={onContinue}>
+            Continue to Payment
+          </Button>
+        </div>
       </div>
     </div>
   );

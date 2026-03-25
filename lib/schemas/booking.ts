@@ -47,6 +47,8 @@ export const bookingSchema = z.object({
   status: z.enum(["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"]),
   payment: n(paymentSchema),
   promotionCode: n(z.string()),
+  pointsUsed: n(z.number()),
+  giftCardCode: n(z.string()),
   movieTitle: z.string(),
   moviePosterUrl: n(z.string()),
   cinemaName: z.string(),

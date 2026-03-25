@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { User, ShoppingBag, Crown, Bell, Gift } from "lucide-react";
+import { User, ShoppingBag, Crown, Bell, Gift, Ticket } from "lucide-react";
 
 export function AccountNav() {
   const t = useTranslations("account");
@@ -12,6 +12,7 @@ export function AccountNav() {
   const items = [
     { label: t("profile"), href: "/account/profile", icon: User },
     { label: t("orders"), href: "/account/orders", icon: ShoppingBag },
+    { label: t("tickets") ?? "Tickets", href: "/account/tickets", icon: Ticket },
     { label: t("membership"), href: "/account/membership", icon: Crown },
     { label: t("notifications"), href: "/account/notifications", icon: Bell },
     { label: t("gifts"), href: "/account/gifts", icon: Gift },

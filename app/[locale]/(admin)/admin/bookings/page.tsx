@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { PageHeader } from "@/components/shared/page-header";
+import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { DataTable } from "@/components/admin/data-table";
 import { Button } from "@/components/ui/button";
 import {
@@ -135,7 +135,7 @@ export default function AdminBookingsPage() {
                   variant="ghost"
                   size="icon"
                   onClick={() => setCancelTarget(b)}
-                  title="Cancel"
+                  aria-label="Cancel booking"
                 >
                   <Ban className="text-destructive h-4 w-4" />
                 </Button>
@@ -145,7 +145,7 @@ export default function AdminBookingsPage() {
                   variant="ghost"
                   size="icon"
                   onClick={() => setRefundTarget(b)}
-                  title="Refund"
+                  aria-label="Refund booking"
                 >
                   <RotateCcw className="h-4 w-4" />
                 </Button>
@@ -159,19 +159,17 @@ export default function AdminBookingsPage() {
   );
 
   return (
-    <div>
-      <PageHeader
-        title={t("bookings")}
-        description="View and manage all customer bookings and orders."
-        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("bookings") }]}
-        actions={
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export CSV
-          </Button>
-        }
-      />
-
+    <AdminPageShell
+      title={t("bookings")}
+      description="View and manage all customer bookings and orders."
+      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("bookings") }]}
+      actions={
+        <Button variant="outline" size="sm">
+          <Download className="mr-2 h-4 w-4" />
+          Export CSV
+        </Button>
+      }
+    >
       <div className="mb-6 flex flex-wrap gap-3">
         <div className="relative min-w-[200px] flex-1">
           <Input
@@ -253,6 +251,6 @@ export default function AdminBookingsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AdminPageShell>
   );
 }

@@ -38,6 +38,9 @@ export default function CheckoutPage() {
   const [promoCode, setPromoCode] = useState("");
   const [usePoints, setUsePoints] = useState(0);
   const [giftCardCode, setGiftCardCode] = useState("");
+  const [hasFavoriteCombo, setHasFavoriteCombo] = useState(false);
+
+  const FAVORITE_COMBO_KEY = "cinect_favorite_combo";
 
   const { data: holdRes, isLoading: holdLoading, error: holdError } = useHold(holdId);
   const hold = holdRes?.data as import("@/hooks/queries/use-booking-flow").HoldDetails | undefined;
@@ -71,6 +74,43 @@ export default function CheckoutPage() {
       if (existing) return prev.map((s) => (s.snackId === snackId ? { ...s, quantity } : s));
       return [...prev, { snackId, quantity }];
     });
+  }, []);
+
+  // Load favorite combo from localStorage
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(FAVORITE_COMBO_KEY);
+      if (!raw) {
+        setHasFavoriteCombo(false);
+        return;
+      }
+      const parsed = JSON.parse(raw) as Array<{ snackId: string; quantity: number }>;
+      const nonZero = parsed.filter((s) => s.quantity > 0);
+      setHasFavoriteCombo(nonZero.length > 0);
+    } catch {
+      setHasFavoriteCombo(false);
+    }
+  }, [holdId]);
+
+  const handleSaveFavoriteCombo = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const nonZero = selectedSnacks.filter((s) => s.quantity > 0);
+    if (nonZero.length === 0) return;
+    window.localStorage.setItem(FAVORITE_COMBO_KEY, JSON.stringify(nonZero));
+    setHasFavoriteCombo(true);
+  }, [selectedSnacks]);
+
+  const handleApplyFavoriteCombo = useCallback(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(FAVORITE_COMBO_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Array<{ snackId: string; quantity: number }>;
+      setSelectedSnacks(parsed);
+    } catch {
+      // ignore parse error
+    }
   }, []);
 
   const handleContinueFromReview = useCallback(() => setStep(2), []);
@@ -253,6 +293,9 @@ export default function CheckoutPage() {
                       onSnackChange={handleSnackChange}
                       onSkip={handleContinueFromSnacks}
                       onContinue={handleContinueFromSnacks}
+                      onSaveFavorite={handleSaveFavoriteCombo}
+                      onApplyFavorite={handleApplyFavoriteCombo}
+                      hasFavorite={hasFavoriteCombo}
                     />
                   )}
                 </TabsContent>
@@ -284,6 +327,7 @@ export default function CheckoutPage() {
                         id: p.id,
                         title: p.title,
                         code: p.code,
+                        eligiblePaymentMethods: p.eligiblePaymentMethods,
                       }))}
                     />
                   )}

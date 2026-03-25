@@ -41,8 +41,40 @@ export function MovieCarousel({ movies, title, viewAllHref }: MovieCarouselProps
                     No Image
                   </div>
                 )}
-                {movie.rating && (
-                  <Badge className="absolute top-2 right-2 bg-black/80">{movie.rating}</Badge>
+
+                {/* Status, age rating, formats */}
+                <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+                  {movie.status === "NOW_SHOWING" && (
+                    <Badge className="bg-primary text-primary-foreground text-[10px]">
+                      Now Showing
+                    </Badge>
+                  )}
+                  {movie.status === "COMING_SOON" && (
+                    <Badge className="bg-black/75 text-[10px] text-white shadow-sm">
+                      Coming Soon
+                    </Badge>
+                  )}
+                  {movie.ageRating && (
+                    <Badge variant="outline" className="bg-background/80 text-[10px]">
+                      {movie.ageRating}
+                    </Badge>
+                  )}
+                </div>
+
+                {movie.formats && movie.formats.length > 0 && (
+                  <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-1">
+                    {movie.formats.slice(0, 3).map((fmt) => (
+                      <Badge key={fmt} variant="secondary" className="text-[10px]">
+                        {fmt}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
+                {movie.rating != null && (
+                  <Badge className="absolute top-2 right-2 bg-black/80 text-[10px]">
+                    {movie.rating}
+                  </Badge>
                 )}
               </div>
               <CardContent className="p-4">

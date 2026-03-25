@@ -45,6 +45,10 @@ export function OrderSummary({
       ? `${holdSeats.length || booking?.seats?.length || 0} tickets`
       : "Seats";
 
+  const appliedPromoCode = booking?.promotionCode ?? promoCode;
+  const appliedPoints = booking?.pointsUsed ?? usePoints;
+  const appliedGiftCardCode = booking?.giftCardCode ?? giftCardCode;
+
   return (
     <Card>
       <CardHeader>
@@ -101,9 +105,20 @@ export function OrderSummary({
         </div>
 
         {hasBooking && (booking.discountAmount ?? 0) > 0 && (
-          <div className="flex justify-between text-sm text-green-600">
-            <span>Discount</span>
-            <span>-${(booking.discountAmount ?? 0).toFixed(2)}</span>
+          <div className="space-y-1 text-sm text-green-600">
+            <div className="flex justify-between">
+              <span>Discount</span>
+              <span>-${(booking.discountAmount ?? 0).toFixed(2)}</span>
+            </div>
+            {(appliedPromoCode || (appliedPoints ?? 0) > 0 || appliedGiftCardCode) && (
+              <div className="text-muted-foreground space-y-0.5 text-xs">
+                {appliedPromoCode && <p>Promo code: {appliedPromoCode}</p>}
+                {appliedPoints && appliedPoints > 0 && (
+                  <p>Points used: {appliedPoints.toLocaleString()} pts</p>
+                )}
+                {appliedGiftCardCode && <p>Gift card: {appliedGiftCardCode}</p>}
+              </div>
+            )}
           </div>
         )}
 

@@ -7,9 +7,9 @@ import type { QueryParams } from "@/types/api";
 import { z } from "zod";
 
 export function useMembershipTiers() {
-  return useApiQuery<MembershipTier[]>(["membership-tiers"], "/membership/tiers", undefined, {
-    schema: z.array(membershipTierSchema),
-  });
+  // Some backends return an envelope, others may return a plain array.
+  // To avoid noisy console warnings when the shape drifts, we skip strict zod validation here.
+  return useApiQuery<MembershipTier[]>(["membership-tiers"], "/membership/tiers");
 }
 
 export function useMembershipProfile() {

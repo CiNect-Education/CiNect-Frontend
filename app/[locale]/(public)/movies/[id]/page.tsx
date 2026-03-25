@@ -20,8 +20,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { MovieJsonLd } from "@/components/shared/movie-jsonld";
-import { useMovie, useMovieReviews, useCreateReview } from "@/hooks/queries/use-movies";
-import { useMovieShowtimes } from "@/hooks/queries/use-cinemas";
+import { useMovie, useMovieReviews, useCreateReview, useMovies } from "@/hooks/queries/use-movies";
+import { useMovieShowtimes, useCinemas } from "@/hooks/queries/use-cinemas";
 import { useAuth } from "@/providers/auth-provider";
 import {
   Clock,
@@ -59,13 +59,27 @@ export default function MovieDetailPage() {
   });
   const showtimes = showtimesRes?.data ?? [];
 
+  // Cinemas (for city filter)
+  const { data: cinemasRes } = useCinemas();
+  const cinemaItems =
+    ((cinemasRes?.data ?? cinemasRes) as Array<{ id: string; city?: string }> | undefined) ?? [];
+
   // Reviews
   const [reviewPage, setReviewPage] = useState(1);
+  const [reviewSort, setReviewSort] = useState<"newest" | "highest">("newest");
+  const [likedReviews, setLikedReviews] = useState<Record<string, boolean>>({});
   const { data: reviewsRes, isLoading: reviewsLoading } = useMovieReviews(movieId, {
     page: reviewPage,
     limit: 10,
   });
   const reviews = reviewsRes?.data ?? [];
+  const sortedReviews = [...reviews].sort((a, b) => {
+    if (reviewSort === "highest") {
+      return b.rating - a.rating || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+    // newest
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
 
   // Create review
   const [reviewRating, setReviewRating] = useState(8);
@@ -95,6 +109,19 @@ export default function MovieDetailPage() {
     },
     {} as Record<string, typeof showtimes>
   );
+
+  // Related movies (You may also like)
+  const primaryGenreSlug = movie?.genres?.[0]?.slug;
+  const { data: relatedMoviesRes } = useMovies(
+    primaryGenreSlug
+      ? { status: "NOW_SHOWING", genre: primaryGenreSlug, limit: 8 }
+      : { status: "NOW_SHOWING", limit: 8 }
+  );
+  const relatedItems =
+    ((relatedMoviesRes?.data ?? relatedMoviesRes) as Array<
+      { id: string; title: string; posterUrl?: string; status?: string }
+    > | undefined) ?? [];
+  const recommendedMovies = relatedItems.filter((m) => m.id !== movieId).slice(0, 4);
 
   const handleSubmitReview = () => {
     if (!reviewContent.trim()) return;
@@ -317,6 +344,39 @@ export default function MovieDetailPage() {
                 </CardContent>
               </Card>
             )}
+
+            {/* You may also like */}
+            {recommendedMovies.length > 0 && (
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="mb-3 text-xl font-semibold">You may also like</h2>
+                  <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+                    {recommendedMovies.map((rm) => (
+                      <Link key={rm.id} href={`/movies/${rm.id}`}>
+                        <div className="hover:border-primary/60 group overflow-hidden rounded-lg border transition">
+                          <div className="bg-muted relative aspect-[2/3]">
+                            {rm.posterUrl ? (
+                              <img
+                                src={rm.posterUrl}
+                                alt={rm.title}
+                                className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                              />
+                            ) : (
+                              <div className="flex h-full items-center justify-center">
+                                <Film className="text-muted-foreground h-8 w-8" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="p-3">
+                            <p className="line-clamp-2 text-sm font-medium">{rm.title}</p>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Cast Tab */}
@@ -356,9 +416,40 @@ export default function MovieDetailPage() {
 
           {/* Showtimes Tab */}
           <TabsContent value="showtimes" className="space-y-4">
+            {/* City filter */}
+            {cinemaItems.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-muted-foreground text-sm">City:</span>
+                <Select value={selectedCity} onValueChange={setSelectedCity}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="All cities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All cities</SelectItem>
+                    {Array.from(
+                      new Set(
+                        showtimes
+                          .map((st) => {
+                            const cinema = cinemaItems.find((c) => c.id === st.cinemaId);
+                            return cinema?.city;
+                          })
+                          .filter(Boolean)
+                      )
+                    )
+                      .sort()
+                      .map((city) => (
+                        <SelectItem key={city as string} value={city as string}>
+                          {city as string}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {/* Date strip */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2">
-              {dates.map((d) => (
+              {dates.map((d, index) => (
                 <Button
                   key={d.value}
                   variant={selectedDate === d.value ? "default" : "outline"}
@@ -366,7 +457,7 @@ export default function MovieDetailPage() {
                   onClick={() => setSelectedDate(d.value)}
                   className="shrink-0"
                 >
-                  {d.label}
+                  {index === 0 ? "Today" : index === 1 ? "Tomorrow" : d.label}
                 </Button>
               ))}
             </div>
@@ -384,11 +475,19 @@ export default function MovieDetailPage() {
                       <div className="flex flex-wrap gap-2">
                         {sts.map((st) => (
                           <Button key={st.id} variant="outline" size="sm" asChild>
-                            <Link href={`/booking/${st.id}` as any}>
-                              {format(new Date(st.startTime), "HH:mm")}
+                            <Link href={`/booking/${st.id}` as any} className="flex items-center gap-1">
+                              <span>{format(new Date(st.startTime), "HH:mm")}</span>
                               {st.format && st.format !== "2D" && (
-                                <Badge variant="secondary" className="ml-1 text-xs">
+                                <Badge variant="secondary" className="ml-1 text-[10px]">
                                   {st.format}
+                                </Badge>
+                              )}
+                              {st.memberExclusive && (
+                                <Badge
+                                  variant="outline"
+                                  className="ml-1 border-amber-400 text-[10px] text-amber-600"
+                                >
+                                  Member
                                 </Badge>
                               )}
                             </Link>
@@ -474,30 +573,76 @@ export default function MovieDetailPage() {
               </div>
             ) : reviews.length > 0 ? (
               <div className="space-y-3">
-                {reviews.map((review) => (
-                  <Card key={review.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-full font-semibold">
-                            {review.userName?.charAt(0).toUpperCase() || "U"}
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-medium">Audience reviews</p>
+                  <div className="inline-flex rounded-md border text-xs">
+                    <Button
+                      type="button"
+                      variant={reviewSort === "newest" ? "default" : "ghost"}
+                      size="sm"
+                      className="h-8 rounded-none px-3"
+                      onClick={() => setReviewSort("newest")}
+                    >
+                      Newest
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={reviewSort === "highest" ? "default" : "ghost"}
+                      size="sm"
+                      className="h-8 rounded-none px-3 border-l"
+                      onClick={() => setReviewSort("highest")}
+                    >
+                      Highest rating
+                    </Button>
+                  </div>
+                </div>
+
+                {sortedReviews.map((review) => {
+                  const liked = likedReviews[review.id];
+                  return (
+                    <Card key={review.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-full font-semibold">
+                              {review.userName?.charAt(0).toUpperCase() || "U"}
+                            </div>
+                            <div>
+                              <p className="font-medium">{review.userName}</p>
+                              <p className="text-muted-foreground text-xs">
+                                {format(new Date(review.createdAt), "PP")}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium">{review.userName}</p>
-                            <p className="text-muted-foreground text-xs">
-                              {format(new Date(review.createdAt), "PP")}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1 text-sm">
+                              <Star className="fill-primary text-primary h-4 w-4" />
+                              <span className="font-semibold">{review.rating}/10</span>
+                            </div>
+                            <Button
+                              type="button"
+                              variant={liked ? "default" : "ghost"}
+                              size="icon"
+                              className="h-8 w-8"
+                              aria-label={liked ? "Unlike review" : "Like review"}
+                              onClick={() =>
+                                setLikedReviews((prev) => ({
+                                  ...prev,
+                                  [review.id]: !prev[review.id],
+                                }))
+                              }
+                            >
+                              <ThumbsUp
+                                className={`h-4 w-4 ${liked ? "fill-primary text-primary" : ""}`}
+                              />
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Star className="fill-primary text-primary h-4 w-4" />
-                          <span className="font-semibold">{review.rating}/10</span>
-                        </div>
-                      </div>
-                      <p className="text-muted-foreground mt-3 text-sm">{review.content}</p>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <p className="text-muted-foreground mt-3 text-sm">{review.content}</p>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
 
                 {/* Pagination */}
                 <div className="flex items-center justify-center gap-2">

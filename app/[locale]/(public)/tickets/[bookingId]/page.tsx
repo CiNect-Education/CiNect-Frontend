@@ -19,13 +19,9 @@ export default function TicketPage() {
   const { data: bookingRes, isLoading, error, refetch } = useBooking(bookingId);
   const booking = bookingRes?.data as import("@/types/domain").Booking | undefined;
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   const handleDownload = () => {
-    // Placeholder for PDF download
-    alert("PDF download feature coming soon");
+    // Use browser print dialog so users can choose "Save as PDF"
+    window.print();
   };
 
   if (isLoading) {
@@ -61,11 +57,7 @@ export default function TicketPage() {
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={handleDownload}>
             <Download className="mr-2 h-4 w-4" />
-            Download PDF
-          </Button>
-          <Button variant="outline" size="sm" onClick={handlePrint}>
-            <Printer className="mr-2 h-4 w-4" />
-            Print
+            Save / Print PDF
           </Button>
         </div>
       </div>
@@ -98,8 +90,9 @@ export default function TicketPage() {
             </div>
           </div>
 
-          <div className="text-muted-foreground text-center text-sm">
-            Scan this code at the cinema entrance
+          <div className="text-muted-foreground text-center text-sm space-y-1">
+            <p>Scan this QR code at the cinema entrance.</p>
+            <p>Vui lòng có mặt trước giờ chiếu khoảng 15 phút để làm thủ tục vào rạp.</p>
           </div>
 
           <Separator />
