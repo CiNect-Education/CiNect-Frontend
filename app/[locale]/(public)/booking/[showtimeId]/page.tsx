@@ -132,7 +132,21 @@ export default function BookingPage() {
     };
   }, [holdId, releaseMutation]);
 
-  const seatArray = Array.isArray(seats) ? seats : [];
+  const seatArray: Seat[] = (Array.isArray(seats) ? seats : []).map((s) => {
+    const anySeat = s as unknown as {
+      row?: string;
+      rowLabel?: string;
+      price?: number | string | null;
+    };
+    const rawPrice = anySeat.price ?? 0;
+    const price =
+      typeof rawPrice === "string" ? Number(rawPrice) : typeof rawPrice === "number" ? rawPrice : 0;
+    return {
+      ...(s as Seat),
+      row: anySeat.row ?? anySeat.rowLabel ?? (s as Seat).row,
+      price: Number.isFinite(price) ? price : 0,
+    };
+  });
   const selectedSeatDetails = seatArray.filter((s) => selectedSeats.includes(s.id));
   const totalPrice = selectedSeatDetails.reduce((sum, seat) => sum + (seat.price ?? 0), 0);
 
