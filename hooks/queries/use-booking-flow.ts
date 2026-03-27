@@ -78,6 +78,7 @@ export function useSnacks(cinemaId?: string) {
 
 // Create booking
 interface CreateBookingPayload {
+  showtimeId: string;
   holdId: string;
   promoCode?: string;
   snacks?: Array<{ snackId: string; quantity: number }>;
@@ -87,7 +88,15 @@ interface CreateBookingPayload {
 
 export function useCreateBooking() {
   return useMutation({
-    mutationFn: (data: CreateBookingPayload) => apiClient.post<Booking>("/bookings", data),
+    mutationFn: (data: CreateBookingPayload) =>
+      apiClient.post<Booking>("/bookings", {
+        showtimeId: data.showtimeId,
+        holdId: data.holdId,
+        promotionCode: data.promoCode,
+        pointsToUse: data.usePoints,
+        giftCardCode: data.giftCardCode,
+        snacks: data.snacks,
+      }),
     onError: (error: any) => {
       toast.error(error?.message || "Failed to create booking");
     },
@@ -109,7 +118,7 @@ export function useApplyPromo() {
 
   return useMutation({
     mutationFn: ({ bookingId, promoCode }: { bookingId: string; promoCode: string }) =>
-      apiClient.post(`/bookings/${bookingId}/apply-promo`, { promoCode }),
+      apiClient.post(`/bookings/${bookingId}/apply-promo`, { code: promoCode }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["bookings", variables.bookingId] });
       toast.success("Promo code applied!");
@@ -221,7 +230,7 @@ export function useApplyGiftCard() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ bookingId, giftCardCode }: { bookingId: string; giftCardCode: string }) =>
-      apiClient.post(`/bookings/${bookingId}/apply-gift-card`, { giftCardCode }),
+      apiClient.post(`/bookings/${bookingId}/apply-gift-card`, { code: giftCardCode }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["bookings", variables.bookingId] });
       toast.success("Gift card applied!");

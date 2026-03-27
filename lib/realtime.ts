@@ -1,3 +1,5 @@
+import { getApiBaseUrl } from "@/lib/api-discovery";
+
 export type SeatEvent = {
   type: "SEAT_HELD" | "SEAT_RELEASED" | "SEAT_BOOKED" | "HOLD_EXPIRED";
   seatIds: string[];
@@ -19,7 +21,7 @@ export class RealtimeConnection {
   }
 
   connect() {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
+    const baseUrl = getApiBaseUrl();
     const wsUrl = baseUrl.replace(/^http/, "ws").replace(/\/api\/v1$/, "");
 
     try {

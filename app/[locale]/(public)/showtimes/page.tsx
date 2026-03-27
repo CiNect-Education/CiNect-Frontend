@@ -314,7 +314,7 @@ export default function ShowtimesPage() {
                           </span>
                         )}
                         <Button size="sm" asChild className="ml-auto">
-                          <Link href={`/booking?showtime=${st.id}`}>
+                          <Link href={`/booking/${st.id}`}>
                             <Ticket className="mr-1.5 h-4 w-4" />
                             Book
                           </Link>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -118,6 +118,7 @@ export default function CheckoutPage() {
   const handleContinueFromSnacks = useCallback(async () => {
     try {
       const res = await createBookingMutation.mutateAsync({
+        showtimeId: hold.showtimeId,
         holdId,
         snacks: selectedSnacks.length > 0 ? selectedSnacks : undefined,
       });
