@@ -81,7 +81,9 @@ export default function BookingPage() {
       const payload = response?.data ?? response;
       const holdIdVal =
         typeof payload === "object" && payload && "holdId" in payload
-          ? (payload as { holdId: string }).holdId
+          ? (payload as { holdId?: string }).holdId
+          : typeof payload === "object" && payload && "id" in payload
+            ? (payload as { id?: string }).id
           : (response as { holdId?: string }).holdId;
       const expiresAtVal =
         typeof payload === "object" && payload && "expiresAt" in payload

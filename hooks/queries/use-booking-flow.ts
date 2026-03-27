@@ -19,7 +19,8 @@ interface HoldSeatsPayload {
 }
 
 interface HoldResponse {
-  holdId: string;
+  holdId?: string;
+  id?: string;
   expiresAt: string;
 }
 
