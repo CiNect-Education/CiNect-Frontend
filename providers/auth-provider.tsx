@@ -52,7 +52,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
       if (event?.type === "updated" && event.query.state.error) {
         const error = event.query.state.error as any;
-        if (error?.status === 401) {
+        const key = event.query.queryKey;
+        const isAuthMeQuery = Array.isArray(key) && key[0] === "auth" && key[1] === "me";
+        if (isAuthMeQuery && error?.status === 401) {
           clearTokens();
           queryClient.setQueryData(["auth", "me"], null);
           router.push("/login");
