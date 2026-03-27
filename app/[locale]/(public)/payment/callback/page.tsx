@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { usePaymentStatus, useConfirmBooking } from "@/hooks/queries/use-booking-flow";
-import { PaymentStatus } from "@/components/checkout/payment-status";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, CheckCircle2, XCircle, Clock } from "lucide-react";
@@ -30,11 +29,11 @@ export default function PaymentCallbackPage() {
     }
 
     apiClient
-      .get<{ paymentId: string; bookingId: string; status: string }>("/payments/callback", {
+      .get<{ id: string; bookingId: string; status: string }>("/payments/callback", {
         transactionId,
       })
       .then((res) => {
-        setPaymentId(res.data.paymentId);
+        setPaymentId(res.data.id);
         setBookingId(res.data.bookingId);
         setLoading(false);
       })

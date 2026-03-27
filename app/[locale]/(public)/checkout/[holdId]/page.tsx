@@ -24,6 +24,7 @@ import {
 import { useMembershipProfile } from "@/hooks/queries/use-membership";
 import { Popcorn, CreditCard, Film } from "lucide-react";
 import { format } from "date-fns";
+import { apiClient } from "@/lib/api-client";
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -167,9 +168,21 @@ export default function CheckoutPage() {
           typeof payload === "object" && payload && "paymentUrl" in payload
             ? (payload as { paymentUrl?: string }).paymentUrl
             : (res as { paymentUrl?: string }).paymentUrl;
+        const transactionId =
+          typeof payload === "object" && payload && "transactionId" in payload
+            ? (payload as { transactionId?: string }).transactionId
+            : (res as { transactionId?: string }).transactionId;
 
-        if (paymentUrl) {
+        const isSimulatedGateway = !!paymentUrl && paymentUrl.includes("payment-sim.cinect.local");
+
+        if (isSimulatedGateway && transactionId) {
+          // Dev fallback for mock gateway: complete callback immediately.
+          await apiClient.post(`/payments/callback?transactionId=${transactionId}&success=true`);
+          router.push(`/payment/callback?transactionId=${transactionId}`);
+        } else if (paymentUrl) {
           window.location.href = paymentUrl;
+        } else if (transactionId) {
+          router.push(`/payment/callback?transactionId=${transactionId}`);
         } else {
           router.push(`/tickets/${bookingId}`);
         }

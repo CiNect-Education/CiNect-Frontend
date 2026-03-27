@@ -186,7 +186,10 @@ export function useApplyPoints() {
 export function useInitiatePayment() {
   return useMutation({
     mutationFn: (data: { bookingId: string; method: string; amount: number }) =>
-      apiClient.post<{ paymentId: string; paymentUrl?: string }>("/payments/initiate", data),
+      apiClient.post<{ paymentId: string; transactionId: string; paymentUrl?: string }>(
+        "/payments/initiate",
+        data
+      ),
     onError: (error: unknown) => {
       const msg = error instanceof Error ? error.message : "Failed to initiate payment";
       toast.error(msg);
