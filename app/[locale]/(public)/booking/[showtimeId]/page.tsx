@@ -50,7 +50,11 @@ export default function BookingPage() {
   const [expireModalOpen, setExpireModalOpen] = useState(false);
 
   const { data: seatsData, isLoading, error, refetch } = useShowtimeSeats(showtimeId);
-  const seats = seatsData?.data ?? (seatsData as unknown as Seat[]);
+  const seatsPayload = seatsData?.data ?? (seatsData as unknown);
+  const seats =
+    Array.isArray(seatsPayload)
+      ? (seatsPayload as Seat[])
+      : ((seatsPayload as { seats?: Seat[] } | null)?.seats ?? []);
   const holdMutation = useHoldSeats();
   const releaseMutation = useReleaseHold();
   const { conflictedSeatIds: realtimeConflicts, clearConflicts: clearRealtimeConflicts } =
