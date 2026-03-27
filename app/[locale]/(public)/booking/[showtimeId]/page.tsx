@@ -39,6 +39,23 @@ function extractConflictedSeatIds(error: unknown): string[] {
   return [];
 }
 
+function normalizeIsoDate(value: unknown): string | null {
+  if (typeof value === "string") {
+    const t = new Date(value).getTime();
+    return Number.isFinite(t) ? value : null;
+  }
+  if (value instanceof Date) {
+    const t = value.getTime();
+    return Number.isFinite(t) ? value.toISOString() : null;
+  }
+  if (typeof value === "number") {
+    const d = new Date(value);
+    const t = d.getTime();
+    return Number.isFinite(t) ? d.toISOString() : null;
+  }
+  return null;
+}
+
 export default function BookingPage() {
   const params = useParams();
   const router = useRouter();
@@ -92,7 +109,7 @@ export default function BookingPage() {
           ? (payload as { expiresAt: string }).expiresAt
           : (response as { expiresAt?: string }).expiresAt;
       setHoldId(holdIdVal ?? null);
-      setExpiresAt(expiresAtVal ?? null);
+      setExpiresAt(normalizeIsoDate(expiresAtVal));
     } catch (err) {
       const failed = extractConflictedSeatIds(err);
       if (failed.length > 0) {
