@@ -18,6 +18,7 @@ import { ApiErrorState } from "@/components/system/api-error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useShowtimeSeats, useHoldSeats, useReleaseHold } from "@/hooks/queries/use-booking-flow";
 import { useSeatRealtime } from "@/hooks/use-seat-realtime";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ApiError } from "@/lib/api-client";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -42,6 +43,7 @@ export default function BookingPage() {
   const params = useParams();
   const router = useRouter();
   const showtimeId = params.showtimeId as string;
+  const isMobile = useIsMobile();
 
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [holdId, setHoldId] = useState<string | null>(null);
@@ -258,7 +260,9 @@ export default function BookingPage() {
               <CardTitle>Booking Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {expiresAt && <CountdownTimer expiresAt={expiresAt} onExpire={handleExpire} />}
+              {!isMobile && expiresAt && (
+                <CountdownTimer expiresAt={expiresAt} onExpire={handleExpire} />
+              )}
 
               {allConflicts.length > 0 && (
                 <Alert variant="destructive">
@@ -340,7 +344,7 @@ export default function BookingPage() {
       {/* Mobile bottom bar */}
       <div className="bg-background fixed inset-x-0 bottom-0 z-40 border-t p-4 lg:hidden">
         <div className="mx-auto flex max-w-7xl flex-col gap-2">
-          {expiresAt && <CountdownTimer expiresAt={expiresAt} onExpire={handleExpire} />}
+          {isMobile && expiresAt && <CountdownTimer expiresAt={expiresAt} onExpire={handleExpire} />}
           <div className="flex items-center justify-between gap-4">
             <div>
               <div className="text-sm font-medium">
