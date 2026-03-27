@@ -12,27 +12,43 @@ interface CountdownTimerProps {
 export function CountdownTimer({ expiresAt, onExpire }: CountdownTimerProps) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const onExpireRef = useRef(onExpire);
+  const expiredOnceRef = useRef(false);
 
   useEffect(() => {
     onExpireRef.current = onExpire;
   }, [onExpire]);
 
   useEffect(() => {
+    expiredOnceRef.current = false;
+
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
       const expiry = new Date(expiresAt).getTime();
+      if (!Number.isFinite(expiry)) return 0;
       const diff = expiry - now;
       return Math.max(0, Math.floor(diff / 1000));
     };
 
-    setTimeLeft(calculateTimeLeft());
+    const initial = calculateTimeLeft();
+    setTimeLeft(initial);
+    if (initial === 0) {
+      // Avoid tight loops if expiresAt is invalid/expired.
+      if (!expiredOnceRef.current) {
+        expiredOnceRef.current = true;
+        onExpireRef.current();
+      }
+      return;
+    }
 
     const interval = setInterval(() => {
       const left = calculateTimeLeft();
       setTimeLeft(left);
       if (left === 0) {
         clearInterval(interval);
-        onExpireRef.current();
+        if (!expiredOnceRef.current) {
+          expiredOnceRef.current = true;
+          onExpireRef.current();
+        }
       }
     }, 1000);
 
