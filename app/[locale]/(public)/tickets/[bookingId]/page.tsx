@@ -12,6 +12,23 @@ import { Download, Printer, Calendar, MapPin, Clock, Users } from "lucide-react"
 import { QRCodeSVG } from "qrcode.react";
 import { format } from "date-fns";
 
+function safeDate(value: unknown): Date | null {
+  if (typeof value === "string" || typeof value === "number" || value instanceof Date) {
+    const d = new Date(value as any);
+    return Number.isFinite(d.getTime()) ? d : null;
+  }
+  return null;
+}
+
+function toNumber(value: unknown): number {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  if (typeof value === "string") {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
+}
+
 export default function TicketPage() {
   const params = useParams();
   const bookingId = params.bookingId as string;
@@ -47,8 +64,20 @@ export default function TicketPage() {
   const movieTitle = booking.movieTitle ?? "Movie";
   const cinemaName = booking.cinemaName ?? "";
   const roomName = booking.roomName ?? "";
-  const showtimeStr = booking.showtime ?? booking.createdAt;
+  const showtimeValue =
+    typeof booking.showtime === "string" || typeof booking.showtime === "number" || booking.showtime instanceof Date
+      ? booking.showtime
+      : booking.showtime && typeof booking.showtime === "object" && "startTime" in (booking.showtime as any)
+        ? (booking.showtime as { startTime?: unknown }).startTime
+        : booking.createdAt;
+  const showtimeStr =
+    typeof showtimeValue === "string" || typeof showtimeValue === "number"
+      ? String(showtimeValue)
+      : showtimeValue instanceof Date
+        ? showtimeValue.toISOString()
+        : String(booking.createdAt);
   const formatType = booking.format ?? "2D";
+  const showtimeDate = safeDate(showtimeValue);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -104,10 +133,10 @@ export default function TicketPage() {
               <div className="space-y-1">
                 <div className="text-sm font-medium">Date & Time</div>
                 <div className="text-muted-foreground text-sm">
-                  {format(new Date(showtimeStr), "PPP")}
+                  {showtimeDate ? format(showtimeDate, "PPP") : "—"}
                 </div>
                 <div className="text-muted-foreground text-sm">
-                  {format(new Date(showtimeStr), "p")}
+                  {showtimeDate ? format(showtimeDate, "p") : "—"}
                 </div>
               </div>
             </div>
@@ -135,7 +164,9 @@ export default function TicketPage() {
               <Clock className="text-muted-foreground mt-0.5 h-5 w-5" />
               <div className="space-y-1">
                 <div className="text-sm font-medium">Showtime</div>
-                <div className="text-muted-foreground text-sm">{showtimeStr}</div>
+                <div className="text-muted-foreground text-sm">
+                  {showtimeDate ? format(showtimeDate, "PPpp") : "—"}
+                </div>
               </div>
             </div>
           </div>
@@ -152,7 +183,11 @@ export default function TicketPage() {
                         {snack.quantity}x {snack.name}
                       </span>
                       <span>
-                        ${((snack.unitPrice ?? snack.totalPrice ?? 0) * snack.quantity).toFixed(2)}
+                        $
+                        {(
+                          (toNumber(snack.unitPrice) || toNumber(snack.totalPrice)) *
+                          toNumber(snack.quantity)
+                        ).toFixed(2)}
                       </span>
                     </div>
                   ))}
@@ -168,7 +203,7 @@ export default function TicketPage() {
             {seats && seats.length > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Tickets ({seats.length})</span>
-                <span>${seats.reduce((s, seat) => s + (seat.price ?? 0), 0).toFixed(2)}</span>
+                <span>${seats.reduce((s, seat) => s + toNumber(seat.price), 0).toFixed(2)}</span>
               </div>
             )}
             {snacks && snacks.length > 0 && (
@@ -179,24 +214,26 @@ export default function TicketPage() {
                   {snacks
                     .reduce(
                       (s, snack) =>
-                        s + (snack.totalPrice ?? (snack.unitPrice ?? 0) * snack.quantity),
+                        s +
+                        (toNumber(snack.totalPrice) ||
+                          toNumber(snack.unitPrice) * toNumber(snack.quantity)),
                       0
                     )
                     .toFixed(2)}
                 </span>
               </div>
             )}
-            {(booking.discountAmount ?? 0) > 0 && (
+            {toNumber(booking.discountAmount) > 0 && (
               <div className="flex justify-between text-sm text-green-600">
                 <span>Discount</span>
-                <span>-${(booking.discountAmount ?? 0).toFixed(2)}</span>
+                <span>-${toNumber(booking.discountAmount).toFixed(2)}</span>
               </div>
             )}
             <Separator />
             <div className="flex justify-between font-bold">
               <span>Total Paid</span>
               <span className="text-lg">
-                ${(payment?.amount ?? booking.finalAmount ?? 0).toFixed(2)}
+                ${(toNumber(payment?.amount) || toNumber(booking.finalAmount)).toFixed(2)}
               </span>
             </div>
           </div>
@@ -205,7 +242,10 @@ export default function TicketPage() {
           <div className="bg-muted text-muted-foreground space-y-1 rounded-lg p-4 text-xs">
             <div>Booking ID: {booking.id}</div>
             <div>Transaction ID: {payment?.transactionId ?? "N/A"}</div>
-            <div>Booked on: {format(new Date(booking.createdAt), "PPp")}</div>
+            <div>
+              Booked on:{" "}
+              {safeDate(booking.createdAt) ? format(new Date(booking.createdAt), "PPp") : "—"}
+            </div>
           </div>
         </CardContent>
       </Card>

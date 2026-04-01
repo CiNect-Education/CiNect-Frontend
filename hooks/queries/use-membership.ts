@@ -17,7 +17,10 @@ export function useMembershipProfile() {
     ["membership", "profile"],
     "/membership/profile",
     undefined,
-    { schema: membershipProfileSchema }
+    {
+      schema: membershipProfileSchema,
+      retry: false,
+    }
   );
 }
 

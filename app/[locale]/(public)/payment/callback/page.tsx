@@ -55,15 +55,19 @@ export default function PaymentCallbackPage() {
     confirmBooking.mutate(bookingId);
   }, [paymentStatus, bookingId, confirmBooking]);
 
+  // Some backends already mark booking CONFIRMED on payment callback.
+  // In that case, confirm endpoint may fail (or be unnecessary) — still proceed to ticket.
+  const paymentSucceeded = paymentStatus === "SUCCESS" || paymentStatus === "PAID";
+
   // Navigate to ticket on confirm success
   useEffect(() => {
-    if ((paymentStatus === "SUCCESS" || confirmBooking.isSuccess) && bookingId) {
+    if ((paymentSucceeded || confirmBooking.isSuccess) && bookingId) {
       const timer = setTimeout(() => {
         router.push(`/tickets/${bookingId}` as any);
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [paymentStatus, confirmBooking.isSuccess, bookingId, router]);
+  }, [paymentSucceeded, confirmBooking.isSuccess, bookingId, router]);
 
   // Timeout after 2 minutes
   const [timedOut, setTimedOut] = useState(false);
@@ -125,7 +129,7 @@ export default function PaymentCallbackPage() {
     );
   }
 
-  if (paymentStatus === "SUCCESS" || confirmBooking.isSuccess) {
+  if (paymentSucceeded || confirmBooking.isSuccess) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center px-4">
         <Card className="w-full max-w-md">

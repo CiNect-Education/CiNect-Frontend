@@ -11,6 +11,7 @@ export default defineConfig({
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },
+  workers: 1,
   projects: [
     {
       name: "chromium",
