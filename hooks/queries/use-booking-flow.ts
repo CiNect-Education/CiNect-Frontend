@@ -32,9 +32,8 @@ export function useHoldSeats() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["showtimes", variables.showtimeId, "seats"] });
     },
-    onError: (error: any) => {
-      toast.error(error?.message || "Failed to hold seats");
-    },
+    // Booking page handles conflicts and auth redirects; avoid toast loops here.
+    onError: () => {},
   });
 }
 

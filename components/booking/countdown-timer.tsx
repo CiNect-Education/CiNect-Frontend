@@ -21,18 +21,18 @@ export function CountdownTimer({ expiresAt, onExpire }: CountdownTimerProps) {
   useEffect(() => {
     expiredOnceRef.current = false;
 
-    const calculateTimeLeft = () => {
+    const calculateTimeLeft = (): number | null => {
       const now = new Date().getTime();
       const expiry = new Date(expiresAt).getTime();
-      if (!Number.isFinite(expiry)) return 0;
+      if (!Number.isFinite(expiry)) return null;
       const diff = expiry - now;
       return Math.max(0, Math.floor(diff / 1000));
     };
 
     const initial = calculateTimeLeft();
-    setTimeLeft(initial);
+    setTimeLeft(initial ?? 0);
+    if (initial === null) return;
     if (initial === 0) {
-      // Avoid tight loops if expiresAt is invalid/expired.
       if (!expiredOnceRef.current) {
         expiredOnceRef.current = true;
         onExpireRef.current();
@@ -42,7 +42,8 @@ export function CountdownTimer({ expiresAt, onExpire }: CountdownTimerProps) {
 
     const interval = setInterval(() => {
       const left = calculateTimeLeft();
-      setTimeLeft(left);
+      setTimeLeft(left ?? 0);
+      if (left === null) return;
       if (left === 0) {
         clearInterval(interval);
         if (!expiredOnceRef.current) {

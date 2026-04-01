@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { SeatMap } from "@/components/booking/seat-map";
 import { CountdownTimer } from "@/components/booking/countdown-timer";
@@ -17,7 +17,6 @@ import {
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useShowtimeSeats, useHoldSeats, useReleaseHold } from "@/hooks/queries/use-booking-flow";
-import { useSeatRealtime } from "@/hooks/use-seat-realtime";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ApiError } from "@/lib/api-client";
 import { AlertCircle } from "lucide-react";
@@ -59,6 +58,7 @@ function normalizeIsoDate(value: unknown): string | null {
 export default function BookingPage() {
   const params = useParams();
   const router = useRouter();
+  const locale = (params as unknown as { locale?: string }).locale;
   const showtimeId = params.showtimeId as string;
   const isMobile = useIsMobile();
 
@@ -68,6 +68,8 @@ export default function BookingPage() {
   const [conflictedSeatIds, setConflictedSeatIds] = useState<string[]>([]);
   const [expireModalOpen, setExpireModalOpen] = useState(false);
 
+  const expiringRef = useRef(false);
+
   const { data: seatsData, isLoading, error, refetch } = useShowtimeSeats(showtimeId);
   const seatsPayload = seatsData?.data ?? (seatsData as unknown);
   const seats =
@@ -76,8 +78,10 @@ export default function BookingPage() {
       : ((seatsPayload as { seats?: Seat[] } | null)?.seats ?? []);
   const holdMutation = useHoldSeats();
   const releaseMutation = useReleaseHold();
-  const { conflictedSeatIds: realtimeConflicts, clearConflicts: clearRealtimeConflicts } =
-    useSeatRealtime(showtimeId, selectedSeats);
+  // Realtime seat updates can be enabled once the WS endpoint is stable.
+  // For now, rely on polling (`useShowtimeSeats`) to avoid client-side loops.
+  const realtimeConflicts: string[] = [];
+  const clearRealtimeConflicts = () => {};
 
   const allConflicts = [...new Set([...conflictedSeatIds, ...realtimeConflicts])];
 
@@ -111,6 +115,11 @@ export default function BookingPage() {
       setHoldId(holdIdVal ?? null);
       setExpiresAt(normalizeIsoDate(expiresAtVal));
     } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        const returnTo = `/${locale ?? ""}/booking/${showtimeId}`.replace("//", "/");
+        router.push(`/${locale ?? ""}/login?returnTo=${encodeURIComponent(returnTo)}`.replace("//", "/"));
+        return;
+      }
       const failed = extractConflictedSeatIds(err);
       if (failed.length > 0) {
         setConflictedSeatIds(failed);
@@ -119,21 +128,27 @@ export default function BookingPage() {
         setSelectedSeats([]);
       }
     }
-  }, [selectedSeats, showtimeId, holdMutation]);
+  }, [selectedSeats, showtimeId, holdMutation, router, locale]);
 
   const handleExpire = useCallback(async () => {
-    setExpireModalOpen(true);
-    if (holdId) {
-      try {
-        await releaseMutation.mutateAsync(holdId);
-      } catch {
-        // ignore
+    if (expiringRef.current) return;
+    expiringRef.current = true;
+    try {
+      setExpireModalOpen(true);
+      if (holdId) {
+        try {
+          await releaseMutation.mutateAsync(holdId);
+        } catch {
+          // ignore
+        }
       }
+      setHoldId(null);
+      setExpiresAt(null);
+      setSelectedSeats([]);
+      refetch();
+    } finally {
+      expiringRef.current = false;
     }
-    setHoldId(null);
-    setExpiresAt(null);
-    setSelectedSeats([]);
-    refetch();
   }, [holdId, releaseMutation, refetch]);
 
   const closeExpireModal = useCallback(() => {
@@ -142,16 +157,12 @@ export default function BookingPage() {
 
   const handleProceed = () => {
     if (!holdId) return;
-    router.push(`/checkout/${holdId}`);
+    router.push(`/${locale ?? ""}/checkout/${holdId}`.replace("//", "/"));
   };
 
-  useEffect(() => {
-    return () => {
-      if (holdId) {
-        releaseMutation.mutate(holdId);
-      }
-    };
-  }, [holdId, releaseMutation]);
+  // Intentionally avoid releasing on unmount.
+  // Holds are time-limited server-side; releasing on unmount can cause loops if the
+  // page remounts during dev/hydration transitions.
 
   const seatArray: Seat[] = (Array.isArray(seats) ? seats : []).map((s) => {
     const anySeat = s as unknown as {
