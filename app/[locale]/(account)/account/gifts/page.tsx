@@ -65,9 +65,13 @@ export default function AccountGiftsPage() {
               icon={Gift}
               title="No gift cards"
               description="Gift cards you have purchased or received will appear here."
-              onAction={() => {}}
               actionLabel="Browse Gift Cards"
             />
+            <div className="mt-4 flex justify-center">
+              <Button asChild>
+                <Link href="/gift">Browse Gift Cards</Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (

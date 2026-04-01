@@ -52,9 +52,9 @@ export default function MovieDetailPage() {
 
   // Showtimes
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [selectedCity, setSelectedCity] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<string>("__ALL__");
   const { data: showtimesRes } = useMovieShowtimes(movieId, {
-    city: selectedCity || undefined,
+    city: selectedCity === "__ALL__" ? undefined : selectedCity,
     date: selectedDate,
   });
   const showtimes = showtimesRes?.data ?? [];
@@ -337,7 +337,13 @@ export default function MovieDetailPage() {
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                     {movie.galleryUrls.map((url, i) => (
                       <div key={i} className="relative aspect-video overflow-hidden rounded-lg">
-                        <Image src={url} alt={`Gallery ${i + 1}`} fill className="object-cover" />
+                        <Image
+                          src={url}
+                          alt={`Gallery ${i + 1}`}
+                          fill
+                          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                          className="object-cover"
+                        />
                       </div>
                     ))}
                   </div>
@@ -425,7 +431,7 @@ export default function MovieDetailPage() {
                     <SelectValue placeholder="All cities" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All cities</SelectItem>
+                    <SelectItem value="__ALL__">All cities</SelectItem>
                     {Array.from(
                       new Set(
                         showtimes
