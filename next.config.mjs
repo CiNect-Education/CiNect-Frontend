@@ -29,7 +29,12 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    remotePatterns: [{ protocol: "https", hostname: "**" }],
+    remotePatterns: [
+      { protocol: "https", hostname: "placehold.co" },
+      { protocol: "https", hostname: "*.supabase.co" },
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "i.ytimg.com" },
+    ],
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
