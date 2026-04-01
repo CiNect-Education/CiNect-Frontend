@@ -185,7 +185,7 @@ export function useApplyPoints() {
 // Initiate payment
 export function useInitiatePayment() {
   return useMutation({
-    mutationFn: (data: { bookingId: string; method: string; amount: number }) =>
+    mutationFn: (data: { bookingId: string; method: string }) =>
       apiClient.post<{ paymentId: string; transactionId: string; paymentUrl?: string }>(
         "/payments/initiate",
         data

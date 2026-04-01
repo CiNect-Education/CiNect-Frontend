@@ -28,17 +28,26 @@ export function OrderSummary({
   giftCardCode,
   booking,
 }: OrderSummaryProps) {
+  const toNumber = (v: unknown): number => {
+    if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+    if (typeof v === "string") {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    }
+    return 0;
+  };
+
   const hasBooking = !!booking?.id;
 
   const seatsTotal = hasBooking
-    ? (booking.seats?.reduce((s, seat) => s + (seat.price ?? 0), 0) ?? 0)
-    : holdSeats.reduce((s, seat) => s + (seat.price ?? 0), 0);
+    ? (booking.seats?.reduce((s, seat) => s + toNumber(seat.price), 0) ?? 0)
+    : holdSeats.reduce((s, seat) => s + toNumber(seat.price), 0);
 
   const baseTotal = hasBooking
-    ? (booking.totalAmount ?? seatsTotal + snacksTotal)
+    ? (toNumber(booking.totalAmount) || seatsTotal + snacksTotal)
     : seatsTotal + snacksTotal;
 
-  const total = hasBooking ? booking.finalAmount : baseTotal;
+  const total = hasBooking ? (toNumber(booking.finalAmount) || baseTotal) : baseTotal;
 
   const seatLabel =
     holdSeats.length > 0 || (booking?.seats?.length ?? 0) > 0
@@ -79,7 +88,7 @@ export function OrderSummary({
               </div>
               <div className="space-y-1">
                 {selectedSnacks.map((item) => {
-                  const price = item.snack?.unitPrice ?? item.snack?.price ?? 0;
+                  const price = toNumber(item.snack?.unitPrice ?? item.snack?.price);
                   return (
                     <div
                       key={item.snackId}
@@ -104,11 +113,11 @@ export function OrderSummary({
           <span className="font-medium">${baseTotal.toFixed(2)}</span>
         </div>
 
-        {hasBooking && (booking.discountAmount ?? 0) > 0 && (
+        {hasBooking && toNumber(booking.discountAmount) > 0 && (
           <div className="space-y-1 text-sm text-green-600">
             <div className="flex justify-between">
               <span>Discount</span>
-              <span>-${(booking.discountAmount ?? 0).toFixed(2)}</span>
+              <span>-${toNumber(booking.discountAmount).toFixed(2)}</span>
             </div>
             {(appliedPromoCode || (appliedPoints ?? 0) > 0 || appliedGiftCardCode) && (
               <div className="text-muted-foreground space-y-0.5 text-xs">

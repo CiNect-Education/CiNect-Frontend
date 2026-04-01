@@ -27,6 +27,15 @@ export function SnacksStep({
   onApplyFavorite,
   hasFavorite,
 }: SnacksStepProps) {
+  const toNumber = (v: unknown): number => {
+    if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+    if (typeof v === "string") {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    }
+    return 0;
+  };
+
   const getQuantity = (snackId: string) => {
     return selectedSnacks.find((s) => s.snackId === snackId)?.quantity || 0;
   };
@@ -42,6 +51,7 @@ export function SnacksStep({
       <div className="grid gap-4 sm:grid-cols-2">
         {snacks.map((snack) => {
           const quantity = getQuantity(snack.id);
+          const unitPrice = toNumber((snack as { unitPrice?: unknown }).unitPrice ?? (snack as { price?: unknown }).price);
           return (
             <Card key={snack.id} className="p-4">
               <div className="flex gap-4">
@@ -64,12 +74,7 @@ export function SnacksStep({
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-bold">
-                      $
-                      {(
-                        (snack as { unitPrice?: number }).unitPrice ??
-                        (snack as { price?: number }).price ??
-                        0
-                      ).toFixed(2)}
+                      ${unitPrice.toFixed(2)}
                     </span>
                     <div className="flex items-center gap-2">
                       <Button

@@ -29,7 +29,13 @@ import { apiClient } from "@/lib/api-client";
 export default function CheckoutPage() {
   const params = useParams();
   const router = useRouter();
+  const locale = (params as unknown as { locale?: string }).locale;
   const holdId = params.holdId as string;
+
+  const toLocalePath = useCallback(
+    (path: string) => `/${locale ?? ""}${path.startsWith("/") ? "" : "/"}${path}`.replace("//", "/"),
+    [locale]
+  );
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedSnacks, setSelectedSnacks] = useState<
@@ -45,6 +51,7 @@ export default function CheckoutPage() {
 
   const { data: holdRes, isLoading: holdLoading, error: holdError } = useHold(holdId);
   const hold = holdRes?.data as import("@/hooks/queries/use-booking-flow").HoldDetails | undefined;
+  const holdShowtimeId = hold?.showtimeId;
   const cinemaId = hold?.showtime?.cinemaId;
 
   const { data: snacksRes, isLoading: snacksLoading, error: snacksError } = useSnacks(cinemaId);
@@ -117,9 +124,10 @@ export default function CheckoutPage() {
   const handleContinueFromReview = useCallback(() => setStep(2), []);
 
   const handleContinueFromSnacks = useCallback(async () => {
+    if (!holdShowtimeId) return;
     try {
       const res = await createBookingMutation.mutateAsync({
-        showtimeId: hold.showtimeId,
+        showtimeId: holdShowtimeId,
         holdId,
         snacks: selectedSnacks.length > 0 ? selectedSnacks : undefined,
       });
@@ -133,7 +141,7 @@ export default function CheckoutPage() {
     } catch {
       // Error handled by mutation
     }
-  }, [holdId, selectedSnacks, createBookingMutation]);
+  }, [holdShowtimeId, holdId, selectedSnacks, createBookingMutation]);
 
   const handleApplyPromo = useCallback(() => {
     if (!bookingId || !promoCode.trim()) return;
@@ -155,13 +163,11 @@ export default function CheckoutPage() {
 
   const handlePayment = useCallback(
     async (method: string, amount: number) => {
-      const finalAmount = booking?.finalAmount ?? amount;
       if (!bookingId) return;
       try {
         const res = await initiatePaymentMutation.mutateAsync({
           bookingId,
           method,
-          amount: finalAmount,
         });
         const payload = res?.data ?? res;
         const paymentUrl =
@@ -178,19 +184,19 @@ export default function CheckoutPage() {
         if (isSimulatedGateway && transactionId) {
           // Dev fallback for mock gateway: complete callback immediately.
           await apiClient.post(`/payments/callback?transactionId=${transactionId}&success=true`);
-          router.push(`/payment/callback?transactionId=${transactionId}`);
+          router.push(toLocalePath(`/payment/callback?transactionId=${transactionId}`));
         } else if (paymentUrl) {
           window.location.href = paymentUrl;
         } else if (transactionId) {
-          router.push(`/payment/callback?transactionId=${transactionId}`);
+          router.push(toLocalePath(`/payment/callback?transactionId=${transactionId}`));
         } else {
-          router.push(`/tickets/${bookingId}`);
+          router.push(toLocalePath(`/tickets/${bookingId}`));
         }
       } catch {
         // Error handled by mutation
       }
     },
-    [bookingId, booking?.finalAmount, initiatePaymentMutation, router]
+    [bookingId, booking?.finalAmount, initiatePaymentMutation, router, toLocalePath]
   );
   const selectedSnackDetails = selectedSnacks
     .map((s) => ({
