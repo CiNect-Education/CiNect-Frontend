@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
+import { useLocale } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,11 +39,15 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const t = useTranslations("auth");
   const router = useRouter();
+  const locale = useLocale();
   const searchParams = useSearchParams();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  const returnTo = searchParams.get("returnTo") || "/account/profile";
+  const rawReturnTo = searchParams.get("returnTo") || "/account/profile";
+  // `useRouter()` here is locale-aware, so strip leading "/{locale}" if present
+  const returnTo =
+    rawReturnTo.startsWith(`/${locale}/`) ? rawReturnTo.replace(`/${locale}`, "") : rawReturnTo;
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
