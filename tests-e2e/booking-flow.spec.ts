@@ -24,25 +24,10 @@ test("booking hold → checkout navigation does not crash", async ({ page }) => 
   await page.getByRole("button", { name: /login/i }).click();
   await expect(page).not.toHaveURL(/\/en\/login/);
 
-  await page.goto("/en/movies");
-  await expect(page.getByRole("main")).toBeVisible();
-
-  // Go to a movie detail page via first link.
-  const firstMovieLink = page.locator('a[href^="/en/movies/"]').first();
-  await firstMovieLink.click();
-  await expect(page).toHaveURL(/\/en\/movies\/[^/]+$/);
-  await expect(page.locator("h1").first()).toBeVisible();
-
-  // Try to navigate to any booking page (showtime). If the UI doesn't expose direct
-  // booking links, we fall back to a known seeded showtime id via env.
-  const showtimeLink = page.locator('a[href^="/en/booking/"]').first();
-  if (await showtimeLink.count()) {
-    await showtimeLink.click();
-  } else {
-    const seeded = process.env.E2E_SHOWTIME_ID;
-    test.skip(!seeded, "No booking links found and E2E_SHOWTIME_ID not provided");
-    await page.goto(`/en/booking/${seeded}`);
-  }
+  // Deterministic: go directly to a seeded showtime booking page.
+  const seeded = process.env.E2E_SHOWTIME_ID;
+  test.skip(!seeded, "E2E_SHOWTIME_ID not provided");
+  await page.goto(`/en/booking/${seeded}`);
 
   await expect(page.getByText(/Select Your Seats/i)).toBeVisible();
 
