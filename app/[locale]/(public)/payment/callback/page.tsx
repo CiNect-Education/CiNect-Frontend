@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { usePaymentStatus, useConfirmBooking } from "@/hooks/queries/use-booking-flow";
@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
-
 export default function PaymentCallbackPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -19,6 +18,7 @@ export default function PaymentCallbackPage() {
   const [error, setError] = useState<string | null>(null);
 
   const confirmBooking = useConfirmBooking();
+  const confirmOnceRef = useRef(false);
 
   // Step 1: Call callback endpoint to get paymentId
   useEffect(() => {
@@ -49,20 +49,21 @@ export default function PaymentCallbackPage() {
 
   // Step 3: On success, confirm booking
   useEffect(() => {
-    if (paymentStatus === "SUCCESS" && bookingId && !confirmBooking.isSuccess) {
-      confirmBooking.mutate(bookingId);
-    }
+    if (paymentStatus !== "SUCCESS" || !bookingId) return;
+    if (confirmOnceRef.current || confirmBooking.isSuccess) return;
+    confirmOnceRef.current = true;
+    confirmBooking.mutate(bookingId);
   }, [paymentStatus, bookingId, confirmBooking]);
 
   // Navigate to ticket on confirm success
   useEffect(() => {
-    if (confirmBooking.isSuccess && bookingId) {
+    if ((paymentStatus === "SUCCESS" || confirmBooking.isSuccess) && bookingId) {
       const timer = setTimeout(() => {
         router.push(`/tickets/${bookingId}` as any);
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [confirmBooking.isSuccess, bookingId, router]);
+  }, [paymentStatus, confirmBooking.isSuccess, bookingId, router]);
 
   // Timeout after 2 minutes
   const [timedOut, setTimedOut] = useState(false);
