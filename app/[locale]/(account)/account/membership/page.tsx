@@ -19,9 +19,7 @@ import {
   Crown,
   Star,
   Gift,
-  Zap,
   TrendingUp,
-  Calendar,
   Cake,
   Clock,
   Ticket,
@@ -29,10 +27,10 @@ import {
 } from "lucide-react";
 import { format, formatDistanceToNow, isPast } from "date-fns";
 import { toast } from "sonner";
+import { Link } from "@/i18n/navigation";
 
 export default function AccountMembershipPage() {
   const t = useTranslations("membership");
-  const tCommon = useTranslations("common");
 
   const {
     data: profileRes,
@@ -46,7 +44,7 @@ export default function AccountMembershipPage() {
   const redeemCoupon = useRedeemCoupon();
 
   const profile = profileRes?.data as import("@/types/domain").MembershipProfile | undefined;
-  const tiers = (tiersRes?.data ?? []) as import("@/types/domain").MembershipTier[];
+  void tiersRes;
   const pointsHistory = (pointsRes?.data ?? []) as Array<{
     id: string;
     description: string;
@@ -77,12 +75,12 @@ export default function AccountMembershipPage() {
     return (
       <div>
         <PageHeader title={t("title")} />
-        <Card>
+        <Card className="cinect-glass border">
           <CardContent className="py-12 text-center">
             <Crown className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
             <p className="text-muted-foreground">No membership data available</p>
             <Button className="mt-4" asChild>
-              <a href="/membership">{t("joinNow")}</a>
+              <Link href="/membership">{t("joinNow")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -108,7 +106,7 @@ export default function AccountMembershipPage() {
 
       <div className="flex flex-col gap-6">
         {/* Animated Tier Badge Card */}
-        <Card className="border-primary/20 overflow-hidden">
+        <Card className="cinect-glass border-primary/20 overflow-hidden border">
           <div className="from-primary/10 via-primary/5 relative bg-gradient-to-br to-transparent p-8">
             <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
               {/* Animated Badge */}
@@ -165,7 +163,7 @@ export default function AccountMembershipPage() {
 
         {/* Stats Grid */}
         <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
+          <Card className="cinect-glass border">
             <CardContent className="flex items-center gap-4 pt-6">
               <div className="bg-primary/10 rounded-full p-3">
                 <TrendingUp className="text-primary h-5 w-5" />
@@ -176,10 +174,10 @@ export default function AccountMembershipPage() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="cinect-glass border">
             <CardContent className="flex items-center gap-4 pt-6">
-              <div className="rounded-full bg-green-500/10 p-3">
-                <Ticket className="h-5 w-5 text-green-600" />
+              <div className="bg-primary/10 rounded-full p-3">
+                <Ticket className="text-primary h-5 w-5" />
               </div>
               <div>
                 <div className="text-2xl font-bold">{coupons.length}</div>
@@ -187,10 +185,10 @@ export default function AccountMembershipPage() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="cinect-glass border">
             <CardContent className="flex items-center gap-4 pt-6">
-              <div className="rounded-full bg-purple-500/10 p-3">
-                <Star className="h-5 w-5 text-purple-600" />
+              <div className="bg-primary/10 rounded-full p-3">
+                <Star className="text-primary h-5 w-5" />
               </div>
               <div>
                 <div className="text-2xl font-bold">{profile.currentPoints.toLocaleString()}</div>
@@ -201,10 +199,10 @@ export default function AccountMembershipPage() {
         </div>
 
         {/* Birthday Gift Section */}
-        <Card className="border-pink-200 bg-gradient-to-r from-pink-50/50 to-transparent dark:border-pink-900 dark:from-pink-950/20">
+        <Card className="cinect-glass border-primary/20 from-primary/10 via-primary/5 border bg-gradient-to-r to-transparent">
           <CardContent className="flex items-center gap-4 p-6">
-            <div className="rounded-full bg-pink-100 p-3 dark:bg-pink-900/30">
-              <Cake className="h-6 w-6 text-pink-600" />
+            <div className="bg-primary/10 rounded-full p-3">
+              <Cake className="text-primary h-6 w-6" />
             </div>
             <div className="flex-1">
               <h3 className="font-semibold">{t("birthdayGift")}</h3>
@@ -213,12 +211,12 @@ export default function AccountMembershipPage() {
                 your date of birth is set in your profile.
               </p>
             </div>
-            <Gift className="h-8 w-8 text-pink-400" />
+            <Gift className="text-primary/70 h-8 w-8" />
           </CardContent>
         </Card>
 
         {/* Coupons with Countdown */}
-        <Card>
+        <Card className="cinect-glass border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Ticket className="h-5 w-5" />
@@ -301,7 +299,7 @@ export default function AccountMembershipPage() {
         </Card>
 
         {/* Points History */}
-        <Card>
+        <Card className="cinect-glass border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <TrendingUp className="h-5 w-5" />
@@ -323,7 +321,7 @@ export default function AccountMembershipPage() {
                       </div>
                     </div>
                     <div
-                      className={`font-bold ${item.points > 0 ? "text-green-600" : "text-red-600"}`}
+                      className={item.points > 0 ? "text-primary font-bold" : "text-destructive font-bold"}
                     >
                       {item.points > 0 ? "+" : ""}
                       {item.points.toLocaleString()}

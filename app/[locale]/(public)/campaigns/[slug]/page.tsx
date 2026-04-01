@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +11,7 @@ import { useCampaign } from "@/hooks/queries/use-campaigns";
 import { Link } from "@/i18n/navigation";
 import { Tag, Film, Calendar } from "lucide-react";
 import { format } from "date-fns";
+import Image from "next/image";
 
 function toObj<T>(v: unknown): T | null {
   if (!v) return null;
@@ -92,11 +92,17 @@ export default function CampaignPage() {
       {/* Hero Banner */}
       {(campaign.bannerUrl || campaign.imageUrl) && (
         <div className="mb-8 overflow-hidden rounded-lg">
-          <img
-            src={campaign.bannerUrl ?? campaign.imageUrl}
-            alt={campaign.title}
-            className="aspect-[21/9] w-full object-cover"
-          />
+          <div className="bg-muted relative aspect-[21/9] w-full">
+            <Image
+              src={campaign.bannerUrl ?? campaign.imageUrl ?? ""}
+              alt={campaign.title}
+              fill
+              sizes="100vw"
+              className="object-cover"
+              priority
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+          </div>
         </div>
       )}
 
@@ -136,11 +142,15 @@ export default function CampaignPage() {
                   <div className="hover:border-primary/50 overflow-hidden rounded-lg border transition">
                     <div className="bg-muted aspect-[2/3]">
                       {movie.posterUrl ? (
-                        <img
-                          src={movie.posterUrl}
-                          alt={movie.title}
-                          className="h-full w-full object-cover"
-                        />
+                        <div className="relative h-full w-full">
+                          <Image
+                            src={movie.posterUrl}
+                            alt={movie.title}
+                            fill
+                            sizes="(max-width: 768px) 50vw, 25vw"
+                            className="object-cover"
+                          />
+                        </div>
                       ) : (
                         <div className="flex h-full items-center justify-center">
                           <Film className="text-muted-foreground h-8 w-8" />

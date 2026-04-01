@@ -1,6 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,6 @@ import { Gift, ShoppingCart } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 
 export default function GiftPage() {
-  const t = useTranslations("gift");
   const { data: giftCardsRes, isLoading, error, refetch } = useGiftCards();
   const giftCards = (giftCardsRes?.data ?? []) as import("@/types/domain").GiftCard[];
 

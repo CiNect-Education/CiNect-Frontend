@@ -44,7 +44,7 @@ export default function MovieDetailPage() {
   const params = useParams();
   const t = useTranslations("movies");
   const movieId = params.id as string;
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   // ─── Data fetching ────────────────────────────────────────────
   const { data: movieRes, isLoading, error, refetch } = useMovie(movieId);
@@ -260,7 +260,7 @@ export default function MovieDetailPage() {
                     </Button>
                   )}
                   <Button size="lg" variant="outline" asChild>
-                    <Link href={`/showtimes?movie=${movie.id}` as any}>
+                    <Link href={`/showtimes?movie=${movie.id}`}>
                       <Ticket className="mr-2 h-5 w-5" />
                       {t("showtimes")}
                     </Link>
@@ -362,10 +362,12 @@ export default function MovieDetailPage() {
                         <div className="hover:border-primary/60 group overflow-hidden rounded-lg border transition">
                           <div className="bg-muted relative aspect-[2/3]">
                             {rm.posterUrl ? (
-                              <img
+                              <Image
                                 src={rm.posterUrl}
                                 alt={rm.title}
-                                className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                                fill
+                                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+                                className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
                               />
                             ) : (
                               <div className="flex h-full items-center justify-center">
@@ -422,67 +424,88 @@ export default function MovieDetailPage() {
 
           {/* Showtimes Tab */}
           <TabsContent value="showtimes" className="space-y-4">
-            {/* City filter */}
-            {cinemaItems.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-muted-foreground text-sm">City:</span>
-                <Select value={selectedCity} onValueChange={setSelectedCity}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="All cities" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__ALL__">All cities</SelectItem>
-                    {Array.from(
-                      new Set(
-                        showtimes
-                          .map((st) => {
-                            const cinema = cinemaItems.find((c) => c.id === st.cinemaId);
-                            return cinema?.city;
-                          })
-                          .filter(Boolean)
-                      )
-                    )
-                      .sort()
-                      .map((city) => (
-                        <SelectItem key={city as string} value={city as string}>
-                          {city as string}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            {/* Filters */}
+            <Card className="cinect-glass border">
+              <CardContent className="p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  {cinemaItems.length > 0 ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-muted-foreground text-sm">City</span>
+                      <Select value={selectedCity} onValueChange={setSelectedCity}>
+                        <SelectTrigger className="w-[220px]">
+                          <SelectValue placeholder="All cities" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__ALL__">All cities</SelectItem>
+                          {Array.from(
+                            new Set(
+                              showtimes
+                                .map((st) => {
+                                  const cinema = cinemaItems.find((c) => c.id === st.cinemaId);
+                                  return cinema?.city;
+                                })
+                                .filter(Boolean)
+                            )
+                          )
+                            .sort()
+                            .map((city) => (
+                              <SelectItem key={city as string} value={city as string}>
+                                {city as string}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <div className="text-muted-foreground text-sm">Browse showtimes for this movie</div>
+                  )}
 
-            {/* Date strip */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2">
-              {dates.map((d, index) => (
-                <Button
-                  key={d.value}
-                  variant={selectedDate === d.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedDate(d.value)}
-                  className="shrink-0"
-                >
-                  {index === 0 ? "Today" : index === 1 ? "Tomorrow" : d.label}
-                </Button>
-              ))}
-            </div>
+                  <div className="text-muted-foreground text-sm">
+                    {Object.keys(showtimesByCinema).length} cinema{Object.keys(showtimesByCinema).length !== 1 ? "s" : ""}
+                  </div>
+                </div>
+
+                <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
+                  {dates.map((d, index) => (
+                    <Button
+                      key={d.value}
+                      variant={selectedDate === d.value ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedDate(d.value)}
+                      className="shrink-0"
+                    >
+                      {index === 0 ? "Today" : index === 1 ? "Tomorrow" : d.label}
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Showtimes grouped by cinema */}
             {Object.keys(showtimesByCinema).length > 0 ? (
               <div className="space-y-4">
                 {Object.entries(showtimesByCinema).map(([cinemaName, sts]) => (
-                  <Card key={cinemaName}>
-                    <CardContent className="p-6">
-                      <div className="mb-3 flex items-center gap-2">
-                        <MapPin className="text-muted-foreground h-4 w-4" />
-                        <h3 className="font-semibold">{cinemaName}</h3>
+                  <Card key={cinemaName} className="overflow-hidden">
+                    <CardContent className="p-0">
+                      <div className="bg-muted/20 flex items-center justify-between gap-4 border-b px-5 py-4">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="text-primary h-5 w-5" />
+                          <div>
+                            <div className="text-base font-semibold">{cinemaName}</div>
+                            <div className="text-muted-foreground text-xs">
+                              {sts.length} showtime{sts.length !== 1 ? "s" : ""}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex flex-wrap gap-2">
+
+                      <div className="flex flex-wrap gap-2 px-5 py-4">
                         {sts.map((st) => (
                           <Button key={st.id} variant="outline" size="sm" asChild>
-                            <Link href={`/booking/${st.id}` as any} className="flex items-center gap-1">
-                              <span>{format(new Date(st.startTime), "HH:mm")}</span>
+                            <Link href={`/booking/${st.id}`} className="flex items-center gap-1">
+                              <span className="font-semibold tabular-nums">
+                                {format(new Date(st.startTime), "HH:mm")}
+                              </span>
                               {st.format && st.format !== "2D" && (
                                 <Badge variant="secondary" className="ml-1 text-[10px]">
                                   {st.format}
@@ -491,7 +514,7 @@ export default function MovieDetailPage() {
                               {st.memberExclusive && (
                                 <Badge
                                   variant="outline"
-                                  className="ml-1 border-amber-400 text-[10px] text-amber-600"
+                                  className="ml-1 text-primary border-primary/30 text-[10px]"
                                 >
                                   Member
                                 </Badge>
@@ -505,7 +528,7 @@ export default function MovieDetailPage() {
                 ))}
               </div>
             ) : (
-              <Card>
+              <Card className="cinect-glass border">
                 <CardContent className="py-12 text-center">
                   <Ticket className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
                   <p className="text-muted-foreground">No showtimes available for this date</p>
@@ -518,7 +541,7 @@ export default function MovieDetailPage() {
           <TabsContent value="reviews" className="space-y-4">
             {/* Write Review */}
             {isAuthenticated ? (
-              <Card>
+              <Card className="cinect-glass border">
                 <CardContent className="p-6">
                   <h3 className="mb-3 flex items-center gap-2 font-semibold">
                     <MessageSquare className="h-5 w-5" />
@@ -560,7 +583,7 @@ export default function MovieDetailPage() {
                 </CardContent>
               </Card>
             ) : (
-              <Card>
+              <Card className="cinect-glass border">
                 <CardContent className="p-6 text-center">
                   <p className="text-muted-foreground mb-2">Login to write a review</p>
                   <Button asChild>
@@ -606,7 +629,7 @@ export default function MovieDetailPage() {
                 {sortedReviews.map((review) => {
                   const liked = likedReviews[review.id];
                   return (
-                    <Card key={review.id}>
+                    <Card key={review.id} className="cinect-glass border">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-center gap-3">
@@ -672,7 +695,7 @@ export default function MovieDetailPage() {
                 </div>
               </div>
             ) : (
-              <Card>
+              <Card className="cinect-glass border">
                 <CardContent className="py-12 text-center">
                   <ThumbsUp className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
                   <p className="text-muted-foreground">No reviews yet. Be the first to review!</p>

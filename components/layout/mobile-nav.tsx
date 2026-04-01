@@ -129,8 +129,9 @@ export function MobileNav() {
           <ul className="space-y-0.5">
             {MAIN_NAV.map((item) => {
               const Icon = item.icon;
+              const href = item.href as string;
               const isActive =
-                path === item.href || (item.href !== "/" && path.startsWith(item.href));
+                path === href || (href !== "/" && path.startsWith(href));
               return (
                 <li key={item.key}>
                   <Link

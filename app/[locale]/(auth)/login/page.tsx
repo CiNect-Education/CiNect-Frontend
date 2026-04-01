@@ -59,7 +59,7 @@ export default function LoginPage() {
     try {
       await login(data);
       router.push(returnTo);
-    } catch (error) {
+    } catch {
       // Error toast already shown in AuthProvider
     } finally {
       setIsLoading(false);

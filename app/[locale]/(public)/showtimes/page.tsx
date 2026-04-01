@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -14,14 +14,34 @@ import { useShowtimes } from "@/hooks/queries/use-cinemas";
 import { useCinemas } from "@/hooks/queries/use-cinemas";
 import { Calendar, MapPin, Clock, Film, Ticket } from "lucide-react";
 import type { Showtime } from "@/types/domain";
+import Image from "next/image";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
-const CITY_STORAGE_KEY = "cinect_selected_city";
+// Keep consistent with Header/SettingsPanel storage.
+const CITY_STORAGE_KEY = "selected_city";
 const FORMATS = ["2D", "3D", "IMAX", "4DX", "DOLBY"] as const;
 const TIME_RANGES = [
   { value: "morning", label: "Morning", start: 6, end: 12 },
   { value: "afternoon", label: "Afternoon", start: 12, end: 18 },
   { value: "evening", label: "Evening", start: 18, end: 24 },
 ] as const;
+
+const CITY_OPTIONS = [
+  { id: "hcm", label: "Ho Chi Minh" },
+  { id: "hn", label: "Hanoi" },
+  { id: "dn", label: "Da Nang" },
+  { id: "ct", label: "Can Tho" },
+] as const;
+
+const ALL = "__ALL__";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -39,6 +59,7 @@ export default function ShowtimesPage() {
   const cityFromParams = searchParams.get("city") || "";
   const dateFromParams = searchParams.get("date") || "";
   const cinemaId = searchParams.get("cinema") || "";
+  const movieId = searchParams.get("movie") || "";
   const format = searchParams.get("format") || "";
   const timeRange = searchParams.get("timeRange") || "";
   const language = searchParams.get("language") || "";
@@ -78,7 +99,8 @@ export default function ShowtimesPage() {
       localStorage.setItem(CITY_STORAGE_KEY, c);
     }
     const p = new URLSearchParams(searchParams.toString());
-    p.set("city", c);
+    if (c) p.set("city", c);
+    else p.delete("city");
     router.push(`?${p.toString()}`);
   }
 
@@ -95,7 +117,14 @@ export default function ShowtimesPage() {
     router.push(`?${p.toString()}`);
   }
 
+  const cityLabel = useMemo(() => {
+    if (!city) return "";
+    const match = CITY_OPTIONS.find((c) => c.id === city);
+    return match?.label ?? city;
+  }, [city]);
+
   const filteredShowtimes = showtimes.filter((st) => {
+    if (movieId && st.movieId !== movieId) return false;
     if (!timeRange) return true;
     const tr = TIME_RANGES.find((r) => r.value === timeRange);
     if (!tr) return true;
@@ -119,42 +148,60 @@ export default function ShowtimesPage() {
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Showtimes" }]}
       />
 
-      {/* City Tabs */}
-      <div className="mb-6">
-        <p className="text-muted-foreground mb-2 text-sm font-medium">City</p>
-        <div className="flex flex-wrap gap-2">
-          {["Ho Chi Minh", "Hanoi", "Da Nang", "Can Tho"].map((c) => (
-            <Button
-              key={c}
-              variant={city === c ? "default" : "outline"}
-              size="sm"
-              onClick={() => setCity(c)}
-            >
-              <MapPin className="mr-1.5 h-4 w-4" />
-              {c}
-            </Button>
-          ))}
-          {cinemas.length > 0 && (
-            <select
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              className="rounded-md border px-3 py-2 text-sm"
-            >
-              <option value="">Select city...</option>
-              {[...new Set(cinemas.map((c) => c.city))].map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          )}
+      {/* Sticky filter bar */}
+      <div className="cinect-glass sticky top-0 z-10 mb-6 rounded-xl border p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            {CITY_OPTIONS.map((c) => (
+              <Button
+                key={c.id}
+                variant={city === c.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCity(c.id)}
+                className="gap-1.5"
+              >
+                <MapPin className="h-4 w-4" />
+                {c.label}
+              </Button>
+            ))}
+
+            <Select value={city || ALL} onValueChange={(v) => setCity(v === ALL ? "" : v)}>
+              <SelectTrigger className="h-9 w-[220px]">
+                <SelectValue placeholder="All cities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>All cities</SelectItem>
+                {CITY_OPTIONS.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="text-muted-foreground text-sm">
+            {cityLabel ? `Showing cinemas in ${cityLabel}` : "Browse showtimes across cities"}
+          </div>
         </div>
-      </div>
+
+        {movieId && (
+          <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border bg-muted/20 px-3 py-2">
+            <div className="text-muted-foreground text-sm">
+              Filtering by selected movie.
+            </div>
+            <Button size="sm" variant="outline" onClick={() => setFilter("movie", "")}>
+              Clear movie filter
+            </Button>
+          </div>
+        )}
+
+        <Separator className="my-4" />
 
       {/* Date Strip */}
-      <div className="mb-6">
-        <p className="text-muted-foreground mb-2 text-sm font-medium">Date</p>
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div>
+          <p className="text-muted-foreground mb-2 text-sm font-medium">Date</p>
+          <div className="flex gap-2 overflow-x-auto pb-2">
           {next7Days.map((d) => {
             const dateStr = d.toISOString().split("T")[0];
             const isToday =
@@ -182,54 +229,59 @@ export default function ShowtimesPage() {
               </Button>
             );
           })}
+          </div>
         </div>
-      </div>
 
       {/* Filters */}
-      <div className="mb-6 flex flex-wrap gap-3">
-        <select
-          value={cinemaId}
-          onChange={(e) => setFilter("cinema", e.target.value)}
-          className="rounded-md border px-3 py-2 text-sm"
-        >
-          <option value="">All Cinemas</option>
-          {cinemas.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <select
-          value={format}
-          onChange={(e) => setFilter("format", e.target.value)}
-          className="rounded-md border px-3 py-2 text-sm"
-        >
-          <option value="">All Formats</option>
-          {FORMATS.map((f) => (
-            <option key={f} value={f}>
-              {f}
-            </option>
-          ))}
-        </select>
-        <select
-          value={timeRange}
-          onChange={(e) => setFilter("timeRange", e.target.value)}
-          className="rounded-md border px-3 py-2 text-sm"
-        >
-          <option value="">All Day</option>
-          {TIME_RANGES.map((r) => (
-            <option key={r.value} value={r.value}>
-              {r.label}
-            </option>
-          ))}
-        </select>
-        <input
-          type="text"
-          placeholder="Language"
-          value={language}
-          onChange={(e) => setFilter("language", e.target.value)}
-          className="rounded-md border px-3 py-2 text-sm"
-        />
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+          <Select value={cinemaId || ALL} onValueChange={(v) => setFilter("cinema", v === ALL ? "" : v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="All cinemas" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>All cinemas</SelectItem>
+              {cinemas.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={format || ALL} onValueChange={(v) => setFilter("format", v === ALL ? "" : v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="All formats" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>All formats</SelectItem>
+              {FORMATS.map((f) => (
+                <SelectItem key={f} value={f}>
+                  {f}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={timeRange || ALL} onValueChange={(v) => setFilter("timeRange", v === ALL ? "" : v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="All day" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>All day</SelectItem>
+              {TIME_RANGES.map((r) => (
+                <SelectItem key={r.value} value={r.value}>
+                  {r.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Input
+            placeholder="Language (e.g. Vietnamese)"
+            value={language}
+            onChange={(e) => setFilter("language", e.target.value)}
+          />
+        </div>
       </div>
 
       {/* Showtime List */}
@@ -254,74 +306,91 @@ export default function ShowtimesPage() {
       ) : (
         <div className="space-y-8">
           {Object.entries(groupedByCinema).map(([cinemaName, sts]) => (
-            <Card key={cinemaName}>
-              <CardContent className="p-4">
-                <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-                  <MapPin className="text-primary h-5 w-5" />
-                  {cinemaName}
-                </h3>
-                <div className="space-y-4">
-                  {sts.map((st) => (
-                    <div
-                      key={st.id}
-                      className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center"
-                    >
-                      <div className="flex shrink-0 items-center gap-4">
-                        <div className="bg-muted relative h-20 w-14 overflow-hidden rounded">
-                          {st.moviePosterUrl ? (
-                            <img
-                              src={st.moviePosterUrl}
-                              alt={st.movieTitle || "Movie"}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center">
-                              <Film className="text-muted-foreground h-6 w-6" />
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="font-semibold">{st.movieTitle || "Movie"}</h4>
-                          <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
-                            <Badge variant="outline">{st.format}</Badge>
-                            {st.memberExclusive && (
-                              <Badge
-                                variant="secondary"
-                                className="bg-primary/10 text-primary border-primary/20"
-                              >
-                                Member Exclusive
-                              </Badge>
-                            )}
-                            {st.language && <span>{st.language}</span>}
-                            {st.roomName && <span>• {st.roomName}</span>}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex flex-1 flex-wrap items-center gap-2">
-                        <span className="flex items-center gap-1 text-sm">
-                          <Clock className="h-4 w-4" />
-                          {new Date(st.startTime).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                        {st.basePrice > 0 && (
-                          <span className="text-sm font-medium">
-                            {new Intl.NumberFormat("vi-VN", {
-                              style: "currency",
-                              currency: "VND",
-                            }).format(st.basePrice)}
-                          </span>
-                        )}
-                        <Button size="sm" asChild className="ml-auto">
-                          <Link href={`/booking/${st.id}`}>
-                            <Ticket className="mr-1.5 h-4 w-4" />
-                            Book
-                          </Link>
-                        </Button>
+            <Card key={cinemaName} className="overflow-hidden">
+              <CardContent className="p-0">
+                <div className="bg-muted/20 flex items-center justify-between gap-4 border-b px-5 py-4">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="text-primary h-5 w-5" />
+                    <div>
+                      <div className="text-base font-semibold">{cinemaName}</div>
+                      <div className="text-muted-foreground text-xs">
+                        {sts.length} showtime{sts.length !== 1 ? "s" : ""}
                       </div>
                     </div>
-                  ))}
+                  </div>
+                </div>
+
+                <div className="divide-y">
+                  {sts.map((st) => {
+                    const timeLabel = new Date(st.startTime).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    });
+
+                    return (
+                      <div
+                        key={st.id}
+                        className="group flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center"
+                      >
+                        <div className="flex min-w-0 flex-1 items-center gap-4">
+                          <div className="bg-muted relative h-20 w-14 shrink-0 overflow-hidden rounded-md">
+                            {st.moviePosterUrl ? (
+                              <Image
+                                src={st.moviePosterUrl}
+                                alt={st.movieTitle || "Movie"}
+                                fill
+                                sizes="56px"
+                                className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center">
+                                <Film className="text-muted-foreground h-6 w-6" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-semibold sm:text-base">
+                              {st.movieTitle || "Movie"}
+                            </div>
+                            <div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+                              {st.format && <Badge variant="outline">{st.format}</Badge>}
+                              {st.memberExclusive && (
+                                <Badge className="bg-primary/10 text-primary border-primary/20">
+                                  Member Exclusive
+                                </Badge>
+                              )}
+                              {st.language && <span>{st.language}</span>}
+                              {st.roomName && <span>• {st.roomName}</span>}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+                          <Badge variant="secondary" className="bg-secondary/60">
+                            <Clock className="mr-1.5 h-3.5 w-3.5" />
+                            {timeLabel}
+                          </Badge>
+
+                          {st.basePrice > 0 && (
+                            <div className="text-sm font-semibold tabular-nums">
+                              {new Intl.NumberFormat("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                              }).format(st.basePrice)}
+                            </div>
+                          )}
+
+                          <Button asChild className="ml-auto sm:ml-0">
+                            <Link href={`/booking/${st.id}`}>
+                              <Ticket className="mr-2 h-4 w-4" />
+                              Select seats
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>

@@ -1,6 +1,6 @@
 import { useApiQuery } from "@/hooks/use-api-query";
 import { useApiMutation } from "@/hooks/use-api-mutation";
-import { membershipTierSchema, membershipProfileSchema } from "@/lib/schemas/common";
+import { membershipProfileSchema } from "@/lib/schemas/common";
 import { couponSchema } from "@/lib/schemas/common";
 import type { MembershipTier, MembershipProfile, Coupon } from "@/types/domain";
 import type { QueryParams } from "@/types/api";

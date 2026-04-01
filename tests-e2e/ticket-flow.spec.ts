@@ -29,8 +29,18 @@ test("payment callback redirects to ticket page", async ({ page }) => {
 
   // Booking → hold → checkout
   await page.goto(`/en/booking/${seeded}`);
-  await expect(page.getByText(/Select Your Seats/i)).toBeVisible();
-  await page.locator('button[aria-label^="Seat "][aria-label*="AVAILABLE"]:not([disabled])').first().click();
+
+  const errorBoundary = page.getByRole("heading", { name: /Something went wrong/i });
+  if (await errorBoundary.isVisible().catch(() => false)) {
+    throw new Error(
+      `Error boundary shown.\n\nFailed responses:\n${failedResponses.join(
+        "\n"
+      )}\n\nConsole errors:\n${consoleErrors.join("\n")}`
+    );
+  }
+
+  await expect(page.getByRole("button", { name: /Zoom in/i })).toBeVisible({ timeout: 20_000 });
+  await page.getByRole("button", { name: /Choose Best Seats/i }).click();
   await page.getByRole("button", { name: /^Continue$/ }).click();
   await page.getByRole("button", { name: /Proceed/i }).waitFor({ state: "visible", timeout: 20_000 });
   await page.getByRole("button", { name: /Proceed/i }).click();
@@ -43,7 +53,6 @@ test("payment callback redirects to ticket page", async ({ page }) => {
 
   // Should land on payment callback first, then auto-redirect to tickets.
   await expect(page).toHaveURL(/\/en\/payment\/callback/);
-  const errorBoundary = page.getByRole("heading", { name: /Something went wrong/i });
   try {
     await expect(page).toHaveURL(/\/en\/tickets\//, { timeout: 20_000 });
   } catch {

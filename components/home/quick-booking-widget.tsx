@@ -17,6 +17,17 @@ import { Calendar, MapPin, Film, Clock } from "lucide-react";
 import { useMovies } from "@/hooks/queries/use-movies";
 import { useCinemas } from "@/hooks/queries/use-cinemas";
 
+function toList<T>(v: unknown): T[] {
+  if (!v) return [];
+  if (Array.isArray(v)) return v as T[];
+  if (v && typeof v === "object") {
+    const d = v as { data?: unknown; items?: unknown };
+    const arr = d.data ?? d.items;
+    if (Array.isArray(arr)) return arr as T[];
+  }
+  return [];
+}
+
 export function QuickBookingWidget() {
   const t = useTranslations("home");
   const router = useRouter();
@@ -27,8 +38,8 @@ export function QuickBookingWidget() {
   const { data: moviesData } = useMovies({ status: "NOW_SHOWING", limit: 20 });
   const { data: cinemasData } = useCinemas({ limit: 50 });
 
-  const movies: Array<{ id: string; title: string }> = (moviesData?.data ?? []) as any;
-  const cinemas: Array<{ id: string; name: string }> = (cinemasData?.data ?? []) as any;
+  const movies = toList<{ id: string; title: string }>(moviesData?.data ?? moviesData);
+  const cinemas = toList<{ id: string; name: string }>(cinemasData?.data ?? cinemasData);
 
   const today = new Date();
   const next7Days = Array.from({ length: 7 }, (_, i) => {

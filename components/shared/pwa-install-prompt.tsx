@@ -40,7 +40,9 @@ export function PwaInstallPrompt() {
 
   function handleDismiss() {
     setDismissed(true);
-    typeof window !== "undefined" && localStorage.setItem(DISMISS_KEY, "true");
+    if (typeof window !== "undefined") {
+      localStorage.setItem(DISMISS_KEY, "true");
+    }
   }
 
   if (dismissed || !deferredPrompt) return null;

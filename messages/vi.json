@@ -308,6 +308,8 @@
     "profileDesc": "Quản lý thông tin cá nhân của bạn",
     "orders": "Đơn Hàng",
     "ordersDesc": "Xem lịch sử đặt vé và đơn hàng",
+    "tickets": "Vé của tôi",
+    "ticketsDesc": "Xem vé sắp chiếu và vé đã xem",
     "membership": "Thành Viên",
     "membershipDesc": "Xem trạng thái thành viên và quyền lợi",
     "notifications": "Thông Báo",
@@ -320,7 +322,9 @@
     "orderDetail": "Chi Tiết Đơn Hàng",
     "emptyOrders": "Bạn chưa có đơn hàng nào.",
     "emptyNotifications": "Không có thông báo mới.",
-    "emptyGifts": "Bạn chưa có quà tặng nào."
+    "emptyGifts": "Bạn chưa có quà tặng nào.",
+    "notificationMovieFallback": "Phim",
+    "notificationCinemaFallback": "Rạp"
   },
   "admin": {
     "title": "Quản Trị",

@@ -4,7 +4,6 @@ import {
   movieSchema,
   movieListItemSchema,
   reviewSchema,
-  createReviewSchema,
 } from "@/lib/schemas/movie";
 import type { Movie, MovieListItem, Review } from "@/types/domain";
 import type { QueryParams } from "@/types/api";
@@ -15,7 +14,7 @@ import { z } from "zod";
 
 export function useMovies(params?: QueryParams) {
   return useApiQuery<MovieListItem[]>(["movies", JSON.stringify(params)], "/movies", params, {
-    schema: z.array(movieListItemSchema),
+    schema: z.array(movieListItemSchema) as unknown as z.ZodType<MovieListItem[]>,
   });
 }
 
@@ -24,7 +23,7 @@ export function useNowShowingMovies(limit = 12) {
     ["movies", "now-showing", String(limit)],
     "/movies",
     { nowShowing: true, limit },
-    { schema: z.array(movieListItemSchema) }
+    { schema: z.array(movieListItemSchema) as unknown as z.ZodType<MovieListItem[]> }
   );
 }
 
@@ -33,7 +32,7 @@ export function useComingSoonMovies(limit = 12) {
     ["movies", "coming-soon", String(limit)],
     "/movies",
     { comingSoon: true, limit },
-    { schema: z.array(movieListItemSchema) }
+    { schema: z.array(movieListItemSchema) as unknown as z.ZodType<MovieListItem[]> }
   );
 }
 
@@ -41,7 +40,7 @@ export function useComingSoonMovies(limit = 12) {
 
 export function useMovie(id: string) {
   return useApiQuery<Movie>(["movie", id], `/movies/${id}`, undefined, {
-    schema: movieSchema,
+    schema: movieSchema as unknown as z.ZodType<Movie>,
     enabled: !!id,
   });
 }
@@ -54,7 +53,7 @@ export function useMovieReviews(movieId: string, params?: QueryParams) {
     `/movies/${movieId}/reviews`,
     params,
     {
-      schema: z.array(reviewSchema),
+      schema: z.array(reviewSchema) as unknown as z.ZodType<Review[]>,
       enabled: !!movieId,
     }
   );

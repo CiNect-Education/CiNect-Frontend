@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   LineChart,
@@ -16,7 +17,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Users, Ticket, Film, DollarSign, Building2, TrendingUp } from "lucide-react";
+import { Ticket, Film, DollarSign, Building2, TrendingUp } from "lucide-react";
 import {
   useAdminKPIs,
   useAdminRevenue,
@@ -78,15 +79,12 @@ export default function AdminDashboardPage() {
       {/* KPI Cards */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {stats.map((stat) => (
-          <Card key={stat.label}>
+          <Card key={stat.label} className="cinect-glass border">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-muted-foreground text-sm">{stat.label}</p>
                   <p className="mt-1 text-2xl font-bold">{stat.value}</p>
-                  {"sublabel" in stat && (stat as any).sublabel && (
-                    <p className="text-muted-foreground text-xs">{(stat as any).sublabel}</p>
-                  )}
                 </div>
                 <div className="bg-primary/10 rounded-full p-2.5">
                   <stat.icon className="text-primary h-5 w-5" />
@@ -99,7 +97,7 @@ export default function AdminDashboardPage() {
 
       {/* Charts & Recent Bookings */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card className="cinect-glass border">
           <CardHeader>
             <CardTitle className="text-lg">Revenue</CardTitle>
           </CardHeader>
@@ -111,8 +109,8 @@ export default function AdminDashboardPage() {
                 No revenue data
               </div>
             ) : (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-64 w-full min-w-0">
+                <ResponsiveContainer width="100%" height={256} debounce={32}>
                   <LineChart data={revenueData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" tickFormatter={(v) => format(new Date(v), "MM/dd")} />
@@ -135,7 +133,7 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="cinect-glass border">
           <CardHeader>
             <CardTitle className="text-lg">Occupancy</CardTitle>
           </CardHeader>
@@ -147,8 +145,8 @@ export default function AdminDashboardPage() {
                 No occupancy data
               </div>
             ) : (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-64 w-full min-w-0">
+                <ResponsiveContainer width="100%" height={256} debounce={32}>
                   <BarChart data={occupancyData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" tickFormatter={(v) => format(new Date(v), "MM/dd")} />
@@ -165,7 +163,7 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
+        <Card className="cinect-glass border lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-lg">Recent Bookings</CardTitle>
           </CardHeader>
@@ -202,17 +200,14 @@ export default function AdminDashboardPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-mono font-medium">{b.finalAmount.toLocaleString()} ₫</p>
-                      <span
-                        className={`inline-block rounded px-2 py-0.5 text-xs ${
-                          b.status === "CONFIRMED"
-                            ? "bg-green-500/20 text-green-700 dark:text-green-400"
-                            : b.status === "CANCELLED"
-                              ? "bg-red-500/20 text-red-700 dark:text-red-400"
-                              : "bg-muted text-muted-foreground"
-                        }`}
+                      <Badge
+                        variant={
+                          b.status === "CANCELLED" ? "destructive" : b.status === "CONFIRMED" ? "default" : "outline"
+                        }
+                        className="mt-1"
                       >
                         {b.status}
-                      </span>
+                      </Badge>
                     </div>
                   </div>
                 ))}

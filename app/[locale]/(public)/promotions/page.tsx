@@ -16,6 +16,7 @@ import { apiClient } from "@/lib/api-client";
 import { Tag, Copy, Check, ChevronLeft, ChevronRight, TicketPercent } from "lucide-react";
 import type { Promotion } from "@/types/domain";
 import { toast } from "sonner";
+import Image from "next/image";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -44,7 +45,8 @@ export default function PromotionsPage() {
   const meta = data?.meta as { page?: number; totalPages?: number; total?: number } | undefined;
   const totalPages = meta?.totalPages ?? 1;
   const currentPage = meta?.page ?? page;
-  const total = meta?.total ?? promotions.length;
+
+  const isSvgLikeRemote = (url: string) => url.includes("placehold.co");
 
   function goToPage(p: number) {
     const params = new URLSearchParams(searchParams.toString());
@@ -130,11 +132,16 @@ export default function PromotionsPage() {
             >
               <div className="bg-muted flex gap-4 p-4">
                 {voucherLookup.imageUrl && (
-                  <img
-                    src={voucherLookup.imageUrl}
-                    alt={voucherLookup.title}
-                    className="h-20 w-28 rounded object-cover"
-                  />
+                  <div className="bg-muted relative h-20 w-28 shrink-0 overflow-hidden rounded">
+                    <Image
+                      src={voucherLookup.imageUrl}
+                      alt={voucherLookup.title}
+                      fill
+                      sizes="112px"
+                      className="object-cover"
+                      unoptimized={isSvgLikeRemote(voucherLookup.imageUrl)}
+                    />
+                  </div>
                 )}
                 <div className="min-w-0 flex-1">
                   <h3 className="font-semibold">{voucherLookup.title}</h3>
@@ -191,11 +198,17 @@ export default function PromotionsPage() {
               >
                 <div className="bg-muted aspect-video overflow-hidden">
                   {promo.imageUrl ? (
-                    <img
-                      src={promo.imageUrl}
-                      alt={promo.title}
-                      className="h-full w-full object-cover"
-                    />
+                    <div className="relative h-full w-full">
+                      <Image
+                        src={promo.imageUrl}
+                        alt={promo.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover"
+                        unoptimized={isSvgLikeRemote(promo.imageUrl)}
+                      />
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+                    </div>
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
                       <Tag className="text-muted-foreground h-16 w-16" />
@@ -262,11 +275,17 @@ export default function PromotionsPage() {
               <div className="space-y-4">
                 {selectedPromo.imageUrl && (
                   <div className="bg-muted aspect-video overflow-hidden rounded-lg">
-                    <img
-                      src={selectedPromo.imageUrl}
-                      alt={selectedPromo.title}
-                      className="h-full w-full object-cover"
-                    />
+                    <div className="relative h-full w-full">
+                      <Image
+                        src={selectedPromo.imageUrl}
+                        alt={selectedPromo.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 512px"
+                        className="object-cover"
+                        unoptimized={isSvgLikeRemote(selectedPromo.imageUrl)}
+                      />
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+                    </div>
                   </div>
                 )}
                 <p className="text-muted-foreground text-sm">{selectedPromo.description}</p>
@@ -291,7 +310,7 @@ export default function PromotionsPage() {
                       onClick={() => copyCode(selectedPromo.code!)}
                     >
                       {copied ? (
-                        <Check className="h-4 w-4 text-green-600" />
+                        <Check className="text-primary h-4 w-4" />
                       ) : (
                         <Copy className="h-4 w-4" />
                       )}

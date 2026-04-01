@@ -59,7 +59,7 @@ export function OrderSummary({
   const appliedGiftCardCode = booking?.giftCardCode ?? giftCardCode;
 
   return (
-    <Card>
+    <Card className="cinect-glass border">
       <CardHeader>
         <CardTitle>Order Summary</CardTitle>
       </CardHeader>
@@ -114,7 +114,7 @@ export function OrderSummary({
         </div>
 
         {hasBooking && toNumber(booking.discountAmount) > 0 && (
-          <div className="space-y-1 text-sm text-green-600">
+          <div className="text-primary space-y-1 text-sm">
             <div className="flex justify-between">
               <span>Discount</span>
               <span>-${toNumber(booking.discountAmount).toFixed(2)}</span>
@@ -135,7 +135,7 @@ export function OrderSummary({
 
         <div className="flex justify-between">
           <span className="font-semibold">Total</span>
-          <span className="text-2xl font-bold">${total.toFixed(2)}</span>
+          <span className="text-2xl font-bold tabular-nums">${total.toFixed(2)}</span>
         </div>
       </CardContent>
     </Card>

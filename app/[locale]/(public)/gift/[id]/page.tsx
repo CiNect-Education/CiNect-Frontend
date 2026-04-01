@@ -14,12 +14,11 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { useGiftCard, usePurchaseGiftCard } from "@/hooks/queries/use-gifts";
-import { Gift, CreditCard, Mail, MessageSquare, ShoppingCart } from "lucide-react";
+import { Gift, Mail, ShoppingCart } from "lucide-react";
 
 export default function GiftDetailPage() {
   const params = useParams();
   const t = useTranslations("gift");
-  const tCommon = useTranslations("common");
   const giftId = params.id as string;
 
   const { data: giftRes, isLoading, error, refetch } = useGiftCard(giftId);

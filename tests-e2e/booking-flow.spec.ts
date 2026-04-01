@@ -29,17 +29,31 @@ test("booking hold → checkout navigation does not crash", async ({ page }) => 
   test.skip(!seeded, "E2E_SHOWTIME_ID not provided");
   await page.goto(`/en/booking/${seeded}`);
 
-  await expect(page.getByText(/Select Your Seats/i)).toBeVisible();
+  const errorBoundary = page.getByRole("heading", { name: /Something went wrong/i });
+  const zoomInBtn = page.getByRole("button", { name: /Zoom in/i });
+  await Promise.race([
+    zoomInBtn.waitFor({ state: "visible", timeout: 25_000 }).catch(() => {}),
+    errorBoundary.waitFor({ state: "visible", timeout: 25_000 }).catch(() => {}),
+  ]);
+  if (await errorBoundary.isVisible().catch(() => false)) {
+    throw new Error(
+      `Error boundary shown.\n\nFailed responses:\n${failedResponses.join(
+        "\n"
+      )}\n\nConsole errors:\n${consoleErrors.join("\n")}`
+    );
+  }
 
-  // Select the first available seat.
-  await page.locator('button[aria-label^="Seat "][aria-label*="AVAILABLE"]:not([disabled])').first().click();
+  // Seat map should render (UI copy may vary by movie title/locale).
+  await expect(zoomInBtn).toBeVisible({ timeout: 5_000 });
+
+  // Use "Choose Best Seats" to avoid flaky seat picking.
+  await page.getByRole("button", { name: /Choose Best Seats/i }).click();
   await expect(page.getByRole("button", { name: /^Continue$/ })).toBeEnabled();
 
   // Hold seats
   await page.getByRole("button", { name: /^Continue$/ }).click();
 
   const proceedBtn = page.getByRole("button", { name: /Proceed/i });
-  const errorBoundary = page.getByRole("heading", { name: /Something went wrong/i });
 
   try {
     await proceedBtn.waitFor({ state: "visible", timeout: 20_000 });

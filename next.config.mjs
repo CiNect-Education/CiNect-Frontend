@@ -1,4 +1,9 @@
 import createNextIntlPlugin from "next-intl/plugin";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
@@ -31,6 +36,7 @@ const nextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "placehold.co" },
+      { protocol: "https", hostname: "image.tmdb.org" },
       { protocol: "https", hostname: "*.supabase.co" },
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "i.ytimg.com" },
@@ -38,6 +44,9 @@ const nextConfig = {
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
+  },
+  turbopack: {
+    root: __dirname,
   },
 };
 

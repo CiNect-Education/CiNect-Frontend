@@ -28,14 +28,23 @@ test("checkout creates booking and navigates to payment callback", async ({ page
   const seeded = process.env.E2E_SHOWTIME_ID;
   test.skip(!seeded, "E2E_SHOWTIME_ID not provided");
   await page.goto(`/en/booking/${seeded}`);
-  await expect(page.getByText(/Select Your Seats/i)).toBeVisible();
 
-  // Select seat and hold
-  await page.locator('button[aria-label^="Seat "][aria-label*="AVAILABLE"]:not([disabled])').first().click();
+  const errorBoundary = page.getByRole("heading", { name: /Something went wrong/i });
+  if (await errorBoundary.isVisible().catch(() => false)) {
+    throw new Error(
+      `Error boundary shown.\n\nFailed responses:\n${failedResponses.join(
+        "\n"
+      )}\n\nConsole errors:\n${consoleErrors.join("\n")}`
+    );
+  }
+
+  await expect(page.getByRole("button", { name: /Zoom in/i })).toBeVisible({ timeout: 20_000 });
+
+  // Select seat and hold (auto-pick to reduce flakiness)
+  await page.getByRole("button", { name: /Choose Best Seats/i }).click();
   await page.getByRole("button", { name: /^Continue$/ }).click();
 
   const proceedBtn = page.getByRole("button", { name: /Proceed/i });
-  const errorBoundary = page.getByRole("heading", { name: /Something went wrong/i });
   try {
     await proceedBtn.waitFor({ state: "visible", timeout: 20_000 });
   } catch {

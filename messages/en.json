@@ -308,6 +308,8 @@
     "profileDesc": "Manage your personal information",
     "orders": "Orders",
     "ordersDesc": "View your booking history and order details",
+    "tickets": "Tickets",
+    "ticketsDesc": "View your upcoming and past movie tickets",
     "membership": "Membership",
     "membershipDesc": "View your membership status and benefits",
     "notifications": "Notifications",
@@ -320,7 +322,9 @@
     "orderDetail": "Order Detail",
     "emptyOrders": "You have no orders yet.",
     "emptyNotifications": "No new notifications.",
-    "emptyGifts": "You have no gifts yet."
+    "emptyGifts": "You have no gifts yet.",
+    "notificationMovieFallback": "Movie",
+    "notificationCinemaFallback": "Cinema"
   },
   "admin": {
     "title": "Admin",

@@ -8,13 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { useBooking } from "@/hooks/queries/use-booking-flow";
-import { Download, Printer, Calendar, MapPin, Clock, Users } from "lucide-react";
+import { Download, Calendar, MapPin, Clock, Users } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { format } from "date-fns";
 
 function safeDate(value: unknown): Date | null {
   if (typeof value === "string" || typeof value === "number" || value instanceof Date) {
-    const d = new Date(value as any);
+    const d = new Date(value);
     return Number.isFinite(d.getTime()) ? d : null;
   }
   return null;
@@ -64,18 +64,13 @@ export default function TicketPage() {
   const movieTitle = booking.movieTitle ?? "Movie";
   const cinemaName = booking.cinemaName ?? "";
   const roomName = booking.roomName ?? "";
+  const showtimeRaw = booking.showtime as unknown;
   const showtimeValue =
-    typeof booking.showtime === "string" || typeof booking.showtime === "number" || booking.showtime instanceof Date
-      ? booking.showtime
-      : booking.showtime && typeof booking.showtime === "object" && "startTime" in (booking.showtime as any)
-        ? (booking.showtime as { startTime?: unknown }).startTime
+    typeof showtimeRaw === "string" || typeof showtimeRaw === "number"
+      ? showtimeRaw
+      : showtimeRaw && typeof showtimeRaw === "object" && "startTime" in showtimeRaw
+        ? (showtimeRaw as { startTime?: unknown }).startTime
         : booking.createdAt;
-  const showtimeStr =
-    typeof showtimeValue === "string" || typeof showtimeValue === "number"
-      ? String(showtimeValue)
-      : showtimeValue instanceof Date
-        ? showtimeValue.toISOString()
-        : String(booking.createdAt);
   const formatType = booking.format ?? "2D";
   const showtimeDate = safeDate(showtimeValue);
 
@@ -91,7 +86,7 @@ export default function TicketPage() {
         </div>
       </div>
 
-      <Card className="print:shadow-none">
+      <Card className="cinect-glass print:shadow-none">
         <CardHeader className="space-y-4">
           <div className="flex items-start justify-between">
             <div className="space-y-2">
@@ -224,7 +219,7 @@ export default function TicketPage() {
               </div>
             )}
             {toNumber(booking.discountAmount) > 0 && (
-              <div className="flex justify-between text-sm text-green-600">
+              <div className="text-primary flex justify-between text-sm">
                 <span>Discount</span>
                 <span>-${toNumber(booking.discountAmount).toFixed(2)}</span>
               </div>

@@ -59,7 +59,7 @@ export default function AccountGiftsPage() {
       />
 
       {!gifts || gifts.length === 0 ? (
-        <Card>
+        <Card className="cinect-glass border">
           <CardContent className="py-12">
             <EmptyState
               icon={Gift}
@@ -77,7 +77,10 @@ export default function AccountGiftsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {gifts.map((gift) => (
-            <Card key={gift.id} className="relative overflow-hidden">
+            <Card
+              key={gift.id}
+              className="cinect-glass relative overflow-hidden border transition-all hover:shadow-lg"
+            >
               <div className="bg-primary/5 absolute top-0 right-0 h-32 w-32 translate-x-8 -translate-y-8 rounded-full" />
 
               <CardHeader>
@@ -112,7 +115,7 @@ export default function AccountGiftsPage() {
                     onClick={() => handleCopyCode(gift.code ?? "", gift.id)}
                   >
                     {copiedId === gift.id ? (
-                      <Check className="h-4 w-4 text-green-600" />
+                      <Check className="text-primary h-4 w-4" />
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}

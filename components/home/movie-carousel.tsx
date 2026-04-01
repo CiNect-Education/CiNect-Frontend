@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, Star, Calendar } from "lucide-react";
 import type { MovieListItem } from "@/types/domain";
+import Image from "next/image";
 
 interface MovieCarouselProps {
   movies: MovieListItem[];
@@ -31,16 +32,19 @@ export function MovieCarousel({ movies, title, viewAllHref }: MovieCarouselProps
             <Card className="group hover:shadow-primary/20 overflow-hidden transition-all hover:shadow-lg">
               <div className="bg-muted relative aspect-[2/3] overflow-hidden">
                 {movie.posterUrl ? (
-                  <img
+                  <Image
                     src={movie.posterUrl}
                     alt={movie.title}
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                    fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
                   />
                 ) : (
                   <div className="text-muted-foreground flex h-full items-center justify-center">
                     No Image
                   </div>
                 )}
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/45 to-transparent" />
 
                 {/* Status, age rating, formats */}
                 <div className="absolute top-2 left-2 flex flex-wrap gap-1">

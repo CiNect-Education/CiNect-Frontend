@@ -12,6 +12,7 @@ import { ApiErrorState } from "@/components/system/api-error-state";
 import { useNewsArticle, useNews } from "@/hooks/queries/use-news";
 import { Calendar, User, Newspaper, Tag } from "lucide-react";
 import type { NewsArticle } from "@/types/domain";
+import Image from "next/image";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -129,11 +130,17 @@ export default function NewsArticlePage() {
 
         {article.imageUrl && (
           <div className="bg-muted mb-8 aspect-video overflow-hidden rounded-lg">
-            <img
-              src={article.imageUrl}
-              alt={article.title}
-              className="h-full w-full object-cover"
-            />
+            <div className="relative h-full w-full">
+              <Image
+                src={article.imageUrl}
+                alt={article.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="object-cover"
+                priority
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+            </div>
           </div>
         )}
 
@@ -174,11 +181,15 @@ export default function NewsArticlePage() {
                   <div className="flex gap-4 p-4">
                     {a.imageUrl ? (
                       <div className="bg-muted h-20 w-24 shrink-0 overflow-hidden rounded">
-                        <img
-                          src={a.imageUrl}
-                          alt={a.title}
-                          className="h-full w-full object-cover"
-                        />
+                        <div className="relative h-full w-full">
+                          <Image
+                            src={a.imageUrl}
+                            alt={a.title}
+                            fill
+                            sizes="96px"
+                            className="object-cover"
+                          />
+                        </div>
                       </div>
                     ) : null}
                     <div className="min-w-0 flex-1">

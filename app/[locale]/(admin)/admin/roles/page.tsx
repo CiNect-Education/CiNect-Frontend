@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useAdminRoles } from "@/hooks/queries/use-admin";
+import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -33,22 +35,25 @@ const PERMISSIONS = [
 ];
 
 export default function AdminRolesPage() {
+  const t = useTranslations("admin");
   const { data, isLoading, error, refetch } = useAdminRoles();
-  const roles = data?.data ?? [];
+  const rolesRaw = data?.data;
+  const roles = useMemo(() => rolesRaw ?? [], [rolesRaw]);
 
   const [permissionMap, setPermissionMap] = useState<Record<string, string[]>>({});
   const [saving, setSaving] = useState(false);
-  const [initialized, setInitialized] = useState(false);
 
-  // Initialize from API data
-  if (roles.length > 0 && !initialized) {
-    const map: Record<string, string[]> = {};
-    roles.forEach((role) => {
-      map[role.id] = [...(role.permissions || [])];
+  useEffect(() => {
+    if (roles.length === 0) return;
+    setPermissionMap((prev) => {
+      if (Object.keys(prev).length > 0) return prev;
+      const map: Record<string, string[]> = {};
+      roles.forEach((role) => {
+        map[role.id] = [...(role.permissions || [])];
+      });
+      return map;
     });
-    setPermissionMap(map);
-    setInitialized(true);
-  }
+  }, [roles]);
 
   const togglePermission = (roleId: string, permission: string) => {
     setPermissionMap((prev) => {
@@ -75,8 +80,9 @@ export default function AdminRolesPage() {
       }
       toast.success("Roles updated successfully");
       refetch();
-    } catch (err: any) {
-      toast.error(err?.message || "Failed to update roles");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to update roles";
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -84,10 +90,16 @@ export default function AdminRolesPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 p-6">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-96 w-full" />
-      </div>
+      <AdminPageShell
+        title={t("roles")}
+        description="Configure permissions for each role."
+        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("roles") }]}
+      >
+        <div className="space-y-6">
+          <Skeleton className="h-10 w-72" />
+          <Skeleton className="h-96 w-full" />
+        </div>
+      </AdminPageShell>
     );
   }
 
@@ -96,24 +108,23 @@ export default function AdminRolesPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Shield className="text-primary h-6 w-6" />
-          <div>
-            <h1 className="text-2xl font-bold">Role Management</h1>
-            <p className="text-muted-foreground text-sm">Configure permissions for each role</p>
-          </div>
-        </div>
+    <AdminPageShell
+      title={t("roles")}
+      description="Configure permissions for each role."
+      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("roles") }]}
+      actions={
         <Button onClick={handleSave} disabled={saving}>
           <Save className="mr-2 h-4 w-4" />
           {saving ? "Saving..." : "Save Changes"}
         </Button>
-      </div>
-
-      <Card>
+      }
+    >
+      <Card className="cinect-glass border">
         <CardHeader>
-          <CardTitle>Permission Matrix</CardTitle>
+          <div className="flex items-center gap-2">
+            <Shield className="text-primary h-5 w-5" />
+            <CardTitle>Permission Matrix</CardTitle>
+          </div>
           <CardDescription>
             Check/uncheck permissions for each role. ADMIN typically has full access.
           </CardDescription>
@@ -150,6 +161,6 @@ export default function AdminRolesPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </AdminPageShell>
   );
 }

@@ -27,6 +27,8 @@ export function SnacksStep({
   onApplyFavorite,
   hasFavorite,
 }: SnacksStepProps) {
+  const isSvgLikeRemote = (url: string) => url.includes("placehold.co");
+
   const toNumber = (v: unknown): number => {
     if (typeof v === "number") return Number.isFinite(v) ? v : 0;
     if (typeof v === "string") {
@@ -57,14 +59,21 @@ export function SnacksStep({
               <div className="flex gap-4">
                 {snack.imageUrl && (
                   <div className="bg-muted relative h-20 w-20 shrink-0 overflow-hidden rounded-md">
-                    <Image src={snack.imageUrl} alt={snack.name} fill className="object-cover" />
+                    <Image
+                      src={snack.imageUrl}
+                      alt={snack.name}
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                      unoptimized={isSvgLikeRemote(snack.imageUrl)}
+                    />
                   </div>
                 )}
                 <div className="flex-1 space-y-2">
                   <div>
                     <h3 className="font-semibold">{snack.name}</h3>
                     {snack.id === bestValueSnackId && (
-                      <p className="text-emerald-600 text-xs font-semibold">Best value</p>
+                      <p className="text-primary text-xs font-semibold">Best value</p>
                     )}
                     {snack.description && (
                       <p className="text-muted-foreground line-clamp-2 text-sm">

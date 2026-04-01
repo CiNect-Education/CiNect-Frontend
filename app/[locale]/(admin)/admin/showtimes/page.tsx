@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Plus, Pencil, Trash2, Clock } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -94,7 +94,8 @@ export default function AdminShowtimesPage() {
   const { data: cinemasRes } = useAdminCinemas();
   const { data: roomsRes } = useAdminRooms(cinemaFilter ? { cinemaId: cinemaFilter } : undefined);
 
-  const showtimes = showtimesRes?.data ?? [];
+  const showtimesRaw = showtimesRes?.data;
+  const showtimes = useMemo(() => showtimesRaw ?? [], [showtimesRaw]);
   const movies = moviesRes?.data ?? [];
   const cinemas = cinemasRes?.data ?? [];
   const rooms = roomsRes?.data ?? [];
@@ -208,7 +209,7 @@ export default function AdminShowtimesPage() {
         </Button>
       }
     >
-      <div className="mb-6 flex flex-wrap gap-3">
+      <div className="cinect-glass mb-6 flex flex-wrap gap-3 rounded-lg border p-4">
         <Select
           value={cinemaFilter || "all"}
           onValueChange={(v) => setCinemaFilter(v === "all" ? "" : v)}
@@ -237,7 +238,7 @@ export default function AdminShowtimesPage() {
         {rooms.map((room) => {
           const roomShowtimes = roomsByRoom.get(room.id) ?? [];
           return (
-            <div key={room.id} className="rounded-lg border p-4">
+            <div key={room.id} className="cinect-glass rounded-lg border p-4">
               <div className="mb-3 font-medium">
                 {room.cinemaName ?? room.cinemaId} — {room.name} ({room.format})
               </div>
@@ -282,14 +283,14 @@ export default function AdminShowtimesPage() {
           );
         })}
         {rooms.length === 0 && (
-          <div className="text-muted-foreground flex h-32 items-center justify-center rounded-lg border border-dashed">
+          <div className="cinect-glass text-muted-foreground flex h-32 items-center justify-center rounded-lg border border-dashed">
             Select a cinema to see rooms and showtimes
           </div>
         )}
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="cinect-glass max-w-lg border">
           <DialogHeader>
             <DialogTitle>{editingShowtime ? "Edit Showtime" : "Add Showtime"}</DialogTitle>
           </DialogHeader>
@@ -441,7 +442,7 @@ export default function AdminShowtimesPage() {
       </Dialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="cinect-glass border">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Showtime</AlertDialogTitle>
             <AlertDialogDescription>

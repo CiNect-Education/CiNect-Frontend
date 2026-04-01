@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
+import Link from "next/link";
 
 export default function GlobalError({
   error,
@@ -34,9 +35,9 @@ export default function GlobalError({
         <Button onClick={reset} variant="default">
           Try again
         </Button>
-        <a href="/support" className="text-primary text-sm hover:underline">
+        <Link href="/support" className="text-primary text-sm hover:underline">
           Report this issue
-        </a>
+        </Link>
       </div>
       {isDev && requestId && (
         <p className="text-muted-foreground mt-6 font-mono text-xs">Request ID: {requestId}</p>

@@ -14,6 +14,7 @@ import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { Bell, CheckCheck, Ticket, Tag, Crown } from "lucide-react";
 import type { Booking } from "@/types/domain";
+import { Link } from "@/i18n/navigation";
 
 type UiNotification = {
   id: string;
@@ -37,21 +38,27 @@ export default function NotificationsPage() {
   });
 
   const { data, isLoading, error, refetch } = useBookings({ limit: 200 });
-  const bookings = ((data?.data ?? data) || []) as Booking[];
+  const bookingsRaw = data?.data ?? data;
+  const bookings = useMemo(() => ((bookingsRaw as Booking[]) || []), [bookingsRaw]);
 
   const notifications = useMemo<UiNotification[]>(() => {
     const list: UiNotification[] = [];
     const now = Date.now();
+    const movieFallback = t("notificationMovieFallback");
+    const cinemaFallback = t("notificationCinemaFallback");
     for (const b of bookings) {
       const showtimeTs = new Date(b.showtime).getTime();
-      const isUpcoming = showtimeTs > now;
+      const showtimeOk = !Number.isNaN(showtimeTs);
+      const isUpcoming = showtimeOk && showtimeTs > now;
+      const movie = (b.movieTitle && String(b.movieTitle).trim()) || movieFallback;
+      const cinema = (b.cinemaName && String(b.cinemaName).trim()) || cinemaFallback;
       list.push({
         id: `booking:${b.id}:${isUpcoming ? "upcoming" : "past"}`,
         type: "booking",
         title: isUpcoming ? "Upcoming booking" : "Thanks for watching",
         message: isUpcoming
-          ? `${b.movieTitle} at ${b.cinemaName} • your showtime is coming up.`
-          : `${b.movieTitle} • hope you enjoyed the movie!`,
+          ? `${movie} at ${cinema} • your showtime is coming up.`
+          : `${movie} • hope you enjoyed the movie!`,
         createdAt: isUpcoming ? b.showtime : b.updatedAt ?? b.createdAt,
         href: `/tickets/${b.id}`,
       });
@@ -76,7 +83,7 @@ export default function NotificationsPage() {
     });
 
     return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [bookings]);
+  }, [bookings, t]);
 
   const unreadCount = useMemo(() => {
     const readAtTs = readAt.getTime();
@@ -118,7 +125,7 @@ export default function NotificationsPage() {
       ) : error ? (
         <ApiErrorState error={error} onRetry={refetch} />
       ) : notifications.length === 0 ? (
-        <Card>
+        <Card className="cinect-glass border">
           <CardHeader>
             <CardTitle className="text-lg">All Notifications</CardTitle>
           </CardHeader>
@@ -138,7 +145,13 @@ export default function NotificationsPage() {
             const badge =
               n.type === "booking" ? "Booking" : n.type === "promo" ? "Promo" : "Membership";
             return (
-              <Card key={n.id} className={isUnread ? "border-primary/30" : undefined}>
+              <Card
+                key={n.id}
+                className={[
+                  "cinect-glass border transition-all hover:shadow-lg",
+                  isUnread ? "border-primary/30" : "",
+                ].join(" ")}
+              >
                 <CardContent className="flex items-start gap-3 p-4">
                   <div className="bg-muted mt-0.5 rounded-md p-2">
                     <Icon className="h-4 w-4" />
@@ -162,7 +175,7 @@ export default function NotificationsPage() {
                     {n.href && (
                       <div className="mt-2">
                         <Button size="sm" variant="outline" asChild>
-                          <a href={n.href}>Open</a>
+                          <Link href={n.href}>Open</Link>
                         </Button>
                       </div>
                     )}

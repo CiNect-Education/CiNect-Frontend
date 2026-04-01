@@ -97,8 +97,9 @@ export function useCreateBooking() {
         giftCardCode: data.giftCardCode,
         snacks: data.snacks,
       }),
-    onError: (error: any) => {
-      toast.error(error?.message || "Failed to create booking");
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "Failed to create booking";
+      toast.error(message);
     },
   });
 }
@@ -123,8 +124,9 @@ export function useApplyPromo() {
       queryClient.invalidateQueries({ queryKey: ["bookings", variables.bookingId] });
       toast.success("Promo code applied!");
     },
-    onError: (error: any) => {
-      toast.error(error?.message || "Invalid promo code");
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "Invalid promo code";
+      toast.error(message);
     },
   });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -16,15 +16,11 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
   Armchair,
-  Plus,
   Trash2,
   Download,
   Upload,
   Save,
-  Eye,
-  EyeOff,
   Accessibility,
-  Grid3X3,
 } from "lucide-react";
 import {
   useAdminRooms,
@@ -45,13 +41,16 @@ interface GridCell {
   number: number;
 }
 
-const SEAT_TYPE_COLORS: Record<SeatCellType, string> = {
-  STANDARD: "bg-blue-500/80 hover:bg-blue-500",
-  VIP: "bg-amber-500/80 hover:bg-amber-500",
-  COUPLE: "bg-pink-500/80 hover:bg-pink-500",
-  DISABLED: "bg-gray-400/60",
-  WHEELCHAIR: "bg-emerald-600/80 hover:bg-emerald-600",
-  AISLE: "bg-transparent border border-dashed border-muted-foreground/30",
+const SEAT_TYPE_STYLES: Record<
+  SeatCellType,
+  { fill?: string; className: string; iconClassName?: string }
+> = {
+  STANDARD: { fill: "hsl(var(--chart-2))", className: "hover:opacity-95", iconClassName: "text-white/90" },
+  VIP: { fill: "hsl(var(--primary))", className: "hover:opacity-95", iconClassName: "text-white/90" },
+  COUPLE: { fill: "hsl(var(--chart-4))", className: "hover:opacity-95", iconClassName: "text-white/90" },
+  DISABLED: { fill: "hsl(var(--muted-foreground) / 0.55)", className: "opacity-70 cursor-not-allowed", iconClassName: "text-white/80" },
+  WHEELCHAIR: { fill: "hsl(var(--chart-3))", className: "hover:opacity-95", iconClassName: "text-white/90" },
+  AISLE: { className: "bg-transparent border border-dashed border-muted-foreground/30" },
 };
 
 function buildGridFromSeats(seats: Seat[], rows: number, columns: number): GridCell[][] {
@@ -67,7 +66,12 @@ function buildGridFromSeats(seats: Seat[], rows: number, columns: number): GridC
     }
   }
   for (const seat of seats) {
-    const rowIdx = seat.row.charCodeAt(0) - 65;
+    const rowLabel =
+      (seat as unknown as { row?: unknown; rowLabel?: unknown }).row ??
+      (seat as unknown as { row?: unknown; rowLabel?: unknown }).rowLabel;
+    const rowStr = typeof rowLabel === "string" ? rowLabel : "";
+    if (!rowStr) continue;
+    const rowIdx = rowStr.charCodeAt(0) - 65;
     const colIdx = seat.number - 1;
     if (rowIdx >= 0 && rowIdx < rows && colIdx >= 0 && colIdx < columns) {
       grid[rowIdx][colIdx] = {
@@ -124,7 +128,8 @@ export default function AdminSeatsPage() {
 
   const rooms = roomsRes?.data ?? [];
   const cinemas = cinemasRes?.data ?? [];
-  const seats = seatsRes?.data ?? [];
+  const seatsRaw = seatsRes?.data;
+  const seats = useMemo(() => seatsRaw ?? [], [seatsRaw]);
   const selectedRoom = rooms.find((r) => r.id === roomId);
 
   const [grid, setGrid] = useState<GridCell[][]>([]);
@@ -288,7 +293,7 @@ export default function AdminSeatsPage() {
       description="Design and manage seat maps for each screening room."
       breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("seats") }]}
     >
-      <Card className="mb-6">
+      <Card className="cinect-glass mb-6 border">
         <CardHeader>
           <CardTitle className="text-lg">Seat Map Editor</CardTitle>
           <CardDescription>
@@ -342,7 +347,7 @@ export default function AdminSeatsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {(Object.keys(SEAT_TYPE_COLORS) as SeatCellType[]).map((t) => (
+                    {(Object.keys(SEAT_TYPE_STYLES) as SeatCellType[]).map((t) => (
                       <SelectItem key={t} value={t}>
                         {t}
                       </SelectItem>
@@ -393,27 +398,28 @@ export default function AdminSeatsPage() {
                       const key = cellKey(r, c);
                       const isSelected = selectedCells.has(key);
                       const isAisle = cell.type === "AISLE";
-                      const isPreview = previewMode;
+                      const styleDef = SEAT_TYPE_STYLES[cell.type];
                       return (
                         <button
                           key={key}
                           type="button"
                           className={cn(
                             "flex h-8 w-8 items-center justify-center rounded border text-xs font-medium transition-colors",
-                            SEAT_TYPE_COLORS[cell.type],
+                            styleDef.className,
                             isSelected && "ring-primary ring-2 ring-offset-2",
                             isAisle && "cursor-default",
                             !previewMode && !isAisle && "cursor-pointer"
                           )}
+                          style={styleDef.fill ? { backgroundColor: styleDef.fill } : undefined}
                           onMouseDown={!previewMode ? handleCellMouseDown(r, c) : undefined}
                           onMouseEnter={!previewMode ? handleCellMouseEnter(r, c) : undefined}
                         >
                           {cell.type === "WHEELCHAIR" ? (
-                            <Accessibility className="h-4 w-4 text-white" />
+                            <Accessibility className={cn("h-4 w-4", styleDef.iconClassName ?? "text-white")} />
                           ) : !isAisle && !previewMode ? (
                             cell.number
                           ) : isAisle ? null : (
-                            <Armchair className="h-4 w-4 text-white/80" />
+                            <Armchair className={cn("h-4 w-4", styleDef.iconClassName ?? "text-white/80")} />
                           )}
                         </button>
                       );
@@ -438,21 +444,25 @@ export default function AdminSeatsPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="cinect-glass border">
         <CardHeader>
           <CardTitle className="text-lg">Seat Types</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-6">
-            {(Object.entries(SEAT_TYPE_COLORS) as [SeatCellType, string][]).map(([type, color]) => (
+            {(Object.entries(SEAT_TYPE_STYLES) as [
+              SeatCellType,
+              { fill?: string; className: string; iconClassName?: string },
+            ][]).map(([type, def]) => (
               <div key={type} className="flex items-center gap-2 text-sm">
                 <div
-                  className={cn("flex h-6 w-8 items-center justify-center rounded border", color)}
+                  className={cn("flex h-6 w-8 items-center justify-center rounded border", def.className)}
+                  style={def.fill ? { backgroundColor: def.fill } : undefined}
                 >
                   {type === "WHEELCHAIR" ? (
-                    <Accessibility className="h-4 w-4 text-white" />
+                    <Accessibility className={cn("h-4 w-4", def.iconClassName ?? "text-white")} />
                   ) : type !== "AISLE" ? (
-                    <Armchair className="h-4 w-4 text-white/80" />
+                    <Armchair className={cn("h-4 w-4", def.iconClassName ?? "text-white/80")} />
                   ) : null}
                 </div>
                 <span>{type}</span>

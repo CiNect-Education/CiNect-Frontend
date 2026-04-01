@@ -45,7 +45,7 @@ export default function OrderDetailPage() {
       ) : error ? (
         <ApiErrorState error={error} onRetry={refetch} />
       ) : !booking ? (
-        <Card>
+        <Card className="cinect-glass border">
           <CardContent className="py-10 text-center">
             <Ticket className="text-muted-foreground mx-auto mb-3 h-10 w-10" />
             <p className="text-sm font-semibold">Order not found</p>
@@ -60,7 +60,7 @@ export default function OrderDetailPage() {
         </Card>
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
+          <Card className="cinect-glass border lg:col-span-2">
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <CardTitle className="text-lg">Order Details</CardTitle>
@@ -121,7 +121,7 @@ export default function OrderDetailPage() {
           </Card>
 
           <div className="flex flex-col gap-6">
-            <Card>
+            <Card className="cinect-glass border">
               <CardHeader>
                 <CardTitle className="text-lg">Payment</CardTitle>
               </CardHeader>
@@ -152,7 +152,7 @@ export default function OrderDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="cinect-glass border">
               <CardHeader>
                 <CardTitle className="text-lg">Receipt</CardTitle>
               </CardHeader>

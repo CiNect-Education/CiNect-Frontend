@@ -162,7 +162,7 @@ export default function CheckoutPage() {
   }, [bookingId, giftCardCode, applyGiftCardMutation]);
 
   const handlePayment = useCallback(
-    async (method: string, amount: number) => {
+    async (method: string, _amount: number) => {
       if (!bookingId) return;
       try {
         const res = await initiatePaymentMutation.mutateAsync({
@@ -196,7 +196,7 @@ export default function CheckoutPage() {
         // Error handled by mutation
       }
     },
-    [bookingId, booking?.finalAmount, initiatePaymentMutation, router, toLocalePath]
+    [bookingId, initiatePaymentMutation, router, toLocalePath]
   );
   const selectedSnackDetails = selectedSnacks
     .map((s) => ({
@@ -245,11 +245,28 @@ export default function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="mb-6 text-3xl font-bold">Checkout</h1>
+      <div className="cinect-glass mb-6 rounded-xl border p-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="text-muted-foreground text-xs font-semibold tracking-[0.22em] uppercase">
+              Secure checkout
+            </div>
+            <h1 className="text-3xl font-bold">Checkout</h1>
+            <div className="text-muted-foreground mt-1 text-sm">
+              Review your seats, add snacks, then complete payment.
+            </div>
+          </div>
+          {hold.showtime?.startTime && (
+            <div className="text-muted-foreground text-sm">
+              {format(new Date(hold.showtime.startTime), "PPP 'at' p")}
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="cinect-glass border">
             <CardContent className="pt-6">
               <Tabs
                 value={String(step)}

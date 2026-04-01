@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,13 +16,26 @@ import { format } from "date-fns";
 import { Ticket, Search, ArrowRight } from "lucide-react";
 import type { Booking, BookingStatus } from "@/types/domain";
 
+function toList<T>(v: unknown): T[] {
+  if (Array.isArray(v)) return v as T[];
+  if (v && typeof v === "object" && "data" in v && Array.isArray((v as { data: unknown }).data))
+    return (v as { data: T[] }).data;
+  return [];
+}
+
+function safeDate(value: unknown): Date | null {
+  if (!value) return null;
+  const d = new Date(String(value));
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 export default function OrdersPage() {
   const t = useTranslations("account");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<BookingStatus | "ALL">("ALL");
 
   const { data, isLoading, error, refetch } = useBookings({ limit: 200 });
-  const bookings = ((data?.data ?? data) || []) as Booking[];
+  const bookings = useMemo(() => toList<Booking>(data?.data ?? data), [data]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -36,7 +49,11 @@ export default function OrdersPage() {
           b.cinemaName.toLowerCase().includes(q)
         );
       })
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      .sort((a, b) => {
+        const ad = safeDate(a.createdAt)?.getTime() ?? 0;
+        const bd = safeDate(b.createdAt)?.getTime() ?? 0;
+        return bd - ad;
+      });
   }, [bookings, query, status]);
 
   return (
@@ -47,7 +64,7 @@ export default function OrdersPage() {
         breadcrumbs={[{ label: t("title"), href: "/account/profile" }, { label: t("orders") }]}
       />
 
-      <Card className="mb-6">
+      <Card className="cinect-glass mb-6 border">
         <CardContent className="pt-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
@@ -94,7 +111,7 @@ export default function OrdersPage() {
       ) : error ? (
         <ApiErrorState error={error} onRetry={refetch} />
       ) : filtered.length === 0 ? (
-        <Card>
+        <Card className="cinect-glass border">
           <CardContent className="py-12">
             <EmptyState
               icon={Ticket}
@@ -112,14 +129,17 @@ export default function OrdersPage() {
       ) : (
         <div className="space-y-3">
           {filtered.map((b) => (
-            <Card key={b.id} className="overflow-hidden">
+            <Card key={b.id} className="cinect-glass overflow-hidden border transition-all hover:shadow-lg">
               <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="space-y-1">
                   <p className="text-sm font-semibold">{b.movieTitle}</p>
                   <p className="text-muted-foreground text-xs">
                     {b.cinemaName}
                     {b.roomName ? ` • ${b.roomName}` : ""} •{" "}
-                    {format(new Date(b.showtime), "PPpp")}
+                    {(() => {
+                      const d = safeDate(b.showtime);
+                      return d ? format(d, "PPpp") : "—";
+                    })()}
                   </p>
                   <p className="text-muted-foreground text-xs font-mono">#{b.id}</p>
                   <div className="flex flex-wrap gap-1 pt-1">

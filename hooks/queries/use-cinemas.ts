@@ -13,13 +13,13 @@ import { z } from "zod";
 
 export function useCinemas(params?: QueryParams) {
   return useApiQuery<CinemaListItem[]>(["cinemas", JSON.stringify(params)], "/cinemas", params, {
-    schema: z.array(cinemaListItemSchema),
+    schema: z.array(cinemaListItemSchema) as unknown as z.ZodType<CinemaListItem[]>,
   });
 }
 
 export function useCinema(id: string) {
   return useApiQuery<Cinema>(["cinema", id], `/cinemas/${id}`, undefined, {
-    schema: cinemaSchema,
+    schema: cinemaSchema as unknown as z.ZodType<Cinema>,
     enabled: !!id,
   });
 }
@@ -28,7 +28,14 @@ export function useCinema(id: string) {
 
 export function useShowtimes(params?: QueryParams) {
   return useApiQuery<Showtime[]>(["showtimes", JSON.stringify(params)], "/showtimes", params, {
-    schema: z.array(showtimeSchema),
+    schema: z.array(showtimeSchema) as unknown as z.ZodType<Showtime[]>,
+  });
+}
+
+export function useShowtime(id: string) {
+  return useApiQuery<Showtime>(["showtime", id], `/showtimes/${id}`, undefined, {
+    schema: showtimeSchema as unknown as z.ZodType<Showtime>,
+    enabled: !!id,
   });
 }
 
@@ -38,7 +45,7 @@ export function useShowtimeSearch(params?: QueryParams) {
     "/showtimes/search",
     params,
     {
-      schema: z.array(showtimeSchema),
+      schema: z.array(showtimeSchema) as unknown as z.ZodType<Showtime[]>,
       enabled: !!params?.city && !!params?.date,
     }
   );
@@ -50,7 +57,7 @@ export function useMovieShowtimes(movieId: string, params?: { city?: string; dat
     `/movies/${movieId}/showtimes`,
     params as QueryParams,
     {
-      schema: z.array(showtimeSchema),
+      schema: z.array(showtimeSchema) as unknown as z.ZodType<Showtime[]>,
       enabled: !!movieId,
     }
   );
@@ -62,7 +69,7 @@ export function useCinemaShowtimes(cinemaId: string, date?: string) {
     `/cinemas/${cinemaId}/showtimes`,
     date ? { date } : undefined,
     {
-      schema: z.array(showtimeSchema),
+      schema: z.array(showtimeSchema) as unknown as z.ZodType<Showtime[]>,
       enabled: !!cinemaId,
     }
   );
@@ -76,7 +83,7 @@ export function useShowtimeSeats(showtimeId: string) {
     `/showtimes/${showtimeId}/seats`,
     undefined,
     {
-      schema: z.array(seatSchema),
+      schema: z.array(seatSchema) as unknown as z.ZodType<Seat[]>,
       enabled: !!showtimeId,
       staleTime: 30 * 1000, // 30 seconds -- seats change fast
     }
