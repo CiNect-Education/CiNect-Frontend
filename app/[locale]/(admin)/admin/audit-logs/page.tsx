@@ -63,7 +63,8 @@ export default function AdminAuditLogsPage() {
   const [search, setSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [actionFilter, setActionFilter] = useState<string>("");
+  const ALL = "__ALL__";
+  const [actionFilter, setActionFilter] = useState<string>(ALL);
   const [page, setPage] = useState(0);
   const limit = 20;
 
@@ -72,14 +73,14 @@ export default function AdminAuditLogsPage() {
       search: search || undefined,
       from: dateFrom || undefined,
       to: dateTo || undefined,
-      action: actionFilter || undefined,
+      action: actionFilter === ALL ? undefined : actionFilter,
       page: page + 1,
       limit,
     }),
     [search, dateFrom, dateTo, actionFilter, page]
   );
 
-  const { data: logsRes } = useAdminAuditLogs(params);
+  const { data: logsRes, isLoading: logsLoading } = useAdminAuditLogs(params);
   const logs = toList<AuditLogEntry>(logsRes?.data ?? logsRes);
   const meta = (logsRes?.data as { meta?: { total?: number; totalPages?: number } } | undefined)
     ?.meta;
@@ -139,7 +140,7 @@ export default function AdminAuditLogsPage() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-4">
+      <div className="cinect-glass mb-4 flex flex-wrap gap-4 rounded-lg border p-4">
         <Input
           placeholder="Search user..."
           value={search}
@@ -178,7 +179,7 @@ export default function AdminAuditLogsPage() {
             <SelectValue placeholder="Action type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All</SelectItem>
+            <SelectItem value={ALL}>All</SelectItem>
             <SelectItem value="CREATE">CREATE</SelectItem>
             <SelectItem value="UPDATE">UPDATE</SelectItem>
             <SelectItem value="DELETE">DELETE</SelectItem>
@@ -186,7 +187,15 @@ export default function AdminAuditLogsPage() {
         </Select>
       </div>
 
-      <DataTable columns={columns} data={logs} pageSize={50} hidePagination />
+      <DataTable
+        columns={columns}
+        data={logs}
+        pageSize={50}
+        hidePagination
+        className="cinect-glass rounded-lg border p-4"
+        isLoading={logsLoading}
+        emptyMessage="No audit logs found."
+      />
 
       <div className="mt-2 flex items-center justify-between">
         <span className="text-muted-foreground text-sm">

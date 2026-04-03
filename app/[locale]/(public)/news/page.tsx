@@ -13,6 +13,7 @@ import { useNews } from "@/hooks/queries/use-news";
 import { Newspaper, ChevronLeft, ChevronRight } from "lucide-react";
 import type { NewsArticle } from "@/types/domain";
 import type { NewsCategory } from "@/types/domain";
+import Image from "next/image";
 
 const CATEGORIES: NewsCategory[] = ["REVIEWS", "TRAILERS", "PROMOTIONS", "GUIDES", "GENERAL"];
 
@@ -114,11 +115,16 @@ export default function NewsPage() {
                 <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
                   <div className="bg-muted aspect-video overflow-hidden">
                     {article.imageUrl ? (
-                      <img
-                        src={article.imageUrl}
-                        alt={article.title}
-                        className="h-full w-full object-cover"
-                      />
+                      <div className="relative h-full w-full">
+                        <Image
+                          src={article.imageUrl}
+                          alt={article.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-cover"
+                        />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+                      </div>
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
                         <Newspaper className="text-muted-foreground h-12 w-12" />

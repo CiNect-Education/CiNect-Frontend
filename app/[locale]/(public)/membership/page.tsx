@@ -47,8 +47,9 @@ export default function MembershipPage() {
   const { data: tiersRes, isLoading, error, refetch } = useMembershipTiers();
   const { data: eventsRes } = useMembershipEvents();
 
-  const tiers =
-    toArray<{
+  const tiersRaw = useMemo(
+    () =>
+      toArray<{
       id: string;
       name: string;
       displayName?: string;
@@ -59,24 +60,29 @@ export default function MembershipPage() {
       discount?: number;
       discountPercent?: number;
       level?: number;
-    }>(tiersRes?.data ?? tiersRes) ?? [];
-  const events =
-    toArray<{
+    }>(tiersRes?.data ?? tiersRes) ?? [],
+    [tiersRes]
+  );
+  const eventsRaw = useMemo(
+    () =>
+      toArray<{
       id: string;
       title: string;
       description: string;
       startDate: string;
       endDate: string;
       type: string;
-    }>(eventsRes?.data ?? eventsRes) ?? [];
+    }>(eventsRes?.data ?? eventsRes) ?? [],
+    [eventsRes]
+  );
 
   const sortedTiers = useMemo(() => {
-    return [...tiers].sort((a, b) => {
+    return [...tiersRaw].sort((a, b) => {
       const pa = a.minPoints ?? a.pointsRequired ?? 0;
       const pb = b.minPoints ?? b.pointsRequired ?? 0;
       return pa - pb;
     });
-  }, [tiers]);
+  }, [tiersRaw]);
 
   const tiersWithRange = useMemo(() => {
     return sortedTiers.map((tier, i) => {
@@ -251,7 +257,7 @@ export default function MembershipPage() {
       </Card>
 
       {/* Member Events Section */}
-      {events.length > 0 && (
+      {eventsRaw.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -262,7 +268,7 @@ export default function MembershipPage() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {events.map((evt) => (
+              {eventsRaw.map((evt) => (
                 <Card key={evt.id} className="border-dashed">
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-3">

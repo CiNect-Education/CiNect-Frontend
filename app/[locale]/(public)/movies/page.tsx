@@ -21,6 +21,7 @@ import {
 import { Clock, Star, Calendar, Film, ChevronLeft, ChevronRight } from "lucide-react";
 import type { MovieListItem } from "@/types/domain";
 import type { PaginationMeta } from "@/types/api";
+import Image from "next/image";
 
 const SORT_OPTIONS = [
   { value: "releaseDate:desc", label: "Newest First" },
@@ -103,7 +104,7 @@ function MoviesContent() {
 
         <div className="flex-1">
           {/* Sticky Sort Bar */}
-          <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border px-4 py-3 backdrop-blur">
+          <div className="cinect-glass sticky top-0 z-10 mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border px-4 py-3">
             <span className="text-muted-foreground text-sm">
               {total > 0 ? `${total} movies` : "No results"}
             </span>
@@ -124,7 +125,13 @@ function MoviesContent() {
           {isLoading ? (
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
               {Array.from({ length: 12 }).map((_, i) => (
-                <div key={i} className="bg-muted h-96 animate-pulse rounded-lg" />
+                <Card key={i} className="overflow-hidden">
+                  <div className="bg-muted aspect-[2/3] animate-pulse" />
+                  <CardContent className="p-4">
+                    <div className="bg-muted h-4 w-3/4 animate-pulse rounded" />
+                    <div className="bg-muted mt-2 h-3 w-1/2 animate-pulse rounded" />
+                  </CardContent>
+                </Card>
               ))}
             </div>
           ) : error ? (
@@ -186,16 +193,19 @@ function MovieCard({ movie }: { movie: MovieListItem }) {
       <Card className="group hover:shadow-primary/20 h-full overflow-hidden transition-all hover:shadow-lg">
         <div className="bg-muted relative aspect-[2/3] overflow-hidden">
           {movie.posterUrl ? (
-            <img
+            <Image
               src={movie.posterUrl}
               alt={movie.title}
-              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+              fill
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
             />
           ) : (
             <div className="text-muted-foreground flex h-full items-center justify-center">
               <Film className="h-12 w-12" />
             </div>
           )}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/55 to-transparent" />
           <div className="absolute top-2 left-2 flex flex-wrap gap-1">
             {movie.status === "NOW_SHOWING" && <Badge className="bg-primary">Now Showing</Badge>}
             {movie.status === "COMING_SOON" && <Badge className="bg-secondary">Coming Soon</Badge>}

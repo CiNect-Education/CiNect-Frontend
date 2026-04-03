@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { DataTable } from "@/components/admin/data-table";
@@ -71,7 +71,7 @@ export default function AdminPricingPage() {
   const [editingRule, setEditingRule] = useState<PricingRule | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<PricingRule | null>(null);
 
-  const { data: rulesRes } = useAdminPricingRules();
+  const { data: rulesRes, isLoading: rulesLoading } = useAdminPricingRules();
   const { data: cinemasRes } = useAdminCinemas();
   const rules = rulesRes?.data ?? [];
   const cinemas = cinemasRes?.data ?? [];
@@ -107,7 +107,8 @@ export default function AdminPricingPage() {
     setDialogOpen(true);
   }
 
-  function openEdit(rule: PricingRule) {
+  const openEdit = useCallback(
+    (rule: PricingRule) => {
     setEditingRule(rule);
     form.reset({
       seatType: rule.seatType,
@@ -119,7 +120,9 @@ export default function AdminPricingPage() {
       cinemaId: "",
     });
     setDialogOpen(true);
-  }
+    },
+    [form]
+  );
 
   async function onSubmit(values: PricingFormValues) {
     const payload = {
@@ -198,7 +201,7 @@ export default function AdminPricingPage() {
         ),
       },
     ],
-    []
+    [openEdit]
   );
 
   return (
@@ -213,10 +216,17 @@ export default function AdminPricingPage() {
         </Button>
       }
     >
-      <DataTable columns={columns} data={rules} searchPlaceholder="Search rules..." />
+      <DataTable
+        columns={columns}
+        data={rules}
+        searchPlaceholder="Search rules..."
+        className="cinect-glass rounded-lg border p-4"
+        isLoading={rulesLoading}
+        emptyMessage="No pricing rules found."
+      />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="cinect-glass max-w-lg border">
           <DialogHeader>
             <DialogTitle>{editingRule ? "Edit Rule" : "Add Rule"}</DialogTitle>
           </DialogHeader>
@@ -392,7 +402,7 @@ export default function AdminPricingPage() {
       </Dialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="cinect-glass border">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Pricing Rule</AlertDialogTitle>
             <AlertDialogDescription>

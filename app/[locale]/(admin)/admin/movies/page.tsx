@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { DataTable } from "@/components/admin/data-table";
@@ -65,13 +65,16 @@ const movieFormSchema = z.object({
 
 type MovieFormValues = z.infer<typeof movieFormSchema>;
 
+const DEFAULT_POSTER =
+  "https://placehold.co/600x900/png?text=CiNect+Poster";
+
 export default function AdminMoviesPage() {
   const t = useTranslations("admin");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Movie | null>(null);
 
-  const { data: moviesRes } = useAdminMovies();
+  const { data: moviesRes, isLoading: moviesLoading } = useAdminMovies();
   const movies = moviesRes?.data ?? [];
   const createMutation = useCreateMovie();
   const updateMutation = useUpdateMovie();
@@ -108,7 +111,8 @@ export default function AdminMoviesPage() {
     setDialogOpen(true);
   }
 
-  function openEdit(movie: Movie) {
+  const openEdit = useCallback(
+    (movie: Movie) => {
     setEditingMovie(movie);
     form.reset({
       title: movie.title,
@@ -122,14 +126,24 @@ export default function AdminMoviesPage() {
       director: movie.director ?? "",
     });
     setDialogOpen(true);
-  }
+    },
+    [form]
+  );
 
   async function onSubmit(values: MovieFormValues) {
     const payload = {
-      ...values,
+      title: values.title,
       slug: values.title.toLowerCase().replace(/\s+/g, "-"),
-      genres: [] as { id: string; name: string; slug: string }[],
-      cast: [],
+      description: values.description?.trim() || "No description",
+      posterUrl: values.posterUrl || DEFAULT_POSTER,
+      duration: values.duration,
+      releaseDate: values.releaseDate,
+      status: values.status,
+      ageRating: values.ageRating,
+      language: values.language,
+      director: values.director,
+      castMembers: [] as string[],
+      genreIds: [] as string[],
     };
     if (editingMovie) {
       await updateMutation.mutateAsync({ ...payload, id: editingMovie.id });
@@ -201,7 +215,7 @@ export default function AdminMoviesPage() {
         ),
       },
     ],
-    []
+    [openEdit]
   );
 
   return (
@@ -221,10 +235,13 @@ export default function AdminMoviesPage() {
         data={movies}
         searchKey="title"
         searchPlaceholder="Search movies..."
+        className="cinect-glass rounded-lg border p-4"
+        isLoading={moviesLoading}
+        emptyMessage="No movies found."
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="cinect-glass max-w-lg border">
           <DialogHeader>
             <DialogTitle>{editingMovie ? "Edit Movie" : "Add Movie"}</DialogTitle>
           </DialogHeader>
@@ -387,7 +404,7 @@ export default function AdminMoviesPage() {
       </Dialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="cinect-glass border">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Movie</AlertDialogTitle>
             <AlertDialogDescription>

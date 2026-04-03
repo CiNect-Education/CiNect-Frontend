@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { DataTable } from "@/components/admin/data-table";
@@ -72,7 +72,9 @@ export default function AdminRoomsPage() {
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Room | null>(null);
 
-  const { data: roomsRes } = useAdminRooms(cinemaFilter ? { cinemaId: cinemaFilter } : undefined);
+  const { data: roomsRes, isLoading: roomsLoading } = useAdminRooms(
+    cinemaFilter ? { cinemaId: cinemaFilter } : undefined
+  );
   const { data: cinemasRes } = useAdminCinemas();
   const rooms = roomsRes?.data ?? [];
   const cinemas = cinemasRes?.data ?? [];
@@ -107,7 +109,8 @@ export default function AdminRoomsPage() {
     setDialogOpen(true);
   }
 
-  function openEdit(room: Room) {
+  const openEdit = useCallback(
+    (room: Room) => {
     setEditingRoom(room);
     form.reset({
       name: room.name,
@@ -119,7 +122,9 @@ export default function AdminRoomsPage() {
       isActive: room.isActive,
     });
     setDialogOpen(true);
-  }
+    },
+    [form]
+  );
 
   async function onSubmit(values: RoomFormValues) {
     if (editingRoom) {
@@ -185,7 +190,7 @@ export default function AdminRoomsPage() {
         ),
       },
     ],
-    []
+    [openEdit]
   );
 
   return (
@@ -200,7 +205,7 @@ export default function AdminRoomsPage() {
         </Button>
       }
     >
-      <div className="mb-4">
+      <div className="cinect-glass mb-4 rounded-lg border p-4">
         <Select
           value={cinemaFilter || "all"}
           onValueChange={(v) => setCinemaFilter(v === "all" ? "" : v)}
@@ -224,10 +229,13 @@ export default function AdminRoomsPage() {
         data={rooms}
         searchKey="name"
         searchPlaceholder="Search rooms..."
+        className="cinect-glass rounded-lg border p-4"
+        isLoading={roomsLoading}
+        emptyMessage="No rooms found."
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="cinect-glass max-w-lg border">
           <DialogHeader>
             <DialogTitle>{editingRoom ? "Edit Room" : "Add Room"}</DialogTitle>
           </DialogHeader>
@@ -364,7 +372,7 @@ export default function AdminRoomsPage() {
       </Dialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="cinect-glass border">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Room</AlertDialogTitle>
             <AlertDialogDescription>

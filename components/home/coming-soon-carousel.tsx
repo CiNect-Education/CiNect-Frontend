@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Star, Calendar } from "lucide-react";
+import { Clock, Calendar } from "lucide-react";
 import type { MovieListItem } from "@/types/domain";
+import Image from "next/image";
 
 interface ComingSoonCarouselProps {
   movies: MovieListItem[];
@@ -44,16 +45,19 @@ export function ComingSoonCarousel({ movies, title, viewAllHref }: ComingSoonCar
                 <Card className="group hover:shadow-primary/20 overflow-hidden transition-all hover:shadow-lg">
                   <div className="bg-muted relative aspect-[2/3] overflow-hidden">
                     {movie.posterUrl ? (
-                      <img
+                      <Image
                         src={movie.posterUrl}
                         alt={movie.title}
-                        className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                        fill
+                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
                       />
                     ) : (
                       <div className="text-muted-foreground flex h-full items-center justify-center">
                         No Image
                       </div>
                     )}
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/45 to-transparent" />
                     <Badge className="bg-primary absolute top-2 left-2">Coming Soon</Badge>
                     {movie.rating && (
                       <Badge className="absolute top-2 right-2 bg-black/80">{movie.rating}</Badge>

@@ -81,7 +81,7 @@ export function PaymentStep({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Eligible Promotions */}
       {eligiblePromotions.length > 0 && (
-        <Card className="p-4">
+        <Card className="cinect-glass p-4">
           <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
             <Tag className="h-4 w-4" />
             Available Promotions
@@ -134,7 +134,7 @@ export function PaymentStep({
       )}
 
       {/* Promo Code */}
-      <Card className="p-4">
+      <Card className="cinect-glass p-4">
         <Label htmlFor="promo" className="mb-2 flex items-center gap-2 text-sm font-medium">
           <Tag className="h-4 w-4" />
           Promo Code
@@ -158,7 +158,7 @@ export function PaymentStep({
       </Card>
 
       {/* Gift Card */}
-      <Card className="p-4">
+      <Card className="cinect-glass p-4">
         <Label htmlFor="gift" className="mb-2 flex items-center gap-2 text-sm font-medium">
           <Gift className="h-4 w-4" />
           Gift Card
@@ -182,7 +182,7 @@ export function PaymentStep({
       </Card>
 
       {/* Membership Points */}
-      <Card className="p-4">
+      <Card className="cinect-glass p-4">
         <Label htmlFor="points" className="mb-2 flex items-center gap-2 text-sm font-medium">
           <Banknote className="h-4 w-4" />
           Use Loyalty Points
@@ -220,7 +220,7 @@ export function PaymentStep({
         >
           <div className="grid gap-2 sm:grid-cols-2">
             {PAYMENT_METHODS.map((m) => (
-              <Card key={m.value} className="p-4">
+              <Card key={m.value} className="cinect-glass p-4">
                 <div className="flex items-center space-x-3">
                   <RadioGroupItem value={m.value} id={m.value} />
                   <Label

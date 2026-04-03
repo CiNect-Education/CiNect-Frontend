@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { useCinema, useCinemaShowtimes } from "@/hooks/queries/use-cinemas";
-import { MapPin, Phone, Mail, Film, ExternalLink, Calendar, Ticket } from "lucide-react";
-import type { Cinema, Showtime } from "@/types/domain";
+import { MapPin, Phone, Mail, Film, ExternalLink, Calendar } from "lucide-react";
+import type { Showtime } from "@/types/domain";
+import Image from "next/image";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -118,7 +119,17 @@ export default function CinemaDetailPage() {
 
       <div className="bg-muted mb-6 aspect-video max-w-2xl overflow-hidden rounded-lg">
         {cinema.imageUrl ? (
-          <img src={cinema.imageUrl} alt={cinema.name} className="h-full w-full object-cover" />
+          <div className="relative h-full w-full">
+            <Image
+              src={cinema.imageUrl}
+              alt={cinema.name}
+              fill
+              sizes="(max-width: 768px) 100vw, 672px"
+              className="object-cover"
+              priority
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+          </div>
         ) : (
           <div className="flex h-full w-full items-center justify-center">
             <Film className="text-muted-foreground h-24 w-24" />
@@ -207,11 +218,15 @@ export default function CinemaDetailPage() {
                     <div className="flex items-center gap-3">
                       <div className="bg-muted relative h-16 w-12 overflow-hidden rounded">
                         {group.moviePosterUrl ? (
-                          <img
-                            src={group.moviePosterUrl}
-                            alt={group.movieTitle}
-                            className="h-full w-full object-cover"
-                          />
+                          <div className="relative h-full w-full">
+                            <Image
+                              src={group.moviePosterUrl}
+                              alt={group.movieTitle}
+                              fill
+                              sizes="48px"
+                              className="object-cover"
+                            />
+                          </div>
                         ) : (
                           <Film className="text-muted-foreground absolute inset-0 m-auto h-5 w-5" />
                         )}

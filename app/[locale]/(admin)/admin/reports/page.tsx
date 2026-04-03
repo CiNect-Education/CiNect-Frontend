@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { Suspense, useState, useMemo, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +36,13 @@ import {
 } from "@/hooks/queries/use-admin";
 import { format } from "date-fns";
 
+function toList<T>(v: unknown): T[] {
+  if (Array.isArray(v)) return v as T[];
+  if (v && typeof v === "object" && "data" in v && Array.isArray((v as { data: unknown }).data))
+    return (v as { data: T[] }).data;
+  return [];
+}
+
 function downloadCSV(headers: string[], rows: (string | number)[][], filename: string) {
   const escape = (v: string | number) => {
     const s = String(v);
@@ -54,12 +63,34 @@ function downloadCSV(headers: string[], rows: (string | number)[][], filename: s
   URL.revokeObjectURL(url);
 }
 
-export default function AdminReportsPage() {
+const REPORT_TABS = ["sales", "movies", "cinemas"] as const;
+type ReportTab = (typeof REPORT_TABS)[number];
+
+function parseReportTab(v: string | null): ReportTab {
+  if (v && (REPORT_TABS as readonly string[]).includes(v)) return v as ReportTab;
+  return "sales";
+}
+
+function AdminReportsPage() {
   const t = useTranslations("admin");
   const [dateFrom, setDateFrom] = useState<string>(
     new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
   );
   const [dateTo, setDateTo] = useState<string>(new Date().toISOString().slice(0, 10));
+
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const activeTab = parseReportTab(searchParams.get("tab"));
+
+  const setReportTab = useCallback(
+    (next: ReportTab) => {
+      const p = new URLSearchParams(searchParams.toString());
+      p.set("tab", next);
+      router.replace(`${pathname}?${p.toString()}`);
+    },
+    [pathname, router, searchParams]
+  );
 
   const params = useMemo(
     () => ({
@@ -73,9 +104,21 @@ export default function AdminReportsPage() {
   const { data: moviesRes } = useAdminReportMovies(params);
   const { data: cinemasRes } = useAdminReportCinemas(params);
 
-  const salesData = salesRes?.data ?? [];
-  const moviesData = moviesRes?.data ?? [];
-  const cinemasData = cinemasRes?.data ?? [];
+  const salesData = toList<{ date: string; revenue: number; bookings: number }>(salesRes?.data ?? salesRes);
+  const moviesData = toList<{
+    movieId: string;
+    movieTitle: string;
+    revenue: number;
+    bookings: number;
+    occupancy: number;
+  }>(moviesRes?.data ?? moviesRes);
+  const cinemasData = toList<{
+    cinemaId: string;
+    cinemaName: string;
+    revenue: number;
+    bookings: number;
+    occupancy: number;
+  }>(cinemasRes?.data ?? cinemasRes);
 
   const exportSalesCSV = () => {
     downloadCSV(
@@ -127,15 +170,15 @@ export default function AdminReportsPage() {
         }
       />
 
-      <Tabs defaultValue="sales">
-        <TabsList>
+      <Tabs value={activeTab} onValueChange={(v) => setReportTab(parseReportTab(v))}>
+        <TabsList className="cinect-glass border">
           <TabsTrigger value="sales">Sales</TabsTrigger>
           <TabsTrigger value="movies">Movies</TabsTrigger>
           <TabsTrigger value="cinemas">Cinemas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sales" className="space-y-6">
-          <Card>
+          <Card className="cinect-glass border">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Sales Report</CardTitle>
               <Button variant="outline" size="sm" onClick={exportSalesCSV}>
@@ -149,8 +192,8 @@ export default function AdminReportsPage() {
                   No sales data for this period
                 </div>
               ) : (
-                <div className="mb-6 h-64">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="mb-6 h-64 w-full min-w-0">
+                  <ResponsiveContainer width="100%" height={256} debounce={32}>
                     <LineChart data={salesData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" tickFormatter={(v) => format(new Date(v), "MM/dd")} />
@@ -179,7 +222,7 @@ export default function AdminReportsPage() {
                   </ResponsiveContainer>
                 </div>
               )}
-              <div className="rounded-md border">
+              <div className="cinect-glass rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -211,7 +254,7 @@ export default function AdminReportsPage() {
         </TabsContent>
 
         <TabsContent value="movies" className="space-y-6">
-          <Card>
+          <Card className="cinect-glass border">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Movie Performance</CardTitle>
               <Button variant="outline" size="sm" onClick={exportMoviesCSV}>
@@ -225,8 +268,8 @@ export default function AdminReportsPage() {
                   No movie data for this period
                 </div>
               ) : (
-                <div className="mb-6 h-64">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="mb-6 h-64 w-full min-w-0">
+                  <ResponsiveContainer width="100%" height={256} debounce={32}>
                     <BarChart
                       data={moviesData.slice(0, 10)}
                       layout="vertical"
@@ -246,7 +289,7 @@ export default function AdminReportsPage() {
                   </ResponsiveContainer>
                 </div>
               )}
-              <div className="rounded-md border">
+              <div className="cinect-glass rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -282,7 +325,7 @@ export default function AdminReportsPage() {
         </TabsContent>
 
         <TabsContent value="cinemas" className="space-y-6">
-          <Card>
+          <Card className="cinect-glass border">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Cinema Performance</CardTitle>
               <Button variant="outline" size="sm" onClick={exportCinemasCSV}>
@@ -296,8 +339,8 @@ export default function AdminReportsPage() {
                   No cinema data for this period
                 </div>
               ) : (
-                <div className="mb-6 h-64">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="mb-6 h-64 w-full min-w-0">
+                  <ResponsiveContainer width="100%" height={256} debounce={32}>
                     <BarChart
                       data={cinemasData.slice(0, 10)}
                       layout="vertical"
@@ -317,7 +360,7 @@ export default function AdminReportsPage() {
                   </ResponsiveContainer>
                 </div>
               )}
-              <div className="rounded-md border">
+              <div className="cinect-glass rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -353,5 +396,15 @@ export default function AdminReportsPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+export default function AdminReportsPageRoute() {
+  return (
+    <Suspense
+      fallback={<div className="text-muted-foreground p-8 text-sm">Loading reports…</div>}
+    >
+      <AdminReportsPage />
+    </Suspense>
   );
 }

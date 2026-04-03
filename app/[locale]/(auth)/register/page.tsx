@@ -73,7 +73,7 @@ export default function RegisterPage() {
         confirmPassword: data.confirmPassword,
       });
       router.push("/account/profile");
-    } catch (error) {
+    } catch {
       // Error toast already shown in AuthProvider
     } finally {
       setIsLoading(false);

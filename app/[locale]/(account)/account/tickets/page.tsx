@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -11,24 +11,34 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { useBookings } from "@/hooks/queries/use-bookings";
 import { Link } from "@/i18n/navigation";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { CalendarPlus, ExternalLink, Ticket } from "lucide-react";
+
+function formatShowtimeLabel(iso: string) {
+  const d = new Date(iso);
+  return isValid(d) ? format(d, "PPpp") : "—";
+}
 
 export default function AccountTicketsPage() {
   const t = useTranslations("account");
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
 
   const { data, isLoading, error, refetch } = useBookings({ limit: 100 });
-  const bookings = ((data?.data ?? data) || []) as Array<import("@/types/domain").Booking>;
-
-  const now = new Date();
+  const bookingsRaw = data?.data ?? data;
+  const bookings = useMemo(
+    () => ((bookingsRaw as Array<import("@/types/domain").Booking>) || []),
+    [bookingsRaw]
+  );
 
   const { upcoming, past } = useMemo(() => {
+    const now = new Date();
     const upcomingList: typeof bookings = [];
     const pastList: typeof bookings = [];
     for (const b of bookings) {
       const showtimeDate = new Date(b.showtime);
+      const showtimeOk = isValid(showtimeDate);
       const isUpcoming =
+        showtimeOk &&
         showtimeDate >= now &&
         (b.status === "PENDING" || b.status === "CONFIRMED" || b.status === "HELD");
       if (isUpcoming) {
@@ -38,11 +48,12 @@ export default function AccountTicketsPage() {
       }
     }
     return { upcoming: upcomingList, past: pastList };
-  }, [bookings, now]);
+  }, [bookings]);
 
   const handleAddToCalendar = (booking: import("@/types/domain").Booking) => {
     if (typeof window === "undefined") return;
     const start = new Date(booking.showtime);
+    if (!isValid(start)) return;
     const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
     const fmt = (d: Date) =>
       d
@@ -100,28 +111,28 @@ export default function AccountTicketsPage() {
         <ApiErrorState error={error} onRetry={refetch} />
       ) : (
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="space-y-4">
-          <TabsList>
+          <TabsList className="cinect-glass border">
             <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
             <TabsTrigger value="past">Past</TabsTrigger>
           </TabsList>
 
           <TabsContent value="upcoming" className="space-y-3">
             {upcoming.length === 0 ? (
-              <Card>
+              <Card className="cinect-glass border">
                 <CardContent className="py-10 text-center text-sm text-muted-foreground">
                   No upcoming tickets. Once you complete a booking, it will appear here.
                 </CardContent>
               </Card>
             ) : (
               upcoming.map((b) => (
-                <Card key={b.id} className="overflow-hidden">
+                <Card key={b.id} className="cinect-glass overflow-hidden border transition-all hover:shadow-lg">
                   <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="space-y-1">
                       <p className="text-sm font-semibold">{b.movieTitle}</p>
                       <p className="text-muted-foreground text-xs">
                         {b.cinemaName}
                         {b.roomName ? ` • ${b.roomName}` : ""} •{" "}
-                        {format(new Date(b.showtime), "PPpp")}
+                        {formatShowtimeLabel(b.showtime)}
                       </p>
                       <p className="text-muted-foreground text-xs">
                         Seats:{" "}
@@ -161,21 +172,21 @@ export default function AccountTicketsPage() {
 
           <TabsContent value="past" className="space-y-3">
             {past.length === 0 ? (
-              <Card>
+              <Card className="cinect-glass border">
                 <CardContent className="py-10 text-center text-sm text-muted-foreground">
                   No past tickets yet.
                 </CardContent>
               </Card>
             ) : (
               past.map((b) => (
-                <Card key={b.id} className="overflow-hidden">
+                <Card key={b.id} className="cinect-glass overflow-hidden border transition-all hover:shadow-lg">
                   <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="space-y-1">
                       <p className="text-sm font-semibold">{b.movieTitle}</p>
                       <p className="text-muted-foreground text-xs">
                         {b.cinemaName}
                         {b.roomName ? ` • ${b.roomName}` : ""} •{" "}
-                        {format(new Date(b.showtime), "PPpp")}
+                        {formatShowtimeLabel(b.showtime)}
                       </p>
                       <p className="text-muted-foreground text-xs">
                         Seats:{" "}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -11,28 +11,50 @@ interface CountdownTimerProps {
 
 export function CountdownTimer({ expiresAt, onExpire }: CountdownTimerProps) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
+  const onExpireRef = useRef(onExpire);
+  const expiredOnceRef = useRef(false);
 
   useEffect(() => {
-    const calculateTimeLeft = () => {
+    onExpireRef.current = onExpire;
+  }, [onExpire]);
+
+  useEffect(() => {
+    expiredOnceRef.current = false;
+
+    const calculateTimeLeft = (): number | null => {
       const now = new Date().getTime();
       const expiry = new Date(expiresAt).getTime();
+      if (!Number.isFinite(expiry)) return null;
       const diff = expiry - now;
       return Math.max(0, Math.floor(diff / 1000));
     };
 
-    setTimeLeft(calculateTimeLeft());
+    const initial = calculateTimeLeft();
+    setTimeLeft(initial ?? 0);
+    if (initial === null) return;
+    if (initial === 0) {
+      if (!expiredOnceRef.current) {
+        expiredOnceRef.current = true;
+        onExpireRef.current();
+      }
+      return;
+    }
 
     const interval = setInterval(() => {
       const left = calculateTimeLeft();
-      setTimeLeft(left);
+      setTimeLeft(left ?? 0);
+      if (left === null) return;
       if (left === 0) {
         clearInterval(interval);
-        onExpire();
+        if (!expiredOnceRef.current) {
+          expiredOnceRef.current = true;
+          onExpireRef.current();
+        }
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [expiresAt, onExpire]);
+  }, [expiresAt]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;

@@ -19,7 +19,8 @@ interface HoldSeatsPayload {
 }
 
 interface HoldResponse {
-  holdId: string;
+  holdId?: string;
+  id?: string;
   expiresAt: string;
 }
 
@@ -31,9 +32,8 @@ export function useHoldSeats() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["showtimes", variables.showtimeId, "seats"] });
     },
-    onError: (error: any) => {
-      toast.error(error?.message || "Failed to hold seats");
-    },
+    // Booking page handles conflicts and auth redirects; avoid toast loops here.
+    onError: () => {},
   });
 }
 
@@ -78,6 +78,7 @@ export function useSnacks(cinemaId?: string) {
 
 // Create booking
 interface CreateBookingPayload {
+  showtimeId: string;
   holdId: string;
   promoCode?: string;
   snacks?: Array<{ snackId: string; quantity: number }>;
@@ -87,9 +88,18 @@ interface CreateBookingPayload {
 
 export function useCreateBooking() {
   return useMutation({
-    mutationFn: (data: CreateBookingPayload) => apiClient.post<Booking>("/bookings", data),
-    onError: (error: any) => {
-      toast.error(error?.message || "Failed to create booking");
+    mutationFn: (data: CreateBookingPayload) =>
+      apiClient.post<Booking>("/bookings", {
+        showtimeId: data.showtimeId,
+        holdId: data.holdId,
+        promotionCode: data.promoCode,
+        pointsToUse: data.usePoints,
+        giftCardCode: data.giftCardCode,
+        snacks: data.snacks,
+      }),
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "Failed to create booking";
+      toast.error(message);
     },
   });
 }
@@ -109,13 +119,14 @@ export function useApplyPromo() {
 
   return useMutation({
     mutationFn: ({ bookingId, promoCode }: { bookingId: string; promoCode: string }) =>
-      apiClient.post(`/bookings/${bookingId}/apply-promo`, { promoCode }),
+      apiClient.post(`/bookings/${bookingId}/apply-promo`, { code: promoCode }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["bookings", variables.bookingId] });
       toast.success("Promo code applied!");
     },
-    onError: (error: any) => {
-      toast.error(error?.message || "Invalid promo code");
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "Invalid promo code";
+      toast.error(message);
     },
   });
 }
@@ -176,8 +187,11 @@ export function useApplyPoints() {
 // Initiate payment
 export function useInitiatePayment() {
   return useMutation({
-    mutationFn: (data: { bookingId: string; method: string; amount: number }) =>
-      apiClient.post<{ paymentId: string; paymentUrl?: string }>("/payments/initiate", data),
+    mutationFn: (data: { bookingId: string; method: string }) =>
+      apiClient.post<{ paymentId: string; transactionId: string; paymentUrl?: string }>(
+        "/payments/initiate",
+        data
+      ),
     onError: (error: unknown) => {
       const msg = error instanceof Error ? error.message : "Failed to initiate payment";
       toast.error(msg);
@@ -221,7 +235,7 @@ export function useApplyGiftCard() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ bookingId, giftCardCode }: { bookingId: string; giftCardCode: string }) =>
-      apiClient.post(`/bookings/${bookingId}/apply-gift-card`, { giftCardCode }),
+      apiClient.post(`/bookings/${bookingId}/apply-gift-card`, { code: giftCardCode }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["bookings", variables.bookingId] });
       toast.success("Gift card applied!");

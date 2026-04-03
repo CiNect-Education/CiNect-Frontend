@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
 import type { MovieListItem } from "@/types/domain";
+import Image from "next/image";
 
 interface HeroCarouselProps {
   movies: MovieListItem[];
@@ -32,10 +33,13 @@ export function HeroCarousel({ movies }: HeroCarouselProps) {
           <CarouselItem key={movie.id} className="pl-0">
             <div className="bg-muted relative aspect-[21/9] w-full overflow-hidden rounded-lg md:aspect-[3/1]">
               {movie.posterUrl ? (
-                <img
+                <Image
                   src={movie.posterUrl}
                   alt={movie.title}
-                  className="h-full w-full object-cover"
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
+                  priority
                 />
               ) : (
                 <div className="from-primary/20 to-primary/5 text-muted-foreground flex h-full w-full items-center justify-center bg-gradient-to-br">

@@ -10,6 +10,7 @@ const CANDIDATES = ["http://localhost:3001/api/v1", "http://localhost:8081/api/v
 const DEFAULT_URL = CANDIDATES[0]; // NestJS fallback
 
 let cachedUrl: string | null = null;
+const STORAGE_KEY = "cinect.apiBaseUrl";
 
 function isBrowser(): boolean {
   return typeof window !== "undefined";
@@ -46,12 +47,26 @@ export async function discoverApiBaseUrl(): Promise<string> {
     return DEFAULT_URL;
   }
 
+  // Browser: reuse last successful discovery to avoid probing dead ports.
+  const stored = window.localStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    cachedUrl = stored;
+    return cachedUrl;
+  }
+
   try {
     // Race both ports — first healthy response wins
     cachedUrl = await Promise.any(CANDIDATES.map(probeUrl));
   } catch {
     // All probes failed — fall back to default
     cachedUrl = DEFAULT_URL;
+  }
+
+  // Persist so we don't keep pinging the other backend on every refresh.
+  try {
+    window.localStorage.setItem(STORAGE_KEY, cachedUrl);
+  } catch {
+    // ignore storage errors
   }
 
   if (process.env.NODE_ENV === "development") {

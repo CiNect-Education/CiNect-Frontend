@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { usePaymentStatus, useConfirmBooking } from "@/hooks/queries/use-booking-flow";
-import { PaymentStatus } from "@/components/checkout/payment-status";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
-
 export default function PaymentCallbackPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -20,6 +18,7 @@ export default function PaymentCallbackPage() {
   const [error, setError] = useState<string | null>(null);
 
   const confirmBooking = useConfirmBooking();
+  const confirmOnceRef = useRef(false);
 
   // Step 1: Call callback endpoint to get paymentId
   useEffect(() => {
@@ -30,11 +29,11 @@ export default function PaymentCallbackPage() {
     }
 
     apiClient
-      .get<{ paymentId: string; bookingId: string; status: string }>("/payments/callback", {
+      .get<{ id: string; bookingId: string; status: string }>("/payments/callback", {
         transactionId,
       })
       .then((res) => {
-        setPaymentId(res.data.paymentId);
+        setPaymentId(res.data.id);
         setBookingId(res.data.bookingId);
         setLoading(false);
       })
@@ -50,20 +49,25 @@ export default function PaymentCallbackPage() {
 
   // Step 3: On success, confirm booking
   useEffect(() => {
-    if (paymentStatus === "SUCCESS" && bookingId && !confirmBooking.isSuccess) {
-      confirmBooking.mutate(bookingId);
-    }
+    if (paymentStatus !== "SUCCESS" || !bookingId) return;
+    if (confirmOnceRef.current || confirmBooking.isSuccess) return;
+    confirmOnceRef.current = true;
+    confirmBooking.mutate(bookingId);
   }, [paymentStatus, bookingId, confirmBooking]);
+
+  // Some backends already mark booking CONFIRMED on payment callback.
+  // In that case, confirm endpoint may fail (or be unnecessary) — still proceed to ticket.
+  const paymentSucceeded = paymentStatus === "SUCCESS" || paymentStatus === "PAID";
 
   // Navigate to ticket on confirm success
   useEffect(() => {
-    if (confirmBooking.isSuccess && bookingId) {
+    if ((paymentSucceeded || confirmBooking.isSuccess) && bookingId) {
       const timer = setTimeout(() => {
-        router.push(`/tickets/${bookingId}` as any);
+        router.push(`/tickets/${bookingId}`);
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [confirmBooking.isSuccess, bookingId, router]);
+  }, [paymentSucceeded, confirmBooking.isSuccess, bookingId, router]);
 
   // Timeout after 2 minutes
   const [timedOut, setTimedOut] = useState(false);
@@ -86,14 +90,14 @@ export default function PaymentCallbackPage() {
   if (error) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center px-4">
-        <Card className="w-full max-w-md">
+        <Card className="cinect-glass w-full max-w-md">
           <CardHeader className="text-center">
             <XCircle className="text-destructive mx-auto mb-2 h-12 w-12" />
             <CardTitle>Payment Error</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-center">
             <p className="text-muted-foreground">{error}</p>
-            <Button onClick={() => router.push("/" as any)}>Go Home</Button>
+            <Button onClick={() => router.push("/")}>Go Home</Button>
           </CardContent>
         </Card>
       </div>
@@ -103,9 +107,9 @@ export default function PaymentCallbackPage() {
   if (timedOut && paymentStatus !== "SUCCESS") {
     return (
       <div className="flex min-h-[60vh] items-center justify-center px-4">
-        <Card className="w-full max-w-md">
+        <Card className="cinect-glass w-full max-w-md">
           <CardHeader className="text-center">
-            <Clock className="mx-auto mb-2 h-12 w-12 text-yellow-500" />
+            <Clock className="text-primary mx-auto mb-2 h-12 w-12" />
             <CardTitle>Payment Timeout</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-center">
@@ -117,7 +121,7 @@ export default function PaymentCallbackPage() {
               <Button variant="outline" onClick={() => window.location.reload()}>
                 Retry
               </Button>
-              <Button onClick={() => router.push("/account/orders" as any)}>View Orders</Button>
+              <Button onClick={() => router.push("/account/orders")}>View Orders</Button>
             </div>
           </CardContent>
         </Card>
@@ -125,12 +129,12 @@ export default function PaymentCallbackPage() {
     );
   }
 
-  if (paymentStatus === "SUCCESS" || confirmBooking.isSuccess) {
+  if (paymentSucceeded || confirmBooking.isSuccess) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center px-4">
-        <Card className="w-full max-w-md">
+        <Card className="cinect-glass w-full max-w-md">
           <CardHeader className="text-center">
-            <CheckCircle2 className="mx-auto mb-2 h-12 w-12 text-green-500" />
+            <CheckCircle2 className="text-primary mx-auto mb-2 h-12 w-12" />
             <CardTitle>Payment Successful!</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-center">
@@ -147,7 +151,7 @@ export default function PaymentCallbackPage() {
   if (paymentStatus === "FAILED") {
     return (
       <div className="flex min-h-[60vh] items-center justify-center px-4">
-        <Card className="w-full max-w-md">
+        <Card className="cinect-glass w-full max-w-md">
           <CardHeader className="text-center">
             <XCircle className="text-destructive mx-auto mb-2 h-12 w-12" />
             <CardTitle>Payment Failed</CardTitle>
@@ -158,7 +162,7 @@ export default function PaymentCallbackPage() {
                 "Your payment was not successful. Please try again."}
             </p>
             <div className="flex justify-center gap-2">
-              <Button variant="outline" onClick={() => router.push("/" as any)}>
+              <Button variant="outline" onClick={() => router.push("/")}>
                 Go Home
               </Button>
               <Button onClick={() => window.location.reload()}>Retry Payment</Button>
@@ -172,7 +176,7 @@ export default function PaymentCallbackPage() {
   // Pending state
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4">
-      <Card className="w-full max-w-md">
+      <Card className="cinect-glass w-full max-w-md">
         <CardHeader className="text-center">
           <Loader2 className="text-primary mx-auto mb-2 h-12 w-12 animate-spin" />
           <CardTitle>Processing Payment</CardTitle>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { DataTable } from "@/components/admin/data-table";
@@ -61,7 +61,7 @@ export default function AdminCinemasPage() {
   const [editingCinema, setEditingCinema] = useState<Cinema | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Cinema | null>(null);
 
-  const { data: cinemasRes } = useAdminCinemas();
+  const { data: cinemasRes, isLoading: cinemasLoading } = useAdminCinemas();
   const cinemas = cinemasRes?.data ?? [];
   const createMutation = useCreateCinema();
   const updateMutation = useUpdateCinema();
@@ -92,7 +92,8 @@ export default function AdminCinemasPage() {
     setDialogOpen(true);
   }
 
-  function openEdit(cinema: Cinema) {
+  const openEdit = useCallback(
+    (cinema: Cinema) => {
     setEditingCinema(cinema);
     form.reset({
       name: cinema.name,
@@ -103,7 +104,9 @@ export default function AdminCinemasPage() {
       email: cinema.email ?? "",
     });
     setDialogOpen(true);
-  }
+    },
+    [form]
+  );
 
   async function onSubmit(values: CinemaFormValues) {
     const payload = {
@@ -169,7 +172,7 @@ export default function AdminCinemasPage() {
         ),
       },
     ],
-    []
+    [openEdit]
   );
 
   return (
@@ -189,10 +192,13 @@ export default function AdminCinemasPage() {
         data={cinemas}
         searchKey="name"
         searchPlaceholder="Search cinemas..."
+        className="cinect-glass rounded-lg border p-4"
+        isLoading={cinemasLoading}
+        emptyMessage="No cinemas found."
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="cinect-glass max-w-lg border">
           <DialogHeader>
             <DialogTitle>{editingCinema ? "Edit Cinema" : "Add Cinema"}</DialogTitle>
           </DialogHeader>
@@ -297,7 +303,7 @@ export default function AdminCinemasPage() {
       </Dialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="cinect-glass border">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Cinema</AlertDialogTitle>
             <AlertDialogDescription>

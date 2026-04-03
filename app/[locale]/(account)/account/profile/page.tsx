@@ -71,7 +71,7 @@ export default function ProfilePage() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         {/* Avatar Section */}
-        <Card>
+        <Card className="cinect-glass border">
           <CardHeader>
             <CardTitle className="text-lg">Avatar</CardTitle>
             <CardDescription>Update your profile picture</CardDescription>
@@ -119,7 +119,7 @@ export default function ProfilePage() {
         </Card>
 
         {/* Personal Info */}
-        <Card>
+        <Card className="cinect-glass border">
           <CardHeader>
             <CardTitle className="text-lg">Personal Information</CardTitle>
             <CardDescription>Update your personal details used for membership perks.</CardDescription>

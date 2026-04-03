@@ -227,9 +227,16 @@ async function request<T>(
   // ── Parse JSON ─────────────────────────────────────────────────
   const json = await response.json();
 
+  // ── Normalize to ApiEnvelope<T> ────────────────────────────────
+  // Some backends return a plain object/array instead of { data, timestamp }.
+  const normalized: ApiEnvelope<T> =
+    json && typeof json === "object" && "data" in (json as Record<string, unknown>)
+      ? (json as ApiEnvelope<T>)
+      : ({ data: json as T, timestamp: new Date().toISOString() } as ApiEnvelope<T>);
+
   // ── Validate with zod schema if provided ───────────────────────
   if (opts?.schema) {
-    const envelopeResult = apiEnvelopeSchema(opts.schema).safeParse(json);
+    const envelopeResult = apiEnvelopeSchema(opts.schema).safeParse(normalized);
     if (!envelopeResult.success) {
       // In development, log the full validation error
       if (process.env.NODE_ENV === "development") {
@@ -240,10 +247,13 @@ async function request<T>(
       }
       // Still return the raw data -- strict validation is opt-in
       // but we log so devs can catch contract drift early
+    } else {
+      // If validation succeeded, return the parsed (possibly transformed) data.
+      return envelopeResult.data as ApiEnvelope<T>;
     }
   }
 
-  return json as ApiEnvelope<T>;
+  return normalized;
 }
 
 // ─── Public API ────────────────────────────────────────────────────

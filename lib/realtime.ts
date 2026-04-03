@@ -1,3 +1,6 @@
+import { getApiBaseUrl } from "@/lib/api-discovery";
+import { io, type Socket } from "socket.io-client";
+
 export type SeatEvent = {
   type: "SEAT_HELD" | "SEAT_RELEASED" | "SEAT_BOOKED" | "HOLD_EXPIRED";
   seatIds: string[];
@@ -7,56 +10,46 @@ export type SeatEvent = {
 export type EventHandler = (event: SeatEvent) => void;
 
 export class RealtimeConnection {
-  private ws: WebSocket | null = null;
+  private socket: Socket | null = null;
   private handlers: Set<EventHandler> = new Set();
   private showtimeId: string;
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(showtimeId: string) {
     this.showtimeId = showtimeId;
   }
 
   connect() {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
-    const wsUrl = baseUrl.replace(/^http/, "ws").replace(/\/api\/v1$/, "");
+    const baseUrl = getApiBaseUrl();
+    const serverUrl = baseUrl.replace(/\/api\/v1$/, "");
 
-    try {
-      this.ws = new WebSocket(`${wsUrl}/ws/showtimes/${this.showtimeId}`);
+    this.socket = io(`${serverUrl}/ws`, {
+      transports: ["websocket"],
+      autoConnect: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 500,
+      reconnectionDelayMax: 5000,
+    });
 
-      this.ws.onopen = () => {
-        this.reconnectAttempts = 0;
-      };
+    const forward = (type: SeatEvent["type"]) => (payload: { showtimeId: string; seatIds: string[] }) => {
+      if (!payload?.showtimeId || !Array.isArray(payload.seatIds)) return;
+      this.handlers.forEach((handler) =>
+        handler({
+          type,
+          showtimeId: payload.showtimeId,
+          seatIds: payload.seatIds,
+        })
+      );
+    };
 
-      this.ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data) as SeatEvent;
-          this.handlers.forEach((handler) => handler(data));
-        } catch {
-          // Ignore parse errors
-        }
-      };
+    this.socket.on("connect", () => {
+      this.socket?.emit("joinShowtime", { showtimeId: this.showtimeId });
+    });
 
-      this.ws.onclose = () => {
-        this.attemptReconnect();
-      };
-
-      this.ws.onerror = () => {
-        this.ws?.close();
-      };
-    } catch {
-      // WebSocket not available, fallback handled by hook
-    }
-  }
-
-  private attemptReconnect() {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) return;
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-    this.reconnectTimeout = setTimeout(() => {
-      this.reconnectAttempts++;
-      this.connect();
-    }, delay);
+    this.socket.on("SEAT_HELD", forward("SEAT_HELD"));
+    this.socket.on("SEAT_RELEASED", forward("SEAT_RELEASED"));
+    this.socket.on("SEAT_BOOKED", forward("SEAT_BOOKED"));
+    this.socket.on("HOLD_EXPIRED", forward("HOLD_EXPIRED"));
   }
 
   subscribe(handler: EventHandler) {
@@ -65,13 +58,17 @@ export class RealtimeConnection {
   }
 
   disconnect() {
-    if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout);
-    this.ws?.close();
-    this.ws = null;
+    try {
+      this.socket?.emit("leaveShowtime", { showtimeId: this.showtimeId });
+    } catch {
+      // ignore
+    }
+    this.socket?.disconnect();
+    this.socket = null;
     this.handlers.clear();
   }
 
   get isConnected() {
-    return this.ws?.readyState === WebSocket.OPEN;
+    return this.socket?.connected === true;
   }
 }
