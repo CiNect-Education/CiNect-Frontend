@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -22,7 +22,9 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -33,6 +35,16 @@ interface DataTableProps<TData, TValue> {
   pageSize?: number;
   /** Hide pagination controls (e.g. when using server-side pagination) */
   hidePagination?: boolean;
+  /** Loading state (renders skeleton rows + disables pagination) */
+  isLoading?: boolean;
+  /** Optional wrapper className */
+  className?: string;
+  /** Optional className for the table chrome wrapper */
+  tableClassName?: string;
+  /** Empty message when no rows match */
+  emptyMessage?: string;
+  /** Optional element to render on the right side of the toolbar */
+  toolbarRight?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -42,6 +54,11 @@ export function DataTable<TData, TValue>({
   searchPlaceholder = "Search...",
   pageSize = 10,
   hidePagination = false,
+  isLoading = false,
+  className,
+  tableClassName,
+  emptyMessage = "No results.",
+  toolbarRight,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -62,23 +79,53 @@ export function DataTable<TData, TValue>({
     },
   });
 
+  const filteredCount = table.getFilteredRowModel().rows.length;
+  const totalCount = table.getCoreRowModel().rows.length;
+  const hasActiveSearch =
+    !!searchKey && String(table.getColumn(searchKey)?.getFilterValue() ?? "").trim().length > 0;
+
+  const skeletonRows = useMemo(() => Array.from({ length: Math.min(8, pageSize) }), [pageSize]);
+
   return (
-    <div className="space-y-4">
-      {searchKey && (
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <Input
-              placeholder={searchPlaceholder}
-              value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-              onChange={(event) => table.getColumn(searchKey)?.setFilterValue(event.target.value)}
-              className="pl-9"
-            />
+    <div className={cn("space-y-4", className)}>
+      {(searchKey || toolbarRight) && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-[220px] flex-1 items-center gap-2">
+            {searchKey && (
+              <div className="relative w-full max-w-md">
+                <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                <Input
+                  placeholder={searchPlaceholder}
+                  value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
+                  onChange={(event) =>
+                    table.getColumn(searchKey)?.setFilterValue(event.target.value)
+                  }
+                  className="pl-9"
+                />
+              </div>
+            )}
+            {!isLoading && (
+              <div className="text-muted-foreground hidden text-sm sm:block">
+                {hasActiveSearch ? (
+                  <>
+                    {filteredCount} / {totalCount} results
+                  </>
+                ) : (
+                  <>{totalCount} items</>
+                )}
+              </div>
+            )}
           </div>
+          {toolbarRight ? <div className="flex items-center gap-2">{toolbarRight}</div> : null}
         </div>
       )}
 
-      <div className="rounded-md border">
+      <div
+        className={cn(
+          "rounded-md border bg-background/40 backdrop-blur supports-[backdrop-filter]:bg-background/20",
+          tableClassName
+        )}
+      >
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -94,7 +141,17 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              skeletonRows.map((_, idx) => (
+                <TableRow key={`sk_${idx}`}>
+                  {columns.map((_, cidx) => (
+                    <TableCell key={`sk_${idx}_${cidx}`}>
+                      <Skeleton className="h-4 w-[70%]" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
@@ -107,7 +164,7 @@ export function DataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                  <div className="text-muted-foreground text-sm">{emptyMessage}</div>
                 </TableCell>
               </TableRow>
             )}
@@ -125,7 +182,7 @@ export function DataTable<TData, TValue>({
               variant="outline"
               size="sm"
               onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+              disabled={isLoading || !table.getCanPreviousPage()}
             >
               <ChevronLeft className="h-4 w-4" />
               Previous
@@ -134,7 +191,7 @@ export function DataTable<TData, TValue>({
               variant="outline"
               size="sm"
               onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
+              disabled={isLoading || !table.getCanNextPage()}
             >
               Next
               <ChevronRight className="h-4 w-4" />

@@ -2,7 +2,6 @@
 
 import { useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
@@ -21,6 +20,7 @@ import { BannerCarousel } from "@/components/home/banner-carousel";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import Image from "next/image";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -60,7 +60,6 @@ export default function HomePage() {
   const { data: bannersRes } = useBanners("home");
   const { data: trendingRes } = useTrendingPromotions();
   const { user, isAuthenticated } = useAuth();
-  const queryClient = useQueryClient();
 
   // Pull to refresh
   const handleRefresh = useCallback(async () => {
@@ -108,6 +107,8 @@ export default function HomePage() {
     discountType: string;
     imageUrl?: string;
   }>(trendingRes?.data ?? trendingRes);
+
+  const isSvgLikeRemote = (url: string) => url.includes("placehold.co");
 
   return (
     <div className="flex flex-col">
@@ -245,11 +246,17 @@ export default function HomePage() {
                 <Card className="overflow-hidden transition-all hover:shadow-lg">
                   <div className="bg-muted aspect-video overflow-hidden">
                     {promo.imageUrl ? (
-                      <img
-                        src={promo.imageUrl}
-                        alt={promo.title}
-                        className="h-full w-full object-cover"
-                      />
+                      <div className="relative h-full w-full">
+                        <Image
+                          src={promo.imageUrl}
+                          alt={promo.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                          className="object-cover"
+                          unoptimized={isSvgLikeRemote(promo.imageUrl)}
+                        />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                      </div>
                     ) : (
                       <div className="flex h-full items-center justify-center">
                         <Tag className="text-muted-foreground h-12 w-12" />
@@ -295,11 +302,17 @@ export default function HomePage() {
                 <Card className="w-64 overflow-hidden transition-all hover:shadow-lg">
                   {promo.imageUrl && (
                     <div className="bg-muted aspect-video overflow-hidden">
-                      <img
-                        src={promo.imageUrl}
-                        alt={promo.title}
-                        className="h-full w-full object-cover"
-                      />
+                      <div className="relative h-full w-full">
+                        <Image
+                          src={promo.imageUrl}
+                          alt={promo.title}
+                          fill
+                          sizes="256px"
+                          className="object-cover"
+                          unoptimized={isSvgLikeRemote(promo.imageUrl)}
+                        />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+                      </div>
                     </div>
                   )}
                   <CardContent className="p-4">
@@ -347,11 +360,16 @@ export default function HomePage() {
                 <Card className="overflow-hidden transition-all hover:shadow-lg">
                   <div className="bg-muted aspect-video overflow-hidden">
                     {article.imageUrl ? (
-                      <img
-                        src={article.imageUrl}
-                        alt={article.title}
-                        className="h-full w-full object-cover"
-                      />
+                      <div className="relative h-full w-full">
+                        <Image
+                          src={article.imageUrl}
+                          alt={article.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-cover"
+                        />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+                      </div>
                     ) : (
                       <div className="flex h-full items-center justify-center">
                         <Newspaper className="text-muted-foreground h-12 w-12" />

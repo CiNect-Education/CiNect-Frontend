@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { DataTable } from "@/components/admin/data-table";
@@ -90,7 +90,7 @@ export default function AdminUsersPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
-  const { data: usersRes } = useAdminUsers();
+  const { data: usersRes, isLoading: usersLoading } = useAdminUsers();
   const actualUsers = toList<User>(usersRes?.data ?? usersRes);
 
   const { data: cinemasRes } = useAdminCinemas();
@@ -134,7 +134,8 @@ export default function AdminUsersPage() {
     setCreateDialogOpen(true);
   }
 
-  function openEdit(user: User) {
+  const openEdit = useCallback(
+    (user: User) => {
     setEditingUser(user);
     const cinemaIds = (user as User & { cinemaIds?: string[] }).cinemaIds ?? [];
     editForm.reset({
@@ -145,7 +146,9 @@ export default function AdminUsersPage() {
       cinemaIds,
     });
     setEditDialogOpen(true);
-  }
+    },
+    [editForm]
+  );
 
   async function onCreateSubmit(values: CreateUserFormValues) {
     await createMutation.mutateAsync({
@@ -214,7 +217,7 @@ export default function AdminUsersPage() {
         ),
       },
     ],
-    []
+    [openEdit]
   );
 
   return (
@@ -234,10 +237,13 @@ export default function AdminUsersPage() {
         data={actualUsers}
         searchKey="fullName"
         searchPlaceholder="Search users..."
+        className="cinect-glass rounded-lg border p-4"
+        isLoading={usersLoading}
+        emptyMessage="No users found."
       />
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="cinect-glass max-w-lg border">
           <DialogHeader>
             <DialogTitle>Create User</DialogTitle>
           </DialogHeader>
@@ -331,7 +337,7 @@ export default function AdminUsersPage() {
       </Dialog>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="cinect-glass max-w-lg border">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
           </DialogHeader>
@@ -461,7 +467,7 @@ export default function AdminUsersPage() {
       </Dialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="cinect-glass border">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete User</AlertDialogTitle>
             <AlertDialogDescription>

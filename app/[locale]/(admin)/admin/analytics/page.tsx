@@ -20,7 +20,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { Download, FileDown, Calendar } from "lucide-react";
+import { Download, FileDown } from "lucide-react";
 import {
   useAdminAnalyticsRevenue,
   useAdminAnalyticsForecast,
@@ -42,7 +42,13 @@ const CHART_COLORS = [
   "hsl(var(--chart-5))",
 ];
 
-const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+const PIE_COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+];
 
 function toArray<T>(v: unknown): T[] {
   if (!v) return [];
@@ -218,7 +224,7 @@ export default function AdminAnalyticsPage() {
     >
       <div className="space-y-8">
         {/* Revenue Trend */}
-        <Card id="revenue-section">
+        <Card id="revenue-section" className="cinect-glass border">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Revenue Trend</CardTitle>
             <div className="flex gap-2">
@@ -242,8 +248,8 @@ export default function AdminAnalyticsPage() {
                 No revenue data for this period
               </div>
             ) : (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-64 w-full min-w-0">
+                <ResponsiveContainer width="100%" height={256} debounce={32}>
                   <LineChart data={mergedRevenueChart}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" tickFormatter={(v) => format(new Date(v), "MM/dd")} />
@@ -280,7 +286,7 @@ export default function AdminAnalyticsPage() {
         </Card>
 
         {/* Forecast Chart */}
-        <Card id="forecast-section">
+        <Card id="forecast-section" className="cinect-glass border">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Revenue Forecast</CardTitle>
             <div className="flex gap-2">
@@ -304,8 +310,8 @@ export default function AdminAnalyticsPage() {
                 No forecast data for this period
               </div>
             ) : (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-64 w-full min-w-0">
+                <ResponsiveContainer width="100%" height={256} debounce={32}>
                   <LineChart data={forecastData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" tickFormatter={(v) => format(new Date(v), "MM/dd")} />
@@ -332,7 +338,7 @@ export default function AdminAnalyticsPage() {
 
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Occupancy Heatmap (Treemap) */}
-          <Card id="occupancy-section">
+          <Card id="occupancy-section" className="cinect-glass border">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Occupancy by Cinema & Date</CardTitle>
               <div className="flex gap-2">
@@ -377,11 +383,11 @@ export default function AdminAnalyticsPage() {
                             const pct = Math.round(occ * 100);
                             const bg =
                               pct >= 80
-                                ? "bg-green-600/80"
+                                ? "bg-[hsl(var(--chart-3)/0.75)] text-[hsl(var(--primary-foreground))]"
                                 : pct >= 50
-                                  ? "bg-green-500/50"
+                                  ? "bg-[hsl(var(--chart-3)/0.4)]"
                                   : pct >= 25
-                                    ? "bg-yellow-500/50"
+                                    ? "bg-[hsl(var(--primary)/0.22)]"
                                     : "bg-muted";
                             return (
                               <td key={d} className="border-b p-2 text-center">
@@ -404,7 +410,7 @@ export default function AdminAnalyticsPage() {
           </Card>
 
           {/* Customer Segmentation */}
-          <Card id="segments-section">
+          <Card id="segments-section" className="cinect-glass border">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Customer Segmentation</CardTitle>
               <div className="flex gap-2">
@@ -428,8 +434,8 @@ export default function AdminAnalyticsPage() {
                   No segmentation data available
                 </div>
               ) : (
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="h-64 w-full min-w-0">
+                  <ResponsiveContainer width="100%" height={256} debounce={32}>
                     <PieChart>
                       <Pie
                         data={segmentsData.map((s, i) => ({
@@ -460,7 +466,7 @@ export default function AdminAnalyticsPage() {
         </div>
 
         {/* Top Movies */}
-        <Card id="movies-section">
+        <Card id="movies-section" className="cinect-glass border">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Top Performing Movies</CardTitle>
             <div className="flex gap-2">
@@ -484,8 +490,8 @@ export default function AdminAnalyticsPage() {
                 No movie data for this period
               </div>
             ) : (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-64 w-full min-w-0">
+                <ResponsiveContainer width="100%" height={256} debounce={32}>
                   <BarChart data={moviesData.slice(0, 10)} layout="vertical" margin={{ left: 100 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" tickFormatter={(v) => v.toLocaleString()} />
@@ -505,7 +511,7 @@ export default function AdminAnalyticsPage() {
         </Card>
 
         {/* Peak Hours */}
-        <Card id="peak-hours-section">
+        <Card id="peak-hours-section" className="cinect-glass border">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Peak Booking Hours</CardTitle>
             <div className="flex gap-2">
@@ -529,8 +535,8 @@ export default function AdminAnalyticsPage() {
                 No peak hours data available
               </div>
             ) : (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-64 w-full min-w-0">
+                <ResponsiveContainer width="100%" height={256} debounce={32}>
                   <BarChart data={peakHoursChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="hour" tickFormatter={(h) => `${h}:00`} />

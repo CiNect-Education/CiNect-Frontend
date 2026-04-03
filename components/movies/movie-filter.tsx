@@ -197,7 +197,7 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
   );
 
   return (
-    <Card>
+    <Card className="cinect-glass">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
@@ -216,6 +216,22 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
             </Button>
           )}
         </div>
+        {hasActiveFilters && (
+          <div className="text-muted-foreground mt-1 text-xs">
+            Active filters:{" "}
+            {[
+              q && "Search",
+              status && "Status",
+              genre && "Genre",
+              language && "Language",
+              ageRating && "Age",
+              (durationMin || durationMax) && "Duration",
+              formatParam && "Format",
+            ]
+              .filter(Boolean)
+              .join(" • ")}
+          </div>
+        )}
       </CardHeader>
       {collapsibleOnMobile ? (
         <>

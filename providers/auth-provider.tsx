@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { User } from "@/types/domain";
-import { setAccessToken, setRefreshToken, clearTokens } from "@/lib/auth-storage";
+import { setAccessToken, setRefreshToken, clearTokens, hasToken } from "@/lib/auth-storage";
 import { initApiClient } from "@/lib/api-client";
 import { useCurrentUser, useLogin, useRegister, useLogout } from "@/hooks/queries/use-auth";
 
@@ -33,13 +33,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [apiReady, setApiReady] = useState(false);
 
   // Fetch current user only after API discovery completes
-  const { data: userEnvelope, isLoading, refetch } = useCurrentUser(apiReady);
+  const { data: userEnvelope, isLoading: userQueryLoading, refetch } = useCurrentUser(apiReady);
   const user: User | null = userEnvelope?.data ?? null;
 
   const loginMutation = useLogin();
   const registerMutation = useRegister();
   const logoutMutation = useLogout();
 
+  /** Avoid flash redirect on hard refresh: query is disabled until apiReady + hasToken. */
+  const authBootstrapping = !apiReady;
+  const resolvingSession = apiReady && hasToken() && userQueryLoading;
+  const isLoading = authBootstrapping || resolvingSession;
   const isAuthenticated = !!user && !isLoading;
 
   // Auto-detect active backend on mount, then signal ready
@@ -51,8 +55,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
       if (event?.type === "updated" && event.query.state.error) {
-        const error = event.query.state.error as any;
-        if (error?.status === 401) {
+        const error = event.query.state.error as unknown;
+        const key = event.query.queryKey;
+        const isAuthMeQuery = Array.isArray(key) && key[0] === "auth" && key[1] === "me";
+        const status =
+          error && typeof error === "object" && "status" in error
+            ? (error as { status?: unknown }).status
+            : undefined;
+        if (isAuthMeQuery && status === 401) {
           clearTokens();
           queryClient.setQueryData(["auth", "me"], null);
           router.push("/login");
@@ -74,8 +84,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         await refetch();
         toast.success("Welcome back!");
-      } catch (error: any) {
-        toast.error(error?.message || "Login failed");
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Login failed";
+        toast.error(message);
         throw error;
       }
     },
@@ -99,8 +110,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         await refetch();
         toast.success("Account created successfully!");
-      } catch (error: any) {
-        toast.error(error?.message || "Registration failed");
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Registration failed";
+        toast.error(message);
         throw error;
       }
     },

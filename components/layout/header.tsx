@@ -9,6 +9,7 @@ import { UserMenu } from "@/components/shared/user-menu";
 import { GlobalSearch } from "@/components/shared/global-search";
 import { SettingsPanel } from "@/components/shared/settings-panel";
 import { MobileNav } from "./mobile-nav";
+import { ClientOnly } from "@/components/system/client-only";
 
 const CORE_NAV = [
   { key: "movies", href: "/movies" },
@@ -85,8 +86,12 @@ export function Header() {
 
           {/* Right: user + settings */}
           <div className="flex items-center gap-2">
-            <UserMenu />
-            <SettingsPanel />
+            <ClientOnly>
+              <UserMenu />
+            </ClientOnly>
+            <ClientOnly>
+              <SettingsPanel />
+            </ClientOnly>
           </div>
         </div>
       </div>
@@ -125,12 +130,18 @@ export function Header() {
 
           {/* Right side: search + book now */}
           <div className="ml-auto flex items-center gap-2">
-            <GlobalSearch />
+            <ClientOnly>
+              <GlobalSearch />
+            </ClientOnly>
 
             {/* Mobile: settings + user */}
             <div className="flex items-center gap-1 lg:hidden">
-              <SettingsPanel />
-              <UserMenu />
+              <ClientOnly>
+                <SettingsPanel />
+              </ClientOnly>
+              <ClientOnly>
+                <UserMenu />
+              </ClientOnly>
             </div>
 
             {/* Desktop: Book Now CTA */}

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { DataTable } from "@/components/admin/data-table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,7 +53,7 @@ export default function AdminBookingsPage() {
     [statusFilter, dateFrom, dateTo, search]
   );
 
-  const { data: bookingsRes } = useAdminBookings(params);
+  const { data: bookingsRes, isLoading: bookingsLoading } = useAdminBookings(params);
   const bookings = bookingsRes?.data ?? [];
   const cancelMutation = useAdminCancelBooking();
   const refundMutation = useAdminRefundBooking();
@@ -99,21 +100,18 @@ export default function AdminBookingsPage() {
       {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => (
-          <span
-            className={`inline-block rounded px-2 py-0.5 text-xs ${
-              row.original.status === "CONFIRMED"
-                ? "bg-green-500/20 text-green-700 dark:text-green-400"
-                : row.original.status === "CANCELLED"
-                  ? "bg-red-500/20 text-red-700 dark:text-red-400"
-                  : row.original.status === "COMPLETED"
-                    ? "bg-blue-500/20 text-blue-700 dark:text-blue-400"
-                    : "bg-muted text-muted-foreground"
-            }`}
-          >
-            {row.original.status}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const s = row.original.status;
+          const variant =
+            s === "CANCELLED"
+              ? "destructive"
+              : s === "CONFIRMED"
+                ? "default"
+                : s === "COMPLETED"
+                  ? "secondary"
+                  : "outline";
+          return <Badge variant={variant}>{s}</Badge>;
+        },
       },
       {
         accessorKey: "createdAt",
@@ -170,7 +168,7 @@ export default function AdminBookingsPage() {
         </Button>
       }
     >
-      <div className="mb-6 flex flex-wrap gap-3">
+      <div className="cinect-glass mb-6 flex flex-wrap gap-3 rounded-lg border p-4">
         <div className="relative min-w-[200px] flex-1">
           <Input
             placeholder="Search bookings..."
@@ -215,10 +213,13 @@ export default function AdminBookingsPage() {
         data={bookings}
         searchKey="movieTitle"
         searchPlaceholder="Search by movie..."
+        className="cinect-glass rounded-lg border p-4"
+        isLoading={bookingsLoading}
+        emptyMessage="No bookings found."
       />
 
       <AlertDialog open={!!cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="cinect-glass border">
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
             <AlertDialogDescription>

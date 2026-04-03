@@ -1,6 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,6 +8,7 @@ import { useActiveCampaigns } from "@/hooks/queries/use-campaigns";
 import { Link } from "@/i18n/navigation";
 import { Tag, Calendar } from "lucide-react";
 import { format } from "date-fns";
+import Image from "next/image";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -73,11 +73,16 @@ export default function CampaignsPage() {
               <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
                 <div className="bg-muted aspect-video overflow-hidden">
                   {campaign.imageUrl ? (
-                    <img
-                      src={campaign.imageUrl}
-                      alt={campaign.title}
-                      className="h-full w-full object-cover"
-                    />
+                    <div className="relative h-full w-full">
+                      <Image
+                        src={campaign.imageUrl}
+                        alt={campaign.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover"
+                      />
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+                    </div>
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
                       <Tag className="text-muted-foreground h-12 w-12" />

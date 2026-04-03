@@ -50,26 +50,47 @@ export const userSchema = z.object({
   fullName: z.string(),
   phone: n(z.string()),
   avatar: n(z.string()),
-  role: z.enum(["ADMIN", "STAFF", "USER"]),
+  // Some backends only return basic user fields; keep the rest optional.
+  role: z.enum(["ADMIN", "STAFF", "USER"]).optional().default("USER"),
   membershipTier: n(z.string()),
   membershipPoints: n(z.number()),
   dateOfBirth: n(z.string()),
   gender: n(z.string()),
   city: n(z.string()),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  createdAt: z.string().optional().default(new Date(0).toISOString()),
+  updatedAt: z.string().optional().default(new Date(0).toISOString()),
 });
 
 export const authTokensSchema = z.object({
   accessToken: z.string(),
-  refreshToken: z.string(),
-  expiresIn: z.number(),
+  refreshToken: z.string().optional().default(""),
+  expiresIn: z.number().optional().default(0),
 });
 
-export const authResponseSchema = z.object({
+const canonicalAuthSchema = z.object({
   user: userSchema,
   tokens: authTokensSchema,
 });
+
+const nestAuthSchema = z.object({
+  user: userSchema,
+  accessToken: z.string(),
+  refreshToken: z.string().optional(),
+});
+
+export const authResponseSchema = z
+  .union([canonicalAuthSchema, nestAuthSchema])
+  .transform((v) => {
+    if ("tokens" in v) return v;
+    return {
+      user: v.user,
+      tokens: {
+        accessToken: v.accessToken,
+        refreshToken: v.refreshToken ?? "",
+        expiresIn: 0,
+      },
+    };
+  });
 
 // ─── Inferred types ────────────────────────────────────────────────
 

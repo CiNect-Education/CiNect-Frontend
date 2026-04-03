@@ -10,7 +10,7 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import type { MovieListItem, CinemaListItem } from "@/types/domain";
@@ -49,20 +49,23 @@ export function GlobalSearch() {
 
   const { data: moviesData, isLoading: moviesLoading } = useQuery({
     queryKey: ["search", "movies", debouncedQuery],
-    queryFn: () => apiClient.get<MovieListItem[]>("/movies", { q: debouncedQuery }),
+    queryFn: () => apiClient.get<MovieListItem[]>("/movies", { search: debouncedQuery, limit: 10 }),
     enabled: debouncedQuery.length >= 2,
     staleTime: 30 * 1000,
   });
 
+  // Backend `GET /cinemas` may not support text search; fetch list then filter client-side.
   const { data: cinemasData, isLoading: cinemasLoading } = useQuery({
-    queryKey: ["search", "cinemas", debouncedQuery],
-    queryFn: () => apiClient.get<CinemaListItem[]>("/cinemas", { q: debouncedQuery }),
-    enabled: debouncedQuery.length >= 2,
-    staleTime: 30 * 1000,
+    queryKey: ["search", "cinemas"],
+    queryFn: () => apiClient.get<CinemaListItem[]>("/cinemas"),
+    enabled: open,
+    staleTime: 60 * 1000,
   });
 
   const movies = moviesData?.data ?? [];
-  const cinemas = cinemasData?.data ?? [];
+  const cinemas = (cinemasData?.data ?? []).filter((c) =>
+    debouncedQuery.length >= 2 ? c.name.toLowerCase().includes(debouncedQuery.toLowerCase()) : false
+  );
   const isLoading = moviesLoading || cinemasLoading;
   const hasResults = movies.length > 0 || cinemas.length > 0;
 
@@ -99,6 +102,9 @@ export function GlobalSearch() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="overflow-hidden p-0 shadow-lg">
           <DialogTitle className="sr-only">Search</DialogTitle>
+          <DialogDescription className="sr-only">
+            Search movies and cinemas by name.
+          </DialogDescription>
           <Command
             shouldFilter={false}
             className="[&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"

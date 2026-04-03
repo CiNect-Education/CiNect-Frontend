@@ -25,7 +25,7 @@ export function useSeatRealtime(showtimeId: string, selectedSeatIds: string[] = 
   const queryClient = useQueryClient();
   const connectionRef = useRef<RealtimeConnection | null>(null);
   const selectedRef = useRef(selectedSeatIds);
-  const [usePolling, setUsePolling] = useState(false);
+  const [usePolling, setUsePolling] = useState(true);
   const [conflictedSeatIds, setConflictedSeatIds] = useState<string[]>([]);
 
   selectedRef.current = selectedSeatIds;
@@ -65,9 +65,7 @@ export function useSeatRealtime(showtimeId: string, selectedSeatIds: string[] = 
     conn.connect();
 
     const checkConnected = () => {
-      if (!conn.isConnected) {
-        setUsePolling(true);
-      }
+      setUsePolling(!conn.isConnected);
     };
     const t = setTimeout(checkConnected, 2000);
 
@@ -77,7 +75,7 @@ export function useSeatRealtime(showtimeId: string, selectedSeatIds: string[] = 
       clearTimeout(t);
       conn.disconnect();
       connectionRef.current = null;
-      setUsePolling(false);
+      setUsePolling(true);
     };
   }, [showtimeId, queryClient]);
 

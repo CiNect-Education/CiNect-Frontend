@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { DataTable } from "@/components/admin/data-table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -74,7 +75,7 @@ export default function AdminPromotionsPage() {
   const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Promotion | null>(null);
 
-  const { data: promotionsRes } = useAdminPromotions();
+  const { data: promotionsRes, isLoading: promotionsLoading } = useAdminPromotions();
   const promotions = promotionsRes?.data ?? [];
   const createMutation = useCreatePromotion();
   const updateMutation = useUpdatePromotion();
@@ -118,7 +119,8 @@ export default function AdminPromotionsPage() {
     setDialogOpen(true);
   }
 
-  function openEdit(p: Promotion) {
+  const openEdit = useCallback(
+    (p: Promotion) => {
     setEditingPromotion(p);
     form.reset({
       title: p.title,
@@ -134,7 +136,9 @@ export default function AdminPromotionsPage() {
       status: p.status,
     });
     setDialogOpen(true);
-  }
+    },
+    [form]
+  );
 
   async function onSubmit(values: PromotionFormValues) {
     const payload = {
@@ -199,19 +203,11 @@ export default function AdminPromotionsPage() {
       {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => (
-          <span
-            className={`inline-block rounded px-2 py-0.5 text-xs ${
-              row.original.status === "ACTIVE"
-                ? "bg-green-500/20 text-green-700 dark:text-green-400"
-                : row.original.status === "EXPIRED"
-                  ? "bg-red-500/20 text-red-700 dark:text-red-400"
-                  : "bg-muted text-muted-foreground"
-            }`}
-          >
-            {row.original.status}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const s = row.original.status;
+          const variant = s === "ACTIVE" ? "default" : s === "EXPIRED" ? "destructive" : "outline";
+          return <Badge variant={variant}>{s}</Badge>;
+        },
       },
       {
         id: "actions",
@@ -238,7 +234,7 @@ export default function AdminPromotionsPage() {
         ),
       },
     ],
-    []
+    [openEdit]
   );
 
   return (
@@ -258,10 +254,13 @@ export default function AdminPromotionsPage() {
         data={promotions}
         searchKey="title"
         searchPlaceholder="Search promotions..."
+        className="cinect-glass rounded-lg border p-4"
+        isLoading={promotionsLoading}
+        emptyMessage="No promotions found."
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="cinect-glass max-w-lg border">
           <DialogHeader>
             <DialogTitle>{editingPromotion ? "Edit Promotion" : "Create Promotion"}</DialogTitle>
           </DialogHeader>
@@ -450,7 +449,7 @@ export default function AdminPromotionsPage() {
       </Dialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="cinect-glass border">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Promotion</AlertDialogTitle>
             <AlertDialogDescription>

@@ -15,7 +15,7 @@ interface PaymentStatusProps {
 
 export function PaymentStatus({ paymentId, onSuccess, onFailed }: PaymentStatusProps) {
   const [timedOut, setTimedOut] = useState(false);
-  const { data, isLoading, refetch } = usePaymentStatus(paymentId);
+  const { data, refetch } = usePaymentStatus(paymentId);
 
   const status = data?.data?.status;
   const transactionId = data?.data?.transactionId;
@@ -51,8 +51,8 @@ export function PaymentStatus({ paymentId, onSuccess, onFailed }: PaymentStatusP
   if (status === "SUCCESS") {
     return (
       <div className="flex flex-col items-center justify-center gap-4 rounded-lg border p-8 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
-          <CheckCircle2 className="h-10 w-10 text-green-600" />
+        <div className="bg-primary/10 flex h-16 w-16 items-center justify-center rounded-full">
+          <CheckCircle2 className="text-primary h-10 w-10" />
         </div>
         <h3 className="text-lg font-semibold">Payment Successful</h3>
         <p className="text-muted-foreground text-sm">Your payment has been confirmed.</p>

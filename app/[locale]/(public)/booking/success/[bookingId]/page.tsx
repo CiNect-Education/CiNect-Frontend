@@ -1,7 +1,6 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,7 +12,6 @@ import { CheckCircle, Download, Calendar, MapPin, Clock } from "lucide-react";
 
 export default function BookingSuccessPage() {
   const params = useParams();
-  const t = useTranslations();
   const bookingId = params.bookingId as string;
 
   const { data: bookingRes, isLoading, error, refetch } = useBooking(bookingId);
@@ -42,8 +40,8 @@ export default function BookingSuccessPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-16">
       <div className="mb-8 space-y-4 text-center">
-        <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
-          <CheckCircle className="h-10 w-10 text-green-600" />
+        <div className="bg-primary/10 inline-flex h-16 w-16 items-center justify-center rounded-full">
+          <CheckCircle className="text-primary h-10 w-10" />
         </div>
         <div>
           <h1 className="mb-2 text-3xl font-bold">Booking Confirmed!</h1>
@@ -53,7 +51,7 @@ export default function BookingSuccessPage() {
         </div>
       </div>
 
-      <Card>
+      <Card className="cinect-glass border">
         <CardContent className="space-y-6 pt-6">
           {/* Booking Info */}
           <div>

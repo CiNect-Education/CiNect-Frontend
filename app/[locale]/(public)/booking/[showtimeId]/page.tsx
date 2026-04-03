@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { SeatMap } from "@/components/booking/seat-map";
 import { CountdownTimer } from "@/components/booking/countdown-timer";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -17,11 +18,16 @@ import {
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useShowtimeSeats, useHoldSeats, useReleaseHold } from "@/hooks/queries/use-booking-flow";
-import { useSeatRealtime } from "@/hooks/use-seat-realtime";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ApiError } from "@/lib/api-client";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Calendar, Clock, MapPin, MonitorPlay, Ticket } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { Seat } from "@/types/domain";
+import { useSeatRealtime } from "@/hooks/use-seat-realtime";
+import { useShowtime } from "@/hooks/queries/use-cinemas";
+import { Separator } from "@/components/ui/separator";
+import Image from "next/image";
+import { format } from "date-fns";
 
 function extractConflictedSeatIds(error: unknown): string[] {
   if (!(error instanceof ApiError) || error.status !== 409) return [];
@@ -38,10 +44,29 @@ function extractConflictedSeatIds(error: unknown): string[] {
   return [];
 }
 
+function normalizeIsoDate(value: unknown): string | null {
+  if (typeof value === "string") {
+    const t = new Date(value).getTime();
+    return Number.isFinite(t) ? value : null;
+  }
+  if (value instanceof Date) {
+    const t = value.getTime();
+    return Number.isFinite(t) ? value.toISOString() : null;
+  }
+  if (typeof value === "number") {
+    const d = new Date(value);
+    const t = d.getTime();
+    return Number.isFinite(t) ? d.toISOString() : null;
+  }
+  return null;
+}
+
 export default function BookingPage() {
   const params = useParams();
   const router = useRouter();
+  const locale = (params as unknown as { locale?: string }).locale;
   const showtimeId = params.showtimeId as string;
+  const isMobile = useIsMobile();
 
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [holdId, setHoldId] = useState<string | null>(null);
@@ -49,8 +74,30 @@ export default function BookingPage() {
   const [conflictedSeatIds, setConflictedSeatIds] = useState<string[]>([]);
   const [expireModalOpen, setExpireModalOpen] = useState(false);
 
+  const expiringRef = useRef(false);
+
+  const { data: showtimeRes } = useShowtime(showtimeId);
+  const showtime = (showtimeRes?.data ?? showtimeRes) as unknown as {
+    movieTitle?: string;
+    moviePosterUrl?: string;
+    cinemaName?: string;
+    roomName?: string;
+    startTime?: string;
+    format?: string;
+    language?: string;
+    subtitles?: string;
+    availableSeats?: number;
+    totalSeats?: number;
+    memberExclusive?: boolean;
+    basePrice?: number;
+  } | null;
+
   const { data: seatsData, isLoading, error, refetch } = useShowtimeSeats(showtimeId);
-  const seats = seatsData?.data ?? (seatsData as unknown as Seat[]);
+  const seatsPayload = seatsData?.data ?? (seatsData as unknown);
+  const seats =
+    Array.isArray(seatsPayload)
+      ? (seatsPayload as Seat[])
+      : ((seatsPayload as { seats?: Seat[] } | null)?.seats ?? []);
   const holdMutation = useHoldSeats();
   const releaseMutation = useReleaseHold();
   const { conflictedSeatIds: realtimeConflicts, clearConflicts: clearRealtimeConflicts } =
@@ -77,15 +124,22 @@ export default function BookingPage() {
       const payload = response?.data ?? response;
       const holdIdVal =
         typeof payload === "object" && payload && "holdId" in payload
-          ? (payload as { holdId: string }).holdId
+          ? (payload as { holdId?: string }).holdId
+          : typeof payload === "object" && payload && "id" in payload
+            ? (payload as { id?: string }).id
           : (response as { holdId?: string }).holdId;
       const expiresAtVal =
         typeof payload === "object" && payload && "expiresAt" in payload
           ? (payload as { expiresAt: string }).expiresAt
           : (response as { expiresAt?: string }).expiresAt;
       setHoldId(holdIdVal ?? null);
-      setExpiresAt(expiresAtVal ?? null);
+      setExpiresAt(normalizeIsoDate(expiresAtVal));
     } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        const returnTo = `/${locale ?? ""}/booking/${showtimeId}`.replace("//", "/");
+        router.push(`/${locale ?? ""}/login?returnTo=${encodeURIComponent(returnTo)}`.replace("//", "/"));
+        return;
+      }
       const failed = extractConflictedSeatIds(err);
       if (failed.length > 0) {
         setConflictedSeatIds(failed);
@@ -94,21 +148,27 @@ export default function BookingPage() {
         setSelectedSeats([]);
       }
     }
-  }, [selectedSeats, showtimeId, holdMutation]);
+  }, [selectedSeats, showtimeId, holdMutation, router, locale]);
 
   const handleExpire = useCallback(async () => {
-    setExpireModalOpen(true);
-    if (holdId) {
-      try {
-        await releaseMutation.mutateAsync(holdId);
-      } catch {
-        // ignore
+    if (expiringRef.current) return;
+    expiringRef.current = true;
+    try {
+      setExpireModalOpen(true);
+      if (holdId) {
+        try {
+          await releaseMutation.mutateAsync(holdId);
+        } catch {
+          // ignore
+        }
       }
+      setHoldId(null);
+      setExpiresAt(null);
+      setSelectedSeats([]);
+      refetch();
+    } finally {
+      expiringRef.current = false;
     }
-    setHoldId(null);
-    setExpiresAt(null);
-    setSelectedSeats([]);
-    refetch();
   }, [holdId, releaseMutation, refetch]);
 
   const closeExpireModal = useCallback(() => {
@@ -117,20 +177,66 @@ export default function BookingPage() {
 
   const handleProceed = () => {
     if (!holdId) return;
-    router.push(`/checkout/${holdId}`);
+    router.push(`/${locale ?? ""}/checkout/${holdId}`.replace("//", "/"));
   };
 
-  useEffect(() => {
-    return () => {
-      if (holdId) {
-        releaseMutation.mutate(holdId);
-      }
-    };
-  }, [holdId, releaseMutation]);
+  // Intentionally avoid releasing on unmount.
+  // Holds are time-limited server-side; releasing on unmount can cause loops if the
+  // page remounts during dev/hydration transitions.
 
-  const seatArray = Array.isArray(seats) ? seats : [];
+  const seatArray: Seat[] = (Array.isArray(seats) ? seats : []).map((s) => {
+    const anySeat = s as unknown as {
+      row?: string;
+      rowLabel?: string;
+      price?: number | string | null;
+    };
+    const rawPrice = anySeat.price ?? 0;
+    const price =
+      typeof rawPrice === "string" ? Number(rawPrice) : typeof rawPrice === "number" ? rawPrice : 0;
+    return {
+      ...(s as Seat),
+      row: anySeat.row ?? anySeat.rowLabel ?? (s as Seat).row,
+      price: Number.isFinite(price) ? price : 0,
+    };
+  });
   const selectedSeatDetails = seatArray.filter((s) => selectedSeats.includes(s.id));
   const totalPrice = selectedSeatDetails.reduce((sum, seat) => sum + (seat.price ?? 0), 0);
+
+  const seatTypeStats = useMemo(() => {
+    const byType = new Map<string, { count: number; min: number; max: number }>();
+    for (const seat of seatArray) {
+      const rawType =
+        (seat as { type?: string; seatType?: string }).type ??
+        (seat as { seatType?: string }).seatType ??
+        "STANDARD";
+      const type = String(rawType);
+      if (type !== "STANDARD" && type !== "VIP" && type !== "COUPLE") continue;
+      const price = typeof seat.price === "number" ? seat.price : 0;
+      const cur = byType.get(type);
+      if (!cur) byType.set(type, { count: 1, min: price, max: price });
+      else
+        byType.set(type, {
+          count: cur.count + 1,
+          min: Math.min(cur.min, price),
+          max: Math.max(cur.max, price),
+        });
+    }
+    return byType;
+  }, [seatArray]);
+
+  const seatTypeLabel = (t: string) => {
+    if (t === "VIP") return "VIP";
+    if (t === "COUPLE") return "Couple";
+    if (t === "DISABLED") return "Disabled";
+    return "Standard";
+  };
+
+  const startDate = useMemo(() => {
+    const raw = showtime?.startTime;
+    if (!raw) return null;
+    const d = new Date(raw);
+    return Number.isFinite(d.getTime()) ? d : null;
+  }, [showtime?.startTime]);
 
   const handleAutoPickSeats = () => {
     const availableSeats = seatArray.filter((seat) => {
@@ -213,12 +319,142 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="mb-6 text-3xl font-bold">Select Your Seats</h1>
+    <div className="relative">
+      {/* Cinematic backdrop */}
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-background to-background" />
+        {showtime?.moviePosterUrl ? (
+          <div className="absolute inset-0 opacity-25 blur-[2px]">
+            <Image
+              src={showtime.moviePosterUrl}
+              alt=""
+              fill
+              sizes="100vw"
+              className="object-cover"
+              priority
+            />
+          </div>
+        ) : (
+          <div className="cinect-hero-glow absolute inset-0" />
+        )}
+      </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="mx-auto max-w-7xl px-4 py-8">
+        {/* Showtime header */}
+        <div className="mb-6 grid gap-4 lg:grid-cols-[240px,1fr]">
+          <div className="hidden lg:block">
+            <Card className="overflow-hidden">
+              <div className="bg-muted relative aspect-[2/3]">
+                {showtime?.moviePosterUrl ? (
+                  <Image
+                    src={showtime.moviePosterUrl}
+                    alt={showtime?.movieTitle ?? "Movie poster"}
+                    fill
+                    sizes="240px"
+                    className="object-cover"
+                    priority
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <Ticket className="text-muted-foreground h-10 w-10" />
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+
+          <Card className="cinect-glass border-border/60">
+            <CardContent className="p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-1">
+                  <div className="text-muted-foreground flex items-center gap-2 text-xs font-semibold tracking-[0.22em] uppercase">
+                    <MonitorPlay className="h-4 w-4" />
+                    Seat selection
+                  </div>
+                  <h1 className="text-2xl font-bold leading-tight sm:text-3xl">
+                    {showtime?.movieTitle ?? "Select Your Seats"}
+                  </h1>
+                  <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                    {showtime?.cinemaName && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <MapPin className="h-4 w-4" />
+                        {showtime.cinemaName}
+                        {showtime?.roomName ? ` • ${showtime.roomName}` : ""}
+                      </span>
+                    )}
+                    {startDate && (
+                      <>
+                        <span className="inline-flex items-center gap-1.5">
+                          <Calendar className="h-4 w-4" />
+                          {format(startDate, "PPP")}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <Clock className="h-4 w-4" />
+                          {format(startDate, "p")}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {showtime?.format && <Badge variant="outline">{showtime.format}</Badge>}
+                  {showtime?.language && <Badge variant="outline">{showtime.language}</Badge>}
+                  {showtime?.subtitles && <Badge variant="outline">{showtime.subtitles}</Badge>}
+                  {showtime?.memberExclusive && <Badge>Members</Badge>}
+                </div>
+              </div>
+
+              <Separator className="my-4" />
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-muted-foreground text-sm">
+                  Tip: hover a seat for details, drag to pan, pinch/wheel to zoom.
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline">
+                    {typeof showtime?.availableSeats === "number"
+                      ? `${showtime.availableSeats} available`
+                      : "Live availability"}
+                  </Badge>
+                  <Badge variant="outline">
+                    Base from{" "}
+                    {typeof showtime?.basePrice === "number" && Number.isFinite(showtime.basePrice)
+                      ? `$${showtime.basePrice.toFixed(2)}`
+                      : "—"}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Pricing chips */}
+              {seatTypeStats.size > 0 && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {["STANDARD", "VIP", "COUPLE"].map((type) => {
+                    const s = seatTypeStats.get(type);
+                    if (!s || s.count <= 0) return null;
+                    const label = seatTypeLabel(type);
+                    const priceLabel =
+                      Number.isFinite(s.min) && Number.isFinite(s.max)
+                        ? s.min === s.max
+                          ? `$${s.min.toFixed(2)}`
+                          : `$${s.min.toFixed(2)}–$${s.max.toFixed(2)}`
+                        : "—";
+                    return (
+                      <Badge key={type} variant="outline" className="gap-2">
+                        <span className="font-semibold">{label}</span>
+                        <span className="text-muted-foreground">{priceLabel}</span>
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="cinect-glass border-border/60">
             <CardContent className="pt-6">
               <SeatMap
                 seats={seatArray}
@@ -233,12 +469,14 @@ export default function BookingPage() {
 
         {/* Sticky sidebar (desktop) */}
         <div className="hidden lg:sticky lg:top-4 lg:block lg:self-start">
-          <Card>
+          <Card className="cinect-glass border-border/60">
             <CardHeader>
               <CardTitle>Booking Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {expiresAt && <CountdownTimer expiresAt={expiresAt} onExpire={handleExpire} />}
+              {!isMobile && expiresAt && (
+                <CountdownTimer expiresAt={expiresAt} onExpire={handleExpire} />
+              )}
 
               {allConflicts.length > 0 && (
                 <Alert variant="destructive">
@@ -253,7 +491,7 @@ export default function BookingPage() {
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Please select at least one seat or use \"Choose Best Seats\".
+                    Please select at least one seat or use &quot;Choose Best Seats&quot;.
                   </AlertDescription>
                 </Alert>
               )}
@@ -270,29 +508,61 @@ export default function BookingPage() {
 
               {selectedSeats.length > 0 && (
                 <>
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Seats:</span>
                       <span className="font-medium">{selectedSeats.length}</span>
                     </div>
-                    <div className="text-muted-foreground space-y-1 text-xs">
+                    <div className="space-y-2 text-xs">
                       {selectedSeatDetails.map((seat) => (
-                        <div key={seat.id} className="flex justify-between">
-                          <span>
-                            {seat.row}
-                            {seat.number} (
-                            {(seat as { type?: string }).type ??
-                              (seat as { seatType?: string }).seatType ??
-                              "Standard"}
-                            )
-                          </span>
-                          <span>${(seat.price ?? 0).toFixed(2)}</span>
+                        <div key={seat.id} className="flex items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="font-semibold">
+                              {seat.row}
+                              {seat.number}
+                            </div>
+                            <div className="text-muted-foreground">
+                              {seatTypeLabel(
+                                ((seat as { type?: string }).type ??
+                                  (seat as { seatType?: string }).seatType ??
+                                  "STANDARD") as string
+                              )}
+                            </div>
+                          </div>
+                          <div className="font-semibold tabular-nums">
+                            ${(seat.price ?? 0).toFixed(2)}
+                          </div>
                         </div>
                       ))}
                     </div>
+                    <div className="flex flex-wrap gap-2">
+                      {(() => {
+                        const counts = selectedSeatDetails.reduce(
+                          (acc, s) => {
+                            const t =
+                              (s as { type?: string; seatType?: string }).type ??
+                              (s as { seatType?: string }).seatType ??
+                              "STANDARD";
+                            const key = String(t);
+                            acc[key] = (acc[key] ?? 0) + 1;
+                            return acc;
+                          },
+                          {} as Record<string, number>
+                        );
+                        return Object.entries(counts)
+                          .sort((a, b) => b[1] - a[1])
+                          .map(([k, v]) => (
+                            <Badge key={k} variant="outline" className="gap-2">
+                              <span className="font-semibold">{seatTypeLabel(k)}</span>
+                              <span className="text-muted-foreground">{v}</span>
+                            </Badge>
+                          ));
+                      })()}
+                    </div>
+                    <Separator />
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Total:</span>
-                      <span className="text-lg font-bold">${totalPrice.toFixed(2)}</span>
+                      <span className="text-lg font-bold tabular-nums">${totalPrice.toFixed(2)}</span>
                     </div>
                   </div>
                 </>
@@ -318,9 +588,9 @@ export default function BookingPage() {
       </div>
 
       {/* Mobile bottom bar */}
-      <div className="bg-background fixed inset-x-0 bottom-0 z-40 border-t p-4 lg:hidden">
+      <div className="cinect-glass fixed inset-x-0 bottom-0 z-40 border-t p-4 lg:hidden">
         <div className="mx-auto flex max-w-7xl flex-col gap-2">
-          {expiresAt && <CountdownTimer expiresAt={expiresAt} onExpire={handleExpire} />}
+          {isMobile && expiresAt && <CountdownTimer expiresAt={expiresAt} onExpire={handleExpire} />}
           <div className="flex items-center justify-between gap-4">
             <div>
               <div className="text-sm font-medium">
@@ -328,7 +598,7 @@ export default function BookingPage() {
                   ? "Seats held"
                   : `${selectedSeats.length} seat${selectedSeats.length !== 1 ? "s" : ""} selected`}
               </div>
-              <div className="text-lg font-bold">${totalPrice.toFixed(2)}</div>
+              <div className="text-lg font-bold tabular-nums">${totalPrice.toFixed(2)}</div>
             </div>
             {!holdId ? (
               <Button
@@ -362,6 +632,7 @@ export default function BookingPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

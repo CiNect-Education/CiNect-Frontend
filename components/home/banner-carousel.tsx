@@ -8,6 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import Image from "next/image";
 
 interface Banner {
   id: string;
@@ -38,10 +39,13 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
           <CarouselItem key={banner.id} className="pl-0">
             <Link href={banner.linkUrl || "#"} className="block">
               <div className="bg-muted relative aspect-[21/9] w-full overflow-hidden rounded-lg md:aspect-[3/1]">
-                <img
+                <Image
                   src={banner.imageUrl}
                   alt={banner.title ?? "Banner"}
-                  className="h-full w-full object-cover"
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
+                  priority
                 />
                 {banner.title && (
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

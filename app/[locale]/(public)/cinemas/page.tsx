@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -12,6 +12,15 @@ import { ApiErrorState } from "@/components/system/api-error-state";
 import { useCinemas } from "@/hooks/queries/use-cinemas";
 import { Building2, MapPin, Film } from "lucide-react";
 import type { CinemaListItem } from "@/types/domain";
+import Image from "next/image";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -21,13 +30,18 @@ function toList<T>(v: unknown): T[] {
   return Array.isArray(arr) ? arr : [];
 }
 
+const ALL_CITIES = "__ALL__";
+
 export default function CinemasPage() {
   const t = useTranslations("cinemas");
   const searchParams = useSearchParams();
   const router = useRouter();
 
   const city = searchParams.get("city") || "";
-  const amenities = searchParams.get("amenities")?.split(",").filter(Boolean) || [];
+  const amenities = useMemo(
+    () => searchParams.get("amenities")?.split(",").filter(Boolean) || [],
+    [searchParams]
+  );
 
   const params: Record<string, string> = {};
   if (city) params.city = city;
@@ -81,36 +95,50 @@ export default function CinemasPage() {
       />
 
       {/* Filters */}
-      <div className="mb-6 flex flex-wrap gap-3">
-        <div className="flex items-center gap-2">
-          <MapPin className="text-muted-foreground h-4 w-4" />
-          <select
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            className="rounded-md border px-3 py-2 text-sm"
-          >
-            <option value="">All cities</option>
-            {cityOptions.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-        {allAmenities.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            <span className="text-muted-foreground text-sm">Amenities:</span>
-            {allAmenities.map((a) => (
-              <Badge
-                key={a}
-                variant={amenities.includes(a) ? "default" : "outline"}
-                className="cursor-pointer"
-                onClick={() => toggleAmenity(a)}
-              >
-                {a}
-              </Badge>
-            ))}
+      <div className="cinect-glass mb-6 rounded-xl border p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-2">
+            <MapPin className="text-muted-foreground h-4 w-4" />
+            <Select
+              value={city ? city : ALL_CITIES}
+              onValueChange={(v) => setCity(v === ALL_CITIES ? "" : v)}
+            >
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="All cities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_CITIES}>All cities</SelectItem>
+                {cityOptions.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+
+          <div className="text-muted-foreground text-sm">
+            {cinemas.length} cinema{cinemas.length !== 1 ? "s" : ""} found
+          </div>
+        </div>
+
+        {allAmenities.length > 0 && (
+          <>
+            <Separator className="my-4" />
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-muted-foreground text-sm">Amenities:</span>
+              {allAmenities.map((a) => (
+                <Badge
+                  key={a}
+                  variant={amenities.includes(a) ? "default" : "outline"}
+                  className="cursor-pointer"
+                  onClick={() => toggleAmenity(a)}
+                >
+                  {a}
+                </Badge>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
@@ -142,11 +170,16 @@ export default function CinemasPage() {
               <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
                 <div className="bg-muted aspect-video overflow-hidden">
                   {cinema.imageUrl ? (
-                    <img
-                      src={cinema.imageUrl}
-                      alt={cinema.name}
-                      className="h-full w-full object-cover"
-                    />
+                    <div className="relative h-full w-full">
+                      <Image
+                        src={cinema.imageUrl}
+                        alt={cinema.name}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover"
+                      />
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
+                    </div>
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
                       <Film className="text-muted-foreground h-16 w-16" />
