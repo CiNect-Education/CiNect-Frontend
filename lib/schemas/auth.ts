@@ -17,7 +17,9 @@ export const loginSchema = z.object({
 export const registerSchema = z
   .object({
     email: z.string().email("Invalid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    password: z.string()
+      .min(8, "Password must be at least 8 characters")
+      .max(100, "Password must be at most 100 characters"),
     confirmPassword: z.string(),
     fullName: z.string().min(2, "Name must be at least 2 characters"),
     phone: z.string().optional(),
@@ -57,8 +59,8 @@ export const userSchema = z.object({
   dateOfBirth: n(z.string()),
   gender: n(z.string()),
   city: n(z.string()),
-  createdAt: z.string().optional().default(new Date(0).toISOString()),
-  updatedAt: z.string().optional().default(new Date(0).toISOString()),
+  createdAt: z.string().nullable().optional().transform((v) => v ?? new Date(0).toISOString()),
+  updatedAt: z.string().nullable().optional().transform((v) => v ?? new Date(0).toISOString()),
 });
 
 export const authTokensSchema = z.object({

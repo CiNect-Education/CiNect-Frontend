@@ -102,7 +102,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       phone?: string;
     }) => {
       try {
-        const response = await registerMutation.mutateAsync(data);
+        const { confirmPassword, ...payload } = data;
+        const response = await registerMutation.mutateAsync(payload);
         const { tokens } = response.data;
         setAccessToken(tokens.accessToken);
         if (tokens.refreshToken) {

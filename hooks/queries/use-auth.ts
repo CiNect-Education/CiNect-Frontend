@@ -42,7 +42,7 @@ export function useRegister() {
 
   return useApiMutation<
     { user: User; tokens: { accessToken: string; refreshToken: string; expiresIn: number } },
-    RegisterInput
+    Omit<RegisterInput, "confirmPassword">
   >("post", "/auth/register", {
     schema: authResponseSchema,
     successMessage: "Registration successful",
