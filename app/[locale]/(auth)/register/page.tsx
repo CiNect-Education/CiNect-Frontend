@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,16 +29,46 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
+const FULL_NAME_REGEX = /^[\p{L}\s]+$/u;
+const GMAIL_EMAIL_REGEX = /^[A-Za-z0-9]+@gmail\.com$/;
+const PHONE_REGEX = /^0\d{9}$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
 const registerSchema = z
   .object({
-    fullName: z.string().min(2),
-    email: z.string().email(),
-    phone: z.string().optional(),
-    password: z.string().min(6),
-    confirmPassword: z.string().min(6),
+    fullName: z
+      .string()
+      .trim()
+      .min(2, "Họ tên phải có ít nhất 2 ký tự")
+      .max(50, "Họ tên không được vượt quá 50 ký tự")
+      .regex(FULL_NAME_REGEX, "Họ tên chỉ được chứa chữ cái và khoảng trắng"),
+    email: z
+      .string()
+      .trim()
+      .min(1, "Email là bắt buộc")
+      .regex(GMAIL_EMAIL_REGEX, "Email phải đúng định dạng ten@gmail.com và không chứa ký tự đặc biệt"),
+    phone: z
+      .string()
+      .trim()
+      .min(1, "Số điện thoại là bắt buộc")
+      .regex(PHONE_REGEX, "Số điện thoại không hợp lệ, phải bắt đầu bằng 0 và có đúng 10 chữ số"),
+    password: z
+      .string()
+      .min(1, "Mật khẩu là bắt buộc")
+      .regex(
+        PASSWORD_REGEX,
+        "Mật khẩu phải có ít nhất 8 ký tự gồm chữ thường, chữ hoa, số và ký tự đặc biệt"
+      ),
+    confirmPassword: z
+      .string()
+      .min(1, "Xác nhận mật khẩu là bắt buộc")
+      .regex(
+        PASSWORD_REGEX,
+        "Xác nhận mật khẩu phải có ít nhất 8 ký tự gồm chữ thường, chữ hoa, số và ký tự đặc biệt"
+      ),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: "Xác nhận mật khẩu phải trùng với mật khẩu",
     path: ["confirmPassword"],
   });
 
@@ -53,6 +84,8 @@ export default function RegisterPage() {
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: {
       fullName: "",
       email: "",
@@ -62,13 +95,17 @@ export default function RegisterPage() {
     },
   });
 
+  function onInvalidSubmit() {
+    toast.error("Vui lòng kiểm tra lại thông tin đăng ký");
+  }
+
   async function onSubmit(data: RegisterFormValues) {
     setIsLoading(true);
     try {
       await register({
-        fullName: data.fullName,
-        email: data.email,
-        phone: data.phone || "",
+        fullName: data.fullName.trim(),
+        email: data.email.trim().toLowerCase(),
+        phone: data.phone.trim(),
         password: data.password,
         confirmPassword: data.confirmPassword,
       });
@@ -88,7 +125,7 @@ export default function RegisterPage() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit, onInvalidSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="fullName"
@@ -109,7 +146,20 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>{t("email")}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="name@example.com" {...field} />
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        inputMode="email"
+                        placeholder="ten"
+                        className="pr-24"
+                        {...field}
+                      />
+                      {field.value && !field.value.includes("@") ? (
+                        <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm">
+                          @gmail.com
+                        </span>
+                      ) : null}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -122,7 +172,7 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>{t("phone")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="0901234567" {...field} />
+                    <Input placeholder="0901234567" inputMode="tel" maxLength={10} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
