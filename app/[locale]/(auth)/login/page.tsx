@@ -8,6 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,9 +30,22 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
+const GMAIL_EMAIL_REGEX = /^[A-Za-z0-9]+@gmail\.com$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Email là bắt buộc")
+    .regex(GMAIL_EMAIL_REGEX, "Email phải đúng định dạng ten@gmail.com và không chứa ký tự đặc biệt"),
+  password: z
+    .string()
+    .min(1, "Mật khẩu là bắt buộc")
+    .regex(
+      PASSWORD_REGEX,
+      "Mật khẩu phải có ít nhất 8 ký tự gồm chữ thường, chữ hoa, số và ký tự đặc biệt"
+    ),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -51,13 +65,22 @@ export default function LoginPage() {
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: { email: "", password: "" },
   });
+
+  function onInvalidSubmit() {
+    toast.error("Vui lòng kiểm tra lại email và mật khẩu");
+  }
 
   async function onSubmit(data: LoginFormValues) {
     setIsLoading(true);
     try {
-      await login(data);
+      await login({
+        email: data.email.trim().toLowerCase(),
+        password: data.password,
+      });
       router.push(returnTo);
     } catch {
       // Error toast already shown in AuthProvider
@@ -74,7 +97,7 @@ export default function LoginPage() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit, onInvalidSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="email"
@@ -82,7 +105,20 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>{t("email")}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="name@example.com" {...field} />
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        inputMode="email"
+                        placeholder="ten"
+                        className="pr-24"
+                        {...field}
+                      />
+                      {field.value && !field.value.includes("@") ? (
+                        <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm">
+                          @gmail.com
+                        </span>
+                      ) : null}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

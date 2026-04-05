@@ -7,20 +7,60 @@ const n = <T extends z.ZodTypeAny>(schema: T) =>
     .nullable()
     .transform((v) => v ?? undefined);
 
+const FULL_NAME_REGEX = /^[\p{L}\s]+$/u;
+const GMAIL_EMAIL_REGEX = /^[A-Za-z0-9]+@gmail\.com$/;
+const PHONE_REGEX = /^\d{10}$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
 // ─── Request schemas (form validation) ─────────────────────────────
 
 export const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Email is required")
+    .regex(GMAIL_EMAIL_REGEX, "Email must be in ten@gmail.com format and contain no special characters"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .regex(
+      PASSWORD_REGEX,
+      "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+    ),
 });
 
 export const registerSchema = z
   .object({
-    email: z.string().email("Invalid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string(),
-    fullName: z.string().min(2, "Name must be at least 2 characters"),
-    phone: z.string().optional(),
+    email: z
+      .string()
+      .trim()
+      .min(1, "Email is required")
+      .regex(GMAIL_EMAIL_REGEX, "Email must be in ten@gmail.com format and contain no special characters"),
+    password: z
+      .string()
+      .min(1, "Password is required")
+      .regex(
+        PASSWORD_REGEX,
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+      ),
+    confirmPassword: z
+      .string()
+      .min(1, "Confirm password is required")
+      .regex(
+        PASSWORD_REGEX,
+        "Confirm password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+      ),
+    fullName: z
+      .string()
+      .trim()
+      .min(2, "Name must be at least 2 characters")
+      .max(50, "Name must be at most 50 characters")
+      .regex(FULL_NAME_REGEX, "Name can only contain letters and spaces"),
+    phone: z
+      .string()
+      .trim()
+      .min(1, "Phone number is required")
+      .regex(PHONE_REGEX, "Phone number must be exactly 10 digits"),
   })
   .refine((d) => d.password === d.confirmPassword, {
     message: "Passwords do not match",
@@ -51,14 +91,14 @@ export const userSchema = z.object({
   phone: n(z.string()),
   avatar: n(z.string()),
   // Some backends only return basic user fields; keep the rest optional.
-  role: z.enum(["ADMIN", "STAFF", "USER"]).optional().default("USER"),
+  role: n(z.enum(["ADMIN", "STAFF", "USER"])).transform((v) => v ?? "USER"),
   membershipTier: n(z.string()),
   membershipPoints: n(z.number()),
   dateOfBirth: n(z.string()),
   gender: n(z.string()),
   city: n(z.string()),
-  createdAt: z.string().optional().default(new Date(0).toISOString()),
-  updatedAt: z.string().optional().default(new Date(0).toISOString()),
+  createdAt: n(z.string()),
+  updatedAt: n(z.string()),
 });
 
 export const authTokensSchema = z.object({

@@ -19,7 +19,7 @@ interface AuthContextValue {
     password: string;
     confirmPassword: string;
     fullName: string;
-    phone?: string;
+    phone: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
   refetchUser: () => void;
@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password: string;
       confirmPassword: string;
       fullName: string;
-      phone?: string;
+      phone: string;
     }) => {
       try {
         const response = await registerMutation.mutateAsync(data);
