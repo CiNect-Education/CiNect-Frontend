@@ -211,7 +211,8 @@
     "holdExpired": "Ghế hết thời gian giữ",
     "holdExpiring": "Ghế sắp hết thời gian giữ",
     "seatConflict": "Ghế trùng",
-    "seatsUnavailable": "Ghế không còn trống"
+    "seatsUnavailable": "Ghế không còn trống",
+    "seatMapHint": "Chạm vào ghế để chọn. Màn hình nhỏ có thể vuốt ngang nếu hàng ghế rộng."
   },
   "checkout": {
     "title": "Thanh Toán",

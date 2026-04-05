@@ -211,7 +211,8 @@
     "holdExpired": "Seat hold expired",
     "holdExpiring": "Seat hold expiring",
     "seatConflict": "Seat conflict",
-    "seatsUnavailable": "Seats unavailable"
+    "seatsUnavailable": "Seats unavailable",
+    "seatMapHint": "Tap a seat to select. On small screens, scroll sideways if the row is wide."
   },
   "checkout": {
     "title": "Checkout",
