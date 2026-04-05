@@ -13,7 +13,7 @@ export function useMembershipTiers() {
 }
 
 export function useMembershipProfile() {
-  return useApiQuery<MembershipProfile>(
+  return useApiQuery<MembershipProfile | null>(
     ["membership", "profile"],
     "/membership/profile",
     undefined,

@@ -57,27 +57,82 @@ export const newsArticleSchema = z.object({
   createdAt: z.string(),
 });
 
+/** Normalize tier benefits from JSON/Prisma (array, JSON string, or missing). */
+function normalizeBenefitsList(val: unknown): string[] {
+  if (Array.isArray(val)) return val.map((x) => String(x));
+  if (typeof val === "string") {
+    try {
+      const p = JSON.parse(val) as unknown;
+      return Array.isArray(p) ? p.map((x) => String(x)) : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 export const membershipTierSchema = z.object({
-  id: z.string(),
+  id: z.coerce.string(),
   name: z.string(),
-  level: z.number(),
-  pointsRequired: z.number(),
-  benefits: z.array(z.string()),
-  discountPercent: z.number(),
+  level: z.coerce.number(),
+  pointsRequired: z.coerce.number(),
+  benefits: z.preprocess((v) => normalizeBenefitsList(v), z.array(z.string())),
+  discountPercent: z.coerce.number(),
   color: z.string(),
   icon: nullish(z.string()),
 });
 
-export const membershipProfileSchema = z.object({
-  userId: z.string(),
+/** Nested profile (Nest / Spring aligned). */
+const membershipProfileObjectSchema = z.object({
+  userId: z.coerce.string(),
   tier: membershipTierSchema,
-  currentPoints: z.number(),
-  totalPoints: z.number(),
+  currentPoints: z.coerce.number(),
+  totalPoints: z.coerce.number(),
   nextTier: nullish(membershipTierSchema),
-  pointsToNextTier: nullish(z.number()),
-  memberSince: z.string(),
-  expiresAt: nullish(z.string()),
+  pointsToNextTier: nullish(z.coerce.number()),
+  memberSince: z.coerce.string(),
+  expiresAt: nullish(z.coerce.string()),
 });
+
+/**
+ * Spring previously returned a flat DTO (tierName, tierLevel, …); Nest returns nested `tier`.
+ * Accept both; allow null when the backend has no membership row.
+ */
+function preprocessMembershipProfileData(raw: unknown): unknown {
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw !== "object" || raw === null) return raw;
+  const o = raw as Record<string, unknown>;
+  if (o.tier && typeof o.tier === "object") {
+    return raw;
+  }
+  if ("tierName" in o || "tierLevel" in o || "tierId" in o) {
+    return {
+      userId: o.userId,
+      tier: {
+        id: o.tierId,
+        name: o.tierName,
+        level: o.tierLevel,
+        pointsRequired: o.pointsRequired,
+        benefits: o.benefits,
+        discountPercent: o.discountPercent,
+        color: o.color,
+        icon: o.icon,
+      },
+      currentPoints: o.currentPoints,
+      totalPoints: o.totalPoints,
+      nextTier: o.nextTier,
+      pointsToNextTier: o.pointsToNextTier,
+      memberSince: o.memberSince,
+      expiresAt: o.expiresAt,
+    };
+  }
+  return raw;
+}
+
+export const membershipProfileSchema = z.preprocess(
+  preprocessMembershipProfileData,
+  membershipProfileObjectSchema.nullable()
+);
 
 export const giftCardSchema = z.object({
   id: z.string(),

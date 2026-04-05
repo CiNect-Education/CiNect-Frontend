@@ -163,6 +163,22 @@ export interface Showtime {
   memberExclusive?: boolean;
 }
 
+/** GET /holds/:id — normalized for checkout (Nest/Spring + legacy Prisma shape). */
+export interface HoldDetails {
+  holdId: string;
+  showtimeId: string;
+  expiresAt: string;
+  seats: Array<{ id: string; row: string; number: number; type: string; price?: number }>;
+  showtime?: {
+    movieTitle?: string;
+    cinemaName?: string;
+    roomName?: string;
+    startTime?: string;
+    format?: string;
+    cinemaId?: string;
+  };
+}
+
 export interface BookingItem {
   seatId: string;
   row: string;
