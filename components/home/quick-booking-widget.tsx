@@ -41,7 +41,9 @@ import {
   SELECTED_CITY_STORAGE_KEY,
   bookingCityLabel,
   localCalendarDate,
+  persistSelectedBookingCity,
 } from "@/lib/booking-region";
+import { DetectRegionButton } from "@/components/shared/detect-region-button";
 import { cn } from "@/lib/utils";
 
 const ANY = "__ANY__";
@@ -135,8 +137,7 @@ export function QuickBookingWidget() {
     const next = v === NO_CITY ? "" : v;
     setCityId(next);
     if (typeof window !== "undefined") {
-      if (next) localStorage.setItem(SELECTED_CITY_STORAGE_KEY, next);
-      else localStorage.removeItem(SELECTED_CITY_STORAGE_KEY);
+      persistSelectedBookingCity(next);
     }
   }
 
@@ -321,10 +322,17 @@ export function QuickBookingWidget() {
                 <p className="text-muted-foreground text-sm">{t("quickBookingSubtitle")}</p>
 
                 <div className="min-w-0 space-y-2">
-                  <Label className="flex items-center gap-2 text-sm font-medium">
-                    <MapPin className="h-4 w-4 text-primary" />
-                    {t("selectCity")}
-                  </Label>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <Label className="flex items-center gap-2 text-sm font-medium">
+                      <MapPin className="h-4 w-4 text-primary" />
+                      {t("selectCity")}
+                    </Label>
+                    <DetectRegionButton
+                      size="sm"
+                      variant="secondary"
+                      onApplied={(id) => setCityId(id)}
+                    />
+                  </div>
                   <Select value={cityId || NO_CITY} onValueChange={handleCityChange}>
                     <SelectTrigger className="h-11 w-full max-w-full rounded-lg border-primary/15 bg-background/80">
                       <SelectValue placeholder={t("chooseCity")} />

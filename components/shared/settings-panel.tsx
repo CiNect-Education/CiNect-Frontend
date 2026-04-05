@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Settings, Sun, Moon, Monitor, MapPin, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SELECTED_CITY_STORAGE_KEY } from "@/lib/booking-region";
+import { persistSelectedBookingCity, SELECTED_CITY_STORAGE_KEY } from "@/lib/booking-region";
+import { DetectRegionButton } from "@/components/shared/detect-region-button";
 
 const CITIES = [
   { id: "hcm", name: "TP. Ho Chi Minh" },
@@ -42,7 +43,7 @@ export function SettingsPanel() {
 
   function handleCitySelect(cityId: string) {
     setSelectedCity(cityId);
-    localStorage.setItem(SELECTED_CITY_STORAGE_KEY, cityId);
+    persistSelectedBookingCity(cityId);
   }
 
   function handleLocaleChange(newLocale: string) {
@@ -126,6 +127,14 @@ export function SettingsPanel() {
             <h4 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
               {t("city")}
             </h4>
+            <div className="mb-3">
+              <DetectRegionButton
+                className="w-full"
+                showLabel
+                labelAlwaysVisible
+                onApplied={(cityId) => setSelectedCity(cityId)}
+              />
+            </div>
             <div className="grid grid-cols-2 gap-1.5">
               {CITIES.map((city) => (
                 <button

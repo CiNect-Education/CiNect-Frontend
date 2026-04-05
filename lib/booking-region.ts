@@ -1,6 +1,18 @@
 /** Matches `selected_city` in Settings / Header; sent as ?city= on showtimes API */
 export const SELECTED_CITY_STORAGE_KEY = "selected_city";
 
+/** Same-tab listeners (e.g. header) — `storage` only fires across tabs */
+export const BOOKING_CITY_CHANGED_EVENT = "cinect:booking-city-changed";
+
+export function persistSelectedBookingCity(cityId: string) {
+  if (typeof window === "undefined") return;
+  if (cityId) localStorage.setItem(SELECTED_CITY_STORAGE_KEY, cityId);
+  else localStorage.removeItem(SELECTED_CITY_STORAGE_KEY);
+  window.dispatchEvent(
+    new CustomEvent(BOOKING_CITY_CHANGED_EVENT, { detail: { cityId } })
+  );
+}
+
 export const BOOKING_CITIES = [
   { id: "hcm", labelVi: "TP. Hồ Chí Minh", labelEn: "Ho Chi Minh City" },
   { id: "hn", labelVi: "Hà Nội", labelEn: "Hanoi" },

@@ -28,7 +28,14 @@
     "bookNow": "Book Now",
     "home": "Home",
     "mainMenu": "Main Menu",
-    "more": "More"
+    "more": "More",
+    "useMyLocation": "Use my location",
+    "locationPermissionDenied": "Location permission denied. Allow access in the browser to detect your area.",
+    "locationUnavailable": "Your position could not be determined. Try again or choose a city manually.",
+    "locationTimeout": "Location request timed out. Try again outdoors or pick a city.",
+    "locationUnsupported": "This browser does not support location.",
+    "locationDetectFailed": "Could not match your position to a supported booking area.",
+    "regionDetectedToast": "Booking area: {city}"
   },
   "common": {
     "appName": "CiNect",

@@ -28,7 +28,14 @@
     "bookNow": "Đặt Vé",
     "home": "Trang chủ",
     "mainMenu": "Menu Chính",
-    "more": "Thêm"
+    "more": "Thêm",
+    "useMyLocation": "Dùng vị trí của tôi",
+    "locationPermissionDenied": "Trình duyệt chưa được phép truy cập vị trí. Hãy bật quyền để nhận diện khu vực.",
+    "locationUnavailable": "Không xác định được vị trí. Thử lại hoặc chọn thành phố thủ công.",
+    "locationTimeout": "Hết thời gian chờ vị trí. Thử lại ngoài trời hoặc chọn thành phố.",
+    "locationUnsupported": "Trình duyệt không hỗ trợ định vị.",
+    "locationDetectFailed": "Không khớp vị trí với khu vực đặt vé được hỗ trợ.",
+    "regionDetectedToast": "Khu vực đặt vé: {city}"
   },
   "common": {
     "appName": "CiNect",

@@ -26,10 +26,13 @@ import {
 import { Separator } from "@/components/ui/separator";
 import {
   BOOKING_CITIES,
+  BOOKING_CITY_CHANGED_EVENT,
   SELECTED_CITY_STORAGE_KEY,
   bookingCityLabel,
   localCalendarDate,
+  persistSelectedBookingCity,
 } from "@/lib/booking-region";
+import { DetectRegionButton } from "@/components/shared/detect-region-button";
 import { formatVnd, localizeAudioLabel, localizeRoomName } from "@/lib/showtime-display";
 
 const FORMATS = ["2D", "3D", "IMAX", "4DX", "DOLBY"] as const;
@@ -86,6 +89,14 @@ export default function ShowtimesPageClient() {
     }
   }, []);
 
+  useEffect(() => {
+    function onCityChanged() {
+      setStoredCity(localStorage.getItem(SELECTED_CITY_STORAGE_KEY) || "");
+    }
+    window.addEventListener(BOOKING_CITY_CHANGED_EVENT, onCityChanged);
+    return () => window.removeEventListener(BOOKING_CITY_CHANGED_EVENT, onCityChanged);
+  }, []);
+
   const city = cityFromParams || storedCity;
   const today = new Date();
   const date = dateFromParams || localCalendarDate(today);
@@ -108,9 +119,8 @@ export default function ShowtimesPageClient() {
   const cinemas = toList<import("@/types/domain").CinemaListItem>(cinemasRes?.data ?? cinemasRes);
 
   function setCity(c: string) {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(SELECTED_CITY_STORAGE_KEY, c);
-    }
+    persistSelectedBookingCity(c);
+    setStoredCity(c);
     const p = new URLSearchParams(searchParams.toString());
     if (c) p.set("city", c);
     else p.delete("city");
@@ -182,6 +192,12 @@ export default function ShowtimesPageClient() {
                 {c.label}
               </Button>
             ))}
+
+            <DetectRegionButton
+              size="sm"
+              variant="outline"
+              onApplied={(id) => setCity(id)}
+            />
 
             <Select value={city || ALL} onValueChange={(v) => setCity(v === ALL ? "" : v)}>
               <SelectTrigger className="h-9 w-[220px]">

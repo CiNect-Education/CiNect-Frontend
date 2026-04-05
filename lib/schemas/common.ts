@@ -137,10 +137,11 @@ export const membershipProfileSchema = z.preprocess(
 export const giftCardSchema = z.object({
   id: z.string(),
   title: z.string(),
-  description: z.string(),
+  /** Nest/Prisma may omit or null; Decimal fields often arrive as strings in JSON */
+  description: nullish(z.string()),
   imageUrl: nullish(z.string()),
-  value: z.number(),
-  price: z.number(),
+  value: z.coerce.number(),
+  price: z.coerce.number(),
   code: nullish(z.string()),
   recipientEmail: nullish(z.string()),
   message: nullish(z.string()),
