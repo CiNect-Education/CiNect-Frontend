@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { usePaymentStatus } from "@/hooks/queries/use-booking-flow";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,9 @@ interface PaymentStatusProps {
 }
 
 export function PaymentStatus({ paymentId, onSuccess, onFailed }: PaymentStatusProps) {
+  const tPay = useTranslations("payment");
+  const tCheckout = useTranslations("checkout");
+  const tCommon = useTranslations("common");
   const [timedOut, setTimedOut] = useState(false);
   const { data, refetch } = usePaymentStatus(paymentId);
 
@@ -39,11 +43,8 @@ export function PaymentStatus({ paymentId, onSuccess, onFailed }: PaymentStatusP
     return (
       <div className="flex flex-col items-center justify-center gap-4 rounded-lg border p-8 text-center">
         <XCircle className="text-destructive h-16 w-16" />
-        <h3 className="text-lg font-semibold">Payment Timed Out</h3>
-        <p className="text-muted-foreground text-sm">
-          The payment verification took too long. Please check your payment status in your account
-          or contact support.
-        </p>
+        <h3 className="text-lg font-semibold">{tPay("timedOutTitle")}</h3>
+        <p className="text-muted-foreground text-sm">{tPay("timedOutDescription")}</p>
       </div>
     );
   }
@@ -54,10 +55,12 @@ export function PaymentStatus({ paymentId, onSuccess, onFailed }: PaymentStatusP
         <div className="bg-primary/10 flex h-16 w-16 items-center justify-center rounded-full">
           <CheckCircle2 className="text-primary h-10 w-10" />
         </div>
-        <h3 className="text-lg font-semibold">Payment Successful</h3>
-        <p className="text-muted-foreground text-sm">Your payment has been confirmed.</p>
+        <h3 className="text-lg font-semibold">{tPay("successTitle")}</h3>
+        <p className="text-muted-foreground text-sm">{tCheckout("paymentConfirmed")}</p>
         {transactionId && (
-          <p className="text-muted-foreground font-mono text-xs">Transaction: {transactionId}</p>
+          <p className="text-muted-foreground font-mono text-xs">
+            {tPay("transactionRef", { transactionId })}
+          </p>
         )}
       </div>
     );
@@ -67,12 +70,12 @@ export function PaymentStatus({ paymentId, onSuccess, onFailed }: PaymentStatusP
     return (
       <div className="border-destructive/50 flex flex-col items-center justify-center gap-4 rounded-lg border p-8 text-center">
         <XCircle className="text-destructive h-16 w-16" />
-        <h3 className="text-lg font-semibold">Payment Failed</h3>
+        <h3 className="text-lg font-semibold">{tPay("failedTitle")}</h3>
         <p className="text-muted-foreground text-sm">
-          {errorReason ?? "Your payment could not be processed."}
+          {errorReason ?? tPay("failedDefaultReason")}
         </p>
         <Button variant="outline" onClick={() => refetch()}>
-          Retry
+          {tCommon("retry")}
         </Button>
       </div>
     );
@@ -81,8 +84,8 @@ export function PaymentStatus({ paymentId, onSuccess, onFailed }: PaymentStatusP
   return (
     <div className="flex flex-col items-center justify-center gap-4 rounded-lg border p-8 text-center">
       <Loader2 className="text-primary h-12 w-12 animate-spin" />
-      <h3 className="text-lg font-semibold">Verifying Payment</h3>
-      <p className="text-muted-foreground text-sm">Please wait while we confirm your payment...</p>
+      <h3 className="text-lg font-semibold">{tPay("verifying")}</h3>
+      <p className="text-muted-foreground text-sm">{tCheckout("paymentConfirming")}</p>
     </div>
   );
 }

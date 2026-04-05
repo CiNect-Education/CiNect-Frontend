@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
                 <FormItem>
                   <FormLabel>{t("email")}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="name@example.com" {...field} />
+                    <Input type="email" placeholder={t("emailPlaceholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

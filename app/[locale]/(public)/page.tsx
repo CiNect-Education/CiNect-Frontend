@@ -32,6 +32,7 @@ function toList<T>(v: unknown): T[] {
 
 export default function HomePage() {
   const t = useTranslations("home");
+  const tGift = useTranslations("gift");
 
   const {
     data: nowShowingRes,
@@ -134,8 +135,10 @@ export default function HomePage() {
               <Sparkles className="text-primary h-4 w-4" />
               <span className="font-medium">
                 {isAuthenticated && user
-                  ? `Welcome back${(user as { fullName?: string }).fullName ? `, ${(user as { fullName?: string }).fullName}` : ""}!`
-                  : t("welcomeBadge") || "Welcome to CiNect"}
+                  ? (user as { fullName?: string }).fullName?.trim()
+                    ? t("welcomeBackWithName", { name: (user as { fullName?: string }).fullName!.trim() })
+                    : t("welcomeBack")
+                  : t("welcomeBadge")}
               </span>
             </div>
           </div>
@@ -151,13 +154,12 @@ export default function HomePage() {
             <div className="bg-muted/30 rounded-lg border border-dashed p-12 text-center">
               <Film className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
               <p className="text-muted-foreground mb-4">
-                {t("heroSubtitle") ||
-                  "Book tickets instantly, discover new releases, and enjoy exclusive benefits."}
+                {t("heroSubtitle")}
               </p>
               <Button size="lg" asChild>
                 <Link href="/movies">
                   <Film className="mr-2 h-5 w-5" />
-                  {t("browseMovies") || "Browse Movies"}
+                  {t("browseMovies")}
                 </Link>
               </Button>
             </div>
@@ -186,14 +188,14 @@ export default function HomePage() {
         ) : nowShowing.length > 0 ? (
           <MovieCarousel
             movies={nowShowing}
-            title={t("nowShowing") || "Now Showing"}
+            title={t("nowShowing")}
             viewAllHref="/movies?status=NOW_SHOWING"
           />
         ) : (
           <div className="rounded-lg border border-dashed p-12 text-center">
             <Film className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
             <p className="text-muted-foreground">
-              {t("noMovies") || "No movies currently showing"}
+              {t("noMovies")}
             </p>
           </div>
         )}
@@ -215,7 +217,7 @@ export default function HomePage() {
         ) : comingSoon.length > 0 ? (
           <ComingSoonCarousel
             movies={comingSoon}
-            title={t("comingSoon") || "Coming Soon"}
+            title={t("comingSoon")}
             viewAllHref="/movies?status=COMING_SOON"
           />
         ) : null}
@@ -225,10 +227,10 @@ export default function HomePage() {
       <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-balance">
-            {t("promotionsTitle") || "Special Offers & Promotions"}
+            {t("promotionsTitle")}
           </h2>
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/promotions">View All →</Link>
+            <Link href="/promotions">{t("viewAllArrow")}</Link>
           </Button>
         </div>
         {loadingPromo ? (
@@ -271,8 +273,8 @@ export default function HomePage() {
                     {promo.discountValue && (
                       <p className="text-primary mt-2 text-sm font-medium">
                         {promo.discountType === "PERCENTAGE"
-                          ? `${promo.discountValue}% off`
-                          : `Save ${promo.discountValue}`}
+                          ? t("percentOff", { value: promo.discountValue })
+                          : tGift("saveAmount", { amount: String(promo.discountValue) })}
                       </p>
                     )}
                   </CardContent>
@@ -283,10 +285,10 @@ export default function HomePage() {
         ) : (
           <div className="from-primary/10 to-primary/5 rounded-lg border bg-gradient-to-r p-8 text-center">
             <p className="text-muted-foreground mb-6 text-pretty">
-              {t("promotionsDesc") || "Check out our latest deals and exclusive offers"}
+              {t("promotionsDesc")}
             </p>
             <Button size="lg" asChild>
-              <Link href="/promotions">{t("viewPromotions") || "View All Promotions"}</Link>
+              <Link href="/promotions">{t("viewPromotions")}</Link>
             </Button>
           </div>
         )}
@@ -295,7 +297,7 @@ export default function HomePage() {
       {/* Trending Now Section */}
       {trendingPromos.length > 0 && (
         <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <h2 className="mb-6 text-2xl font-bold">{t("trendingNow") || "Trending Now"}</h2>
+          <h2 className="mb-6 text-2xl font-bold">{t("trendingNow")}</h2>
           <div className="flex gap-4 overflow-x-auto pb-2">
             {trendingPromos.map((promo) => (
               <Link key={promo.id} href="/promotions" className="shrink-0">
@@ -319,8 +321,10 @@ export default function HomePage() {
                     <h3 className="line-clamp-1 font-semibold">{promo.title}</h3>
                     <p className="text-primary mt-1 text-sm font-medium">
                       {promo.discountType === "PERCENTAGE"
-                        ? `${promo.discountValue}% off`
-                        : `Save ${promo.discountValue.toLocaleString()}đ`}
+                        ? t("percentOff", { value: promo.discountValue })
+                        : tGift("saveAmount", {
+                            amount: `${promo.discountValue.toLocaleString()}đ`,
+                          })}
                     </p>
                     {promo.code && (
                       <Badge variant="outline" className="mt-2 font-mono text-xs">
@@ -339,10 +343,10 @@ export default function HomePage() {
       <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-balance">
-            {t("newsTitle") || "Latest News & Updates"}
+            {t("newsTitle")}
           </h2>
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/news">View All →</Link>
+            <Link href="/news">{t("viewAllArrow")}</Link>
           </Button>
         </div>
         {loadingNews ? (
@@ -395,7 +399,7 @@ export default function HomePage() {
         ) : (
           <div className="rounded-lg border border-dashed p-8 text-center">
             <Newspaper className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
-            <p className="text-muted-foreground">No news articles yet.</p>
+            <p className="text-muted-foreground">{t("noNewsHome")}</p>
           </div>
         )}
       </section>

@@ -27,6 +27,7 @@ function toList<T>(v: unknown): T[] {
 
 export default function NewsPage() {
   const t = useTranslations("news");
+  const tNav = useTranslations("nav");
   const searchParams = useSearchParams();
   const router = useRouter();
   const category = (searchParams.get("category") as NewsCategory) || "";
@@ -60,9 +61,9 @@ export default function NewsPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
       <PageHeader
-        title={t("title") || "News"}
-        description={t("description") || "Latest news and updates"}
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: t("title") || "News" }]}
+        title={t("title")}
+        description={t("description")}
+        breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("title") }]}
       />
 
       {/* Category Tabs */}
@@ -72,7 +73,7 @@ export default function NewsPage() {
           size="sm"
           onClick={() => setCategoryAndNavigate("")}
         >
-          All
+          {t("allCategories")}
         </Button>
         {CATEGORIES.map((c) => (
           <Button
@@ -81,7 +82,9 @@ export default function NewsPage() {
             size="sm"
             onClick={() => setCategoryAndNavigate(c)}
           >
-            {c}
+            {c === "PROMOTIONS"
+              ? t("categoryPromotions")
+              : t(c.toLowerCase() as "reviews" | "trailers" | "guides" | "general")}
           </Button>
         ))}
       </div>
@@ -104,8 +107,8 @@ export default function NewsPage() {
       ) : articles.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
           <Newspaper className="text-muted-foreground mb-3 h-12 w-12" />
-          <h3 className="mb-2 text-lg font-semibold">{t("emptyState") || "No articles"}</h3>
-          <p className="text-muted-foreground text-sm">Check back later for new content.</p>
+          <h3 className="mb-2 text-lg font-semibold">{t("emptyState")}</h3>
+          <p className="text-muted-foreground text-sm">{t("checkBackLater")}</p>
         </div>
       ) : (
         <>

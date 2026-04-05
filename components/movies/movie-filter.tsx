@@ -42,6 +42,7 @@ interface MovieFilterProps {
 
 export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: MovieFilterProps) {
   const t = useTranslations("movies");
+  const tCommon = useTranslations("common");
   const searchParams = useSearchParams();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -84,7 +85,7 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
       <div className="space-y-2">
         <Label className="text-sm font-semibold">{t("search") || "Search"}</Label>
         <Input
-          placeholder="Search movies..."
+          placeholder={t("searchMoviesPlaceholder")}
           value={q}
           onChange={(e) => updateFilter("q", e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
@@ -102,7 +103,7 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
                 onCheckedChange={(checked) => updateFilter("status", checked ? s : "")}
               />
               <Label htmlFor={`status-${s}`} className="cursor-pointer text-sm font-normal">
-                {s === "NOW_SHOWING" ? "Now Showing" : "Coming Soon"}
+                {s === "NOW_SHOWING" ? t("nowShowing") : t("comingSoon")}
               </Label>
             </div>
           ))}
@@ -116,10 +117,10 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
           onValueChange={(v) => updateFilter("genre", v === "all" ? "" : v)}
         >
           <SelectTrigger>
-            <SelectValue placeholder="All genres" />
+            <SelectValue placeholder={tCommon("allGenres")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All genres</SelectItem>
+            <SelectItem value="all">{tCommon("allGenres")}</SelectItem>
             {GENRES.map((g) => (
               <SelectItem key={g} value={g}>
                 {g}
@@ -132,7 +133,7 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
       <div className="space-y-2">
         <Label className="text-sm font-semibold">{t("language") || "Language"}</Label>
         <Input
-          placeholder="e.g. English, Vietnamese"
+          placeholder={t("filterLanguagePlaceholder")}
           value={language}
           onChange={(e) => updateFilter("language", e.target.value)}
         />
@@ -160,14 +161,14 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
           <Input
             type="number"
             min={0}
-            placeholder="Min"
+            placeholder={tCommon("minShort")}
             value={durationMin}
             onChange={(e) => updateFilter("durationMin", e.target.value)}
           />
           <Input
             type="number"
             min={0}
-            placeholder="Max"
+            placeholder={tCommon("maxShort")}
             value={durationMax}
             onChange={(e) => updateFilter("durationMax", e.target.value)}
           />
@@ -181,10 +182,10 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
           onValueChange={(v) => updateFilter("format", v === "all" ? "" : v)}
         >
           <SelectTrigger>
-            <SelectValue placeholder="All formats" />
+            <SelectValue placeholder={tCommon("allFormats")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All formats</SelectItem>
+            <SelectItem value="all">{tCommon("allFormats")}</SelectItem>
             {FORMATS.map((f) => (
               <SelectItem key={f} value={f}>
                 {f}
@@ -202,7 +203,7 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
             <SlidersHorizontal className="h-5 w-5" />
-            {t("filters") || "Filters"}
+            {t("filters")}
           </CardTitle>
           {hasActiveFilters && (
             <Button
@@ -212,21 +213,21 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
               className="h-8 px-2 text-xs"
             >
               <X className="mr-1 h-3 w-3" />
-              Clear
+              {tCommon("clearFilters")}
             </Button>
           )}
         </div>
         {hasActiveFilters && (
           <div className="text-muted-foreground mt-1 text-xs">
-            Active filters:{" "}
+            {t("activeFilters")}{" "}
             {[
-              q && "Search",
-              status && "Status",
-              genre && "Genre",
-              language && "Language",
-              ageRating && "Age",
-              (durationMin || durationMax) && "Duration",
-              formatParam && "Format",
+              q && t("search"),
+              status && t("status"),
+              genre && t("genres"),
+              language && t("language"),
+              ageRating && t("ageRating"),
+              (durationMin || durationMax) && t("duration"),
+              formatParam && t("format"),
             ]
               .filter(Boolean)
               .join(" • ")}
@@ -238,7 +239,7 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
           <Collapsible open={open} onOpenChange={setOpen} className="lg:hidden">
             <CollapsibleTrigger asChild>
               <Button variant="ghost" className="w-full justify-between px-4 pb-4">
-                {open ? "Hide filters" : "Show filters"}
+                {open ? t("hideFilters") : t("showFilters")}
                 <ChevronDown
                   className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
                 />

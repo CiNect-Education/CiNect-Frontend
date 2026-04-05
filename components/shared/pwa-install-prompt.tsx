@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 
 const DISMISS_KEY = "pwa-install-dismissed";
 
 export function PwaInstallPrompt() {
+  const t = useTranslations("pwa");
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [dismissed, setDismissed] = useState(true);
 
@@ -49,14 +51,14 @@ export function PwaInstallPrompt() {
 
   return (
     <div className="bg-primary text-primary-foreground fixed top-0 right-0 left-0 z-[60] flex items-center justify-between gap-4 px-4 py-2 shadow-md">
-      <p className="flex-1 truncate text-sm">Install our app for a better experience</p>
+      <p className="flex-1 truncate text-sm">{t("installPrompt")}</p>
       <div className="flex shrink-0 items-center gap-2">
         <Button size="sm" variant="secondary" className="h-8" onClick={handleInstall}>
-          Install App
+          {t("installButton")}
         </Button>
         <button
           type="button"
-          aria-label="Dismiss"
+          aria-label={t("dismissAria")}
           onClick={handleDismiss}
           className="hover:bg-primary-foreground/20 rounded p-1"
         >

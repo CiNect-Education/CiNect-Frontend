@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,8 @@ function toObj<T>(v: unknown): T | null {
 
 export default function CampaignPage() {
   const params = useParams();
+  const t = useTranslations("campaigns");
+  const tNav = useTranslations("nav");
   const slug = params.slug as string;
   const { data, isLoading, error, refetch } = useCampaign(slug);
 
@@ -69,9 +72,9 @@ export default function CampaignPage() {
   if (!campaign) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <p className="text-muted-foreground">Campaign not found</p>
+        <p className="text-muted-foreground">{t("notFound")}</p>
         <Link href="/campaigns" className="text-primary mt-2 inline-block hover:underline">
-          Back to campaigns
+          {t("backToList")}
         </Link>
       </div>
     );
@@ -83,8 +86,8 @@ export default function CampaignPage() {
         title={campaign.title}
         description={campaign.description}
         breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Campaigns", href: "/campaigns" },
+          { label: tNav("home"), href: "/" },
+          { label: t("title"), href: "/campaigns" },
           { label: campaign.title },
         ]}
       />

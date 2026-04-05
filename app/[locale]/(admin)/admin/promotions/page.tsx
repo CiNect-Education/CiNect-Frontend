@@ -53,24 +53,40 @@ import {
   useDeletePromotion,
 } from "@/hooks/queries/use-admin";
 
-const promotionFormSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
-  code: z.string().optional(),
-  discountType: z.enum(["PERCENTAGE", "FIXED"]),
-  discountValue: z.coerce.number().min(0),
-  minPurchase: z.coerce.number().min(0).optional(),
-  maxDiscount: z.coerce.number().min(0).optional(),
-  usageLimit: z.coerce.number().min(0).optional(),
-  startDate: z.string().min(1, "Start date is required"),
-  endDate: z.string().min(1, "End date is required"),
-  status: z.enum(["ACTIVE", "INACTIVE", "EXPIRED"]),
-});
-
-type PromotionFormValues = z.infer<typeof promotionFormSchema>;
+type PromotionFormValues = {
+  title: string;
+  description?: string;
+  code?: string;
+  discountType: "PERCENTAGE" | "FIXED";
+  discountValue: number;
+  minPurchase?: number;
+  maxDiscount?: number;
+  usageLimit?: number;
+  startDate: string;
+  endDate: string;
+  status: "ACTIVE" | "INACTIVE" | "EXPIRED";
+};
 
 export default function AdminPromotionsPage() {
   const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
+  const promotionFormSchema = useMemo(
+    () =>
+      z.object({
+        title: z.string().min(1, t("validation.titleRequired")),
+        description: z.string().optional(),
+        code: z.string().optional(),
+        discountType: z.enum(["PERCENTAGE", "FIXED"]),
+        discountValue: z.coerce.number().min(0),
+        minPurchase: z.coerce.number().min(0).optional(),
+        maxDiscount: z.coerce.number().min(0).optional(),
+        usageLimit: z.coerce.number().min(0).optional(),
+        startDate: z.string().min(1, t("validation.startDateRequired")),
+        endDate: z.string().min(1, t("validation.endDateRequired")),
+        status: z.enum(["ACTIVE", "INACTIVE", "EXPIRED"]),
+      }),
+    [t]
+  );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Promotion | null>(null);
@@ -165,16 +181,16 @@ export default function AdminPromotionsPage() {
     () => [
       {
         accessorKey: "title",
-        header: "Title",
+        header: t("colTitle"),
       },
       {
         accessorKey: "code",
-        header: "Code",
+        header: t("colCode"),
         cell: ({ row }) => row.original.code || "—",
       },
       {
         id: "discount",
-        header: "Discount",
+        header: t("colDiscount"),
         cell: ({ row }) => {
           const p = row.original;
           return p.discountType === "PERCENTAGE"
@@ -184,7 +200,7 @@ export default function AdminPromotionsPage() {
       },
       {
         id: "usage",
-        header: "Usage",
+        header: t("colUsage"),
         cell: ({ row }) => {
           const p = row.original;
           const used = p.usageCount ?? 0;
@@ -194,7 +210,7 @@ export default function AdminPromotionsPage() {
       },
       {
         id: "dates",
-        header: "Dates",
+        header: t("colDates"),
         cell: ({ row }) => {
           const p = row.original;
           return `${format(new Date(p.startDate), "MMM d")} – ${format(new Date(p.endDate), "MMM d")}`;
@@ -202,23 +218,31 @@ export default function AdminPromotionsPage() {
       },
       {
         accessorKey: "status",
-        header: "Status",
+        header: t("colStatus"),
         cell: ({ row }) => {
           const s = row.original.status;
           const variant = s === "ACTIVE" ? "default" : s === "EXPIRED" ? "destructive" : "outline";
-          return <Badge variant={variant}>{s}</Badge>;
+          const label =
+            s === "ACTIVE"
+              ? t("promoStatusActive")
+              : s === "INACTIVE"
+                ? t("promoStatusInactive")
+                : s === "EXPIRED"
+                  ? t("promoStatusExpired")
+                  : s;
+          return <Badge variant={variant}>{label}</Badge>;
         },
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t("colActions"),
         cell: ({ row }) => (
           <div className="flex gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => openEdit(row.original)}
-              aria-label="Edit promotion"
+              aria-label={t("ariaEditPromotion")}
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -226,7 +250,7 @@ export default function AdminPromotionsPage() {
               variant="ghost"
               size="icon"
               onClick={() => setDeleteTarget(row.original)}
-              aria-label="Delete promotion"
+              aria-label={t("ariaDeletePromotion")}
             >
               <Trash2 className="text-destructive h-4 w-4" />
             </Button>
@@ -234,18 +258,18 @@ export default function AdminPromotionsPage() {
         ),
       },
     ],
-    [openEdit]
+    [openEdit, t]
   );
 
   return (
     <AdminPageShell
       title={t("promotions")}
-      description="Create and manage promotional campaigns, discount codes, and special offers."
+      description={t("descPromotions")}
       breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("promotions") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
-          Create Promotion
+          {t("createPromotionBtn")}
         </Button>
       }
     >
@@ -253,16 +277,18 @@ export default function AdminPromotionsPage() {
         columns={columns}
         data={promotions}
         searchKey="title"
-        searchPlaceholder="Search promotions..."
+        searchPlaceholder={t("searchPromotions")}
         className="cinect-glass rounded-lg border p-4"
         isLoading={promotionsLoading}
-        emptyMessage="No promotions found."
+        emptyMessage={t("emptyPromotions")}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="cinect-glass max-w-lg border">
           <DialogHeader>
-            <DialogTitle>{editingPromotion ? "Edit Promotion" : "Create Promotion"}</DialogTitle>
+            <DialogTitle>
+              {editingPromotion ? t("editPromotion") : t("createPromotion")}
+            </DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -271,7 +297,7 @@ export default function AdminPromotionsPage() {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>{t("colTitle")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -284,9 +310,9 @@ export default function AdminPromotionsPage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>{t("labelDescription")}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Optional" />
+                      <Input {...field} placeholder={t("optional")} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -297,9 +323,9 @@ export default function AdminPromotionsPage() {
                 name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Code</FormLabel>
+                    <FormLabel>{t("colCode")}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="e.g. SUMMER20" />
+                      <Input {...field} placeholder={t("promoCodeExample")} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -311,7 +337,7 @@ export default function AdminPromotionsPage() {
                   name="discountType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Discount Type</FormLabel>
+                      <FormLabel>{t("promoDiscountType")}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -319,8 +345,8 @@ export default function AdminPromotionsPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="PERCENTAGE">Percentage</SelectItem>
-                          <SelectItem value="FIXED">Fixed Amount</SelectItem>
+                          <SelectItem value="PERCENTAGE">{t("promoDiscPercentage")}</SelectItem>
+                          <SelectItem value="FIXED">{t("promoDiscFixed")}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -332,7 +358,7 @@ export default function AdminPromotionsPage() {
                   name="discountValue"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Value</FormLabel>
+                      <FormLabel>{t("labelDiscountValue")}</FormLabel>
                       <FormControl>
                         <Input type="number" {...field} />
                       </FormControl>
@@ -374,7 +400,7 @@ export default function AdminPromotionsPage() {
                 name="usageLimit"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Usage Limit</FormLabel>
+                    <FormLabel>{t("labelUsageLimit")}</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
@@ -388,7 +414,7 @@ export default function AdminPromotionsPage() {
                   name="startDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Start Date</FormLabel>
+                      <FormLabel>{t("labelPromoStart")}</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
@@ -401,7 +427,7 @@ export default function AdminPromotionsPage() {
                   name="endDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>End Date</FormLabel>
+                      <FormLabel>{t("labelPromoEnd")}</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
@@ -415,7 +441,7 @@ export default function AdminPromotionsPage() {
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>{t("colStatus")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -423,9 +449,9 @@ export default function AdminPromotionsPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="ACTIVE">Active</SelectItem>
-                        <SelectItem value="INACTIVE">Inactive</SelectItem>
-                        <SelectItem value="EXPIRED">Expired</SelectItem>
+                        <SelectItem value="ACTIVE">{t("promoStatusActive")}</SelectItem>
+                        <SelectItem value="INACTIVE">{t("promoStatusInactive")}</SelectItem>
+                        <SelectItem value="EXPIRED">{t("promoStatusExpired")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -434,13 +460,13 @@ export default function AdminPromotionsPage() {
               />
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancel
+                  {tCommon("cancel")}
                 </Button>
                 <Button
                   type="submit"
                   disabled={createMutation.isPending || updateMutation.isPending}
                 >
-                  {editingPromotion ? "Update" : "Create"}
+                  {editingPromotion ? t("updateUserBtn") : tCommon("create")}
                 </Button>
               </DialogFooter>
             </form>
@@ -451,19 +477,18 @@ export default function AdminPromotionsPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent className="cinect-glass border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Promotion</AlertDialogTitle>
+            <AlertDialogTitle>{t("deletePromotion")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deleteTarget?.title}&quot;? This action cannot
-              be undone.
+              {t("deletePromotionDesc", { title: deleteTarget?.title ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {tCommon("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

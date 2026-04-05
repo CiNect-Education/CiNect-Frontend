@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Settings, Sun, Moon, Monitor, MapPin, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SELECTED_CITY_STORAGE_KEY } from "@/lib/booking-region";
 
 const CITIES = [
   { id: "hcm", name: "TP. Ho Chi Minh" },
@@ -35,13 +36,13 @@ export function SettingsPanel() {
   const [selectedCity, setSelectedCity] = useState<string>("");
 
   useEffect(() => {
-    const saved = localStorage.getItem("selected_city");
+    const saved = localStorage.getItem(SELECTED_CITY_STORAGE_KEY);
     if (saved) setSelectedCity(saved);
   }, []);
 
   function handleCitySelect(cityId: string) {
     setSelectedCity(cityId);
-    localStorage.setItem("selected_city", cityId);
+    localStorage.setItem(SELECTED_CITY_STORAGE_KEY, cityId);
   }
 
   function handleLocaleChange(newLocale: string) {

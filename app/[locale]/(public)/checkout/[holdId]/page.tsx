@@ -24,18 +24,27 @@ import {
 import { useMembershipProfile } from "@/hooks/queries/use-membership";
 import { Popcorn, CreditCard, Film } from "lucide-react";
 import { format } from "date-fns";
+import { enUS } from "date-fns/locale";
+import { vi as viDateLocale } from "date-fns/locale";
+import { useLocale, useTranslations } from "next-intl";
 import { apiClient } from "@/lib/api-client";
+import { localizeRoomName } from "@/lib/showtime-display";
 
 export default function CheckoutPage() {
   const params = useParams();
   const router = useRouter();
-  const locale = (params as unknown as { locale?: string }).locale;
+  const locale = useLocale();
   const holdId = params.holdId as string;
+  const tShow = useTranslations("showtimeDisplay");
 
   const toLocalePath = useCallback(
-    (path: string) => `/${locale ?? ""}${path.startsWith("/") ? "" : "/"}${path}`.replace("//", "/"),
+    (path: string) => `/${locale}${path.startsWith("/") ? "" : "/"}${path}`,
     [locale]
   );
+
+  const dateFnsLocale = locale.startsWith("vi") ? viDateLocale : enUS;
+  const formatShowtimeWhen = (iso: string) =>
+    `${format(new Date(iso), "PPP", { locale: dateFnsLocale })} · ${format(new Date(iso), "p", { locale: dateFnsLocale })}`;
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedSnacks, setSelectedSnacks] = useState<
@@ -258,7 +267,7 @@ export default function CheckoutPage() {
           </div>
           {hold.showtime?.startTime && (
             <div className="text-muted-foreground text-sm">
-              {format(new Date(hold.showtime.startTime), "PPP 'at' p")}
+              {formatShowtimeWhen(hold.showtime.startTime)}
             </div>
           )}
         </div>
@@ -296,12 +305,18 @@ export default function CheckoutPage() {
                     <div>
                       <h3 className="font-semibold">{hold.showtime?.movieTitle ?? "Movie"}</h3>
                       <p className="text-muted-foreground text-sm">
-                        {hold.showtime?.cinemaName} • {hold.showtime?.roomName}
+                        {[
+                          hold.showtime?.cinemaName,
+                          hold.showtime?.roomName
+                            ? localizeRoomName(hold.showtime.roomName, (k, v) => tShow(k, v))
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" • ")}
                       </p>
                       {hold.showtime?.startTime && (
                         <p className="text-muted-foreground text-sm">
-                          {format(new Date(hold.showtime.startTime), "PPP 'at' p")} •{" "}
-                          {hold.showtime?.format}
+                          {formatShowtimeWhen(hold.showtime.startTime)} • {hold.showtime?.format}
                         </p>
                       )}
                     </div>

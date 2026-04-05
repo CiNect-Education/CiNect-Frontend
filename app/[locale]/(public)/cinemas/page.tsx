@@ -34,6 +34,8 @@ const ALL_CITIES = "__ALL__";
 
 export default function CinemasPage() {
   const t = useTranslations("cinemas");
+  const tNav = useTranslations("nav");
+  const tCommon = useTranslations("common");
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -89,9 +91,9 @@ export default function CinemasPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
       <PageHeader
-        title={t("title") || "Cinemas"}
-        description={t("description") || "Find a cinema near you"}
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: t("title") || "Cinemas" }]}
+        title={t("title")}
+        description={t("description")}
+        breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("title") }]}
       />
 
       {/* Filters */}
@@ -104,10 +106,10 @@ export default function CinemasPage() {
               onValueChange={(v) => setCity(v === ALL_CITIES ? "" : v)}
             >
               <SelectTrigger className="w-[220px]">
-                <SelectValue placeholder="All cities" />
+                <SelectValue placeholder={tCommon("allCities")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL_CITIES}>All cities</SelectItem>
+                <SelectItem value={ALL_CITIES}>{tCommon("allCities")}</SelectItem>
                 {cityOptions.map((c) => (
                   <SelectItem key={c} value={c}>
                     {c}
@@ -118,7 +120,7 @@ export default function CinemasPage() {
           </div>
 
           <div className="text-muted-foreground text-sm">
-            {cinemas.length} cinema{cinemas.length !== 1 ? "s" : ""} found
+            {tCommon("cinemasFound", { count: cinemas.length })}
           </div>
         </div>
 
@@ -126,7 +128,7 @@ export default function CinemasPage() {
           <>
             <Separator className="my-4" />
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-muted-foreground text-sm">Amenities:</span>
+              <span className="text-muted-foreground text-sm">{tCommon("amenitiesLabel")}</span>
               {allAmenities.map((a) => (
                 <Badge
                   key={a}
@@ -160,8 +162,8 @@ export default function CinemasPage() {
       ) : cinemas.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
           <Building2 className="text-muted-foreground mb-3 h-12 w-12" />
-          <h3 className="mb-2 text-lg font-semibold">{t("emptyState") || "No cinemas found"}</h3>
-          <p className="text-muted-foreground text-sm">Try adjusting your filters</p>
+          <h3 className="mb-2 text-lg font-semibold">{t("emptyState")}</h3>
+          <p className="text-muted-foreground text-sm">{tCommon("tryAdjustFilters")}</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

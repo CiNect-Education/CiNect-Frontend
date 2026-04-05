@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,8 @@ import { Gift, ShoppingCart } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 
 export default function GiftPage() {
+  const t = useTranslations("gift");
+  const tNav = useTranslations("nav");
   const { data: giftCardsRes, isLoading, error, refetch } = useGiftCards();
   const giftCards = (giftCardsRes?.data ?? []) as import("@/types/domain").GiftCard[];
 
@@ -38,9 +41,9 @@ export default function GiftPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
       <PageHeader
-        title="Gift Cards"
-        description="Give the gift of entertainment with cinema gift cards"
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Gift Cards" }]}
+        title={t("giftCardsTitle")}
+        description={t("giftCardsDescription")}
+        breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("giftCardsTitle") }]}
       />
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -60,7 +63,9 @@ export default function GiftPage() {
                   <span className="text-2xl font-bold">{card.value.toLocaleString()}đ</span>
                   {card.price < card.value && (
                     <Badge variant="secondary" className="ml-2">
-                      Save {(card.value - card.price).toLocaleString()}đ
+                      {t("saveAmount", {
+                        amount: `${(card.value - card.price).toLocaleString()}đ`,
+                      })}
                     </Badge>
                   )}
                 </div>
@@ -68,14 +73,16 @@ export default function GiftPage() {
 
               {card.expiresAt && (
                 <div className="text-muted-foreground text-xs">
-                  Valid until {new Date(card.expiresAt).toLocaleDateString()}
+                  {t("validUntil", {
+                    date: new Date(card.expiresAt).toLocaleDateString(),
+                  })}
                 </div>
               )}
 
               <Link href={`/gift/${card.id}`}>
                 <Button className="w-full" size="lg">
                   <ShoppingCart className="mr-2 h-4 w-4" />
-                  Buy Now
+                  {t("buyNow")}
                 </Button>
               </Link>
             </CardContent>
@@ -85,14 +92,14 @@ export default function GiftPage() {
 
       <Card className="mt-8">
         <CardHeader>
-          <CardTitle>Why Choose Our Gift Cards?</CardTitle>
+          <CardTitle>{t("whyGiftCards")}</CardTitle>
         </CardHeader>
         <CardContent className="text-muted-foreground space-y-3 text-sm">
-          <p>• Perfect gift for movie lovers - redeemable for tickets, snacks, and merchandise</p>
-          <p>• Digital delivery - instant email delivery or schedule for a special date</p>
-          <p>• Flexible amounts - choose from preset amounts or create a custom value</p>
-          <p>• No expiration fees - full value guaranteed throughout validity period</p>
-          <p>• Easy to use - redeem online or at the cinema box office</p>
+          <p>• {t("whyPoint1")}</p>
+          <p>• {t("whyPoint2")}</p>
+          <p>• {t("whyPoint3")}</p>
+          <p>• {t("whyPoint4")}</p>
+          <p>• {t("whyPoint5")}</p>
         </CardContent>
       </Card>
     </div>

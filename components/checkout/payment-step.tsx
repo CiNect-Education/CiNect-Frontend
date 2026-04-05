@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,14 +9,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card } from "@/components/ui/card";
 import { CreditCard, Wallet, Gift, Tag, Smartphone, Building2, Banknote } from "lucide-react";
 import type { PaymentMethod } from "@/types/domain";
-
-const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ReactNode }[] = [
-  { value: "CARD", label: "Credit / Debit Card", icon: <CreditCard className="h-4 w-4" /> },
-  { value: "MOMO", label: "MoMo", icon: <Smartphone className="h-4 w-4" /> },
-  { value: "ZALOPAY", label: "ZaloPay", icon: <Smartphone className="h-4 w-4" /> },
-  { value: "VNPAY", label: "VNPay", icon: <Wallet className="h-4 w-4" /> },
-  { value: "BANK_TRANSFER", label: "Bank Transfer", icon: <Building2 className="h-4 w-4" /> },
-];
 
 interface PaymentStepProps {
   onPayment: (paymentMethod: PaymentMethod, amount: number) => Promise<void>;
@@ -42,6 +35,29 @@ interface PaymentStepProps {
   }>;
 }
 
+function paymentMethodLabel(m: PaymentMethod, t: (key: string) => string) {
+  switch (m) {
+    case "CARD":
+      return t("pmCard");
+    case "MOMO":
+      return t("pmMomo");
+    case "ZALOPAY":
+      return t("pmZalopay");
+    case "VNPAY":
+      return t("pmVnpay");
+    case "BANK_TRANSFER":
+      return t("pmBankTransfer");
+    default:
+      return m;
+  }
+}
+
+function paymentMethodShort(m: PaymentMethod, t: (key: string) => string) {
+  if (m === "CARD") return t("pmShortCard");
+  if (m === "BANK_TRANSFER") return t("pmShortBank");
+  return m.toLowerCase();
+}
+
 export function PaymentStep({
   onPayment,
   isLoading,
@@ -61,7 +77,27 @@ export function PaymentStep({
   availablePoints = 0,
   eligiblePromotions = [],
 }: PaymentStepProps) {
+  const t = useTranslations("checkout");
+  const tCommon = useTranslations("common");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CARD");
+
+  const paymentMethods = useMemo(
+    () =>
+      (
+        [
+          { value: "CARD" as const, icon: <CreditCard className="h-4 w-4" /> },
+          { value: "MOMO" as const, icon: <Smartphone className="h-4 w-4" /> },
+          { value: "ZALOPAY" as const, icon: <Smartphone className="h-4 w-4" /> },
+          { value: "VNPAY" as const, icon: <Wallet className="h-4 w-4" /> },
+          { value: "BANK_TRANSFER" as const, icon: <Building2 className="h-4 w-4" /> },
+        ] as const
+      ).map((row) => ({
+        ...row,
+        label: paymentMethodLabel(row.value, t),
+      })),
+    [t]
+  );
+
   const visiblePromotions =
     eligiblePromotions?.filter(
       (p) =>
@@ -79,20 +115,15 @@ export function PaymentStep({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Eligible Promotions */}
       {eligiblePromotions.length > 0 && (
         <Card className="cinect-glass p-4">
           <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
             <Tag className="h-4 w-4" />
-            Available Promotions
+            {t("availablePromotions")}
           </Label>
-          <p className="text-muted-foreground mb-1 text-xs">
-            Chọn một ưu đãi bên dưới để tự động áp dụng mã vào đơn hàng.
-          </p>
+          <p className="text-muted-foreground mb-1 text-xs">{t("promotionsHint")}</p>
           {hiddenPromotionsCount > 0 && (
-            <p className="text-muted-foreground mb-2 text-[11px]">
-              Một số ưu đãi chỉ áp dụng cho phương thức thanh toán khác (ví dụ VNPay, MoMo).
-            </p>
+            <p className="text-muted-foreground mb-2 text-[11px]">{t("promotionsOtherMethodsHint")}</p>
           )}
           <div className="space-y-2">
             {visiblePromotions.map((p) => (
@@ -110,17 +141,7 @@ export function PaymentStep({
                   {p.title}
                   {p.eligiblePaymentMethods && p.eligiblePaymentMethods.length > 0 && (
                     <span className="text-muted-foreground ml-2 text-[11px]">
-                      (
-                      {p.eligiblePaymentMethods
-                        .map((m) =>
-                          m === "CARD"
-                            ? "Card"
-                            : m === "BANK_TRANSFER"
-                              ? "Bank"
-                              : m.toLowerCase()
-                        )
-                        .join(", ")}
-                      )
+                      ({p.eligiblePaymentMethods.map((m) => paymentMethodShort(m, t)).join(", ")})
                     </span>
                   )}
                 </span>
@@ -133,16 +154,15 @@ export function PaymentStep({
         </Card>
       )}
 
-      {/* Promo Code */}
       <Card className="cinect-glass p-4">
         <Label htmlFor="promo" className="mb-2 flex items-center gap-2 text-sm font-medium">
           <Tag className="h-4 w-4" />
-          Promo Code
+          {t("promoCodeLabel")}
         </Label>
         <div className="flex gap-2">
           <Input
             id="promo"
-            placeholder="Enter promo code"
+            placeholder={t("promoPlaceholder")}
             value={promoCode}
             onChange={(e) => onPromoCodeChange(e.target.value)}
           />
@@ -152,21 +172,20 @@ export function PaymentStep({
             onClick={onApplyPromo}
             disabled={!promoCode.trim() || isApplyingPromo}
           >
-            {isApplyingPromo ? "Applying..." : "Apply"}
+            {isApplyingPromo ? tCommon("applying") : tCommon("apply")}
           </Button>
         </div>
       </Card>
 
-      {/* Gift Card */}
       <Card className="cinect-glass p-4">
         <Label htmlFor="gift" className="mb-2 flex items-center gap-2 text-sm font-medium">
           <Gift className="h-4 w-4" />
-          Gift Card
+          {t("giftCardLabel")}
         </Label>
         <div className="flex gap-2">
           <Input
             id="gift"
-            placeholder="Enter gift card code"
+            placeholder={t("giftCardPlaceholder")}
             value={giftCardCode}
             onChange={(e) => onGiftCardCodeChange(e.target.value)}
           />
@@ -176,16 +195,15 @@ export function PaymentStep({
             onClick={onApplyGiftCard}
             disabled={!giftCardCode.trim() || isApplyingGiftCard}
           >
-            {isApplyingGiftCard ? "Applying..." : "Apply"}
+            {isApplyingGiftCard ? tCommon("applying") : tCommon("apply")}
           </Button>
         </div>
       </Card>
 
-      {/* Membership Points */}
       <Card className="cinect-glass p-4">
         <Label htmlFor="points" className="mb-2 flex items-center gap-2 text-sm font-medium">
           <Banknote className="h-4 w-4" />
-          Use Loyalty Points
+          {t("useLoyaltyPoints")}
         </Label>
         <div className="flex gap-2">
           <Input
@@ -193,7 +211,7 @@ export function PaymentStep({
             type="number"
             min={0}
             max={availablePoints}
-            placeholder="Points to use"
+            placeholder={t("pointsPlaceholder")}
             value={usePoints || ""}
             onChange={(e) => onUsePointsChange(parseInt(e.target.value, 10) || 0)}
           />
@@ -203,30 +221,23 @@ export function PaymentStep({
             onClick={onApplyPoints}
             disabled={usePoints <= 0 || isApplyingPoints || usePoints > availablePoints}
           >
-            {isApplyingPoints ? "Applying..." : "Apply"}
+            {isApplyingPoints ? tCommon("applying") : tCommon("apply")}
           </Button>
         </div>
         <p className="text-muted-foreground mt-1 text-xs">
-          Available: {availablePoints.toLocaleString()} points (discount calculated at checkout)
+          {t("pointsAvailable", { points: availablePoints.toLocaleString() })}
         </p>
       </Card>
 
-      {/* Payment Method */}
       <div className="space-y-3">
-        <Label className="text-sm font-medium">Payment Method</Label>
-        <RadioGroup
-          value={paymentMethod}
-          onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}
-        >
+        <Label className="text-sm font-medium">{t("paymentMethod")}</Label>
+        <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
           <div className="grid gap-2 sm:grid-cols-2">
-            {PAYMENT_METHODS.map((m) => (
+            {paymentMethods.map((m) => (
               <Card key={m.value} className="cinect-glass p-4">
                 <div className="flex items-center space-x-3">
                   <RadioGroupItem value={m.value} id={m.value} />
-                  <Label
-                    htmlFor={m.value}
-                    className="flex flex-1 cursor-pointer items-center gap-2"
-                  >
+                  <Label htmlFor={m.value} className="flex flex-1 cursor-pointer items-center gap-2">
                     {m.icon}
                     {m.label}
                   </Label>
@@ -238,7 +249,7 @@ export function PaymentStep({
       </div>
 
       <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-        {isLoading ? "Processing..." : "Complete Payment"}
+        {isLoading ? t("processing") : t("completePayment")}
       </Button>
     </form>
   );

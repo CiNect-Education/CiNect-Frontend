@@ -15,6 +15,9 @@ import { useUpdateProfile } from "@/hooks/queries/use-auth";
 
 export default function ProfilePage() {
   const t = useTranslations("account");
+  const tAuth = useTranslations("auth");
+  const tAdmin = useTranslations("admin");
+  const tCommon = useTranslations("common");
   const { user, refetchUser } = useAuth();
   const updateProfile = useUpdateProfile();
 
@@ -73,8 +76,8 @@ export default function ProfilePage() {
         {/* Avatar Section */}
         <Card className="cinect-glass border">
           <CardHeader>
-            <CardTitle className="text-lg">Avatar</CardTitle>
-            <CardDescription>Update your profile picture</CardDescription>
+            <CardTitle className="text-lg">{t("avatarCardTitle")}</CardTitle>
+            <CardDescription>{t("profileAvatarDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -96,21 +99,18 @@ export default function ProfilePage() {
                   }}
                 >
                   <Camera className="h-3.5 w-3.5" />
-                  <span className="sr-only">Change avatar</span>
+                  <span className="sr-only">{t("changeAvatarSr")}</span>
                 </Button>
               </div>
               <div className="flex-1 space-y-2 text-sm">
-                <p className="text-muted-foreground">
-                  Paste an image URL below to update your avatar. Image should be square for best
-                  results.
-                </p>
+                <p className="text-muted-foreground">{t("avatarPasteUrlHint")}</p>
                 <div className="space-y-1">
-                  <Label htmlFor="avatarUrl">Avatar URL</Label>
+                  <Label htmlFor="avatarUrl">{t("avatarUrlLabel")}</Label>
                   <Input
                     id="avatarUrl"
                     value={avatarUrl}
                     onChange={(e) => setAvatarUrl(e.target.value)}
-                    placeholder="https://..."
+                    placeholder={t("avatarUrlPlaceholder")}
                   />
                 </div>
               </div>
@@ -121,35 +121,35 @@ export default function ProfilePage() {
         {/* Personal Info */}
         <Card className="cinect-glass border">
           <CardHeader>
-            <CardTitle className="text-lg">Personal Information</CardTitle>
-            <CardDescription>Update your personal details used for membership perks.</CardDescription>
+            <CardTitle className="text-lg">{t("personalInfoCardTitle")}</CardTitle>
+            <CardDescription>{t("profileDetailsDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName">{tAuth("fullName")}</Label>
                 <Input
                   id="fullName"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Your full name"
+                  placeholder={t("fullNamePlaceholder")}
                 />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{tAuth("email")}</Label>
                 <Input id="email" type="email" value={user?.email ?? ""} disabled />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">{tAuth("phone")}</Label>
                 <Input
                   id="phone"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+84"
+                  placeholder={t("phonePrefixPlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="dob">Date of Birth</Label>
+                <Label htmlFor="dob">{t("dateOfBirth")}</Label>
                 <Input
                   id="dob"
                   type="date"
@@ -158,28 +158,28 @@ export default function ProfilePage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="gender">Gender</Label>
+                <Label htmlFor="gender">{t("labelGender")}</Label>
                 <Input
                   id="gender"
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  placeholder="Male / Female / Other"
+                  placeholder={t("genderPlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
+                <Label htmlFor="city">{t("labelCity")}</Label>
                 <Input
                   id="city"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  placeholder="Ho Chi Minh, Ha Noi..."
+                  placeholder={t("cityPlaceholder")}
                 />
               </div>
             </div>
             <Separator className="my-6" />
             <Button type="submit" disabled={updateProfile.isPending}>
               <Save className="mr-2 h-4 w-4" />
-              {updateProfile.isPending ? "Saving..." : "Save Changes"}
+              {updateProfile.isPending ? tCommon("saving") : tAdmin("saveChanges")}
             </Button>
           </CardContent>
         </Card>

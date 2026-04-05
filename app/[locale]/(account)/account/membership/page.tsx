@@ -31,6 +31,7 @@ import { Link } from "@/i18n/navigation";
 
 export default function AccountMembershipPage() {
   const t = useTranslations("membership");
+  const tAccount = useTranslations("account");
 
   const {
     data: profileRes,
@@ -78,7 +79,7 @@ export default function AccountMembershipPage() {
         <Card className="cinect-glass border">
           <CardContent className="py-12 text-center">
             <Crown className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
-            <p className="text-muted-foreground">No membership data available</p>
+            <p className="text-muted-foreground">{tAccount("noMembershipData")}</p>
             <Button className="mt-4" asChild>
               <Link href="/membership">{t("joinNow")}</Link>
             </Button>
@@ -116,18 +117,22 @@ export default function AccountMembershipPage() {
                 </div>
                 <div className="absolute -bottom-1 left-1/2 -translate-x-1/2">
                   <Badge className="animate-tier-scale text-xs font-bold tracking-wider uppercase">
-                    {currentTier?.name || "Member"}
+                    {currentTier?.name || t("memberFallback")}
                   </Badge>
                 </div>
               </div>
 
               <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-2xl font-bold">{currentTier?.name || "Member"} Tier</h2>
+                <h2 className="text-2xl font-bold">
+                  {t("tierTitle", { name: currentTier?.name || t("memberFallback") })}
+                </h2>
                 <p className="text-muted-foreground">
                   {profile.currentPoints.toLocaleString()} {t("points")}
                 </p>
                 <p className="text-muted-foreground mt-1 text-sm">
-                  Member since {format(new Date(profile.memberSince), "MMMM yyyy")}
+                  {t("memberSince", {
+                    monthYear: format(new Date(profile.memberSince), "MMMM yyyy"),
+                  })}
                 </p>
 
                 {/* Progress to next tier */}
@@ -135,7 +140,7 @@ export default function AccountMembershipPage() {
                   <div className="mt-4 max-w-md">
                     <div className="mb-1 flex justify-between text-sm">
                       <span className="text-muted-foreground">
-                        {t("progress")} to {nextTier.name}
+                        {t("progressToTier", { tierName: nextTier.name })}
                       </span>
                       <span className="font-medium">
                         {profile.currentPoints.toLocaleString()} /{" "}
@@ -154,7 +159,7 @@ export default function AccountMembershipPage() {
               {currentTier?.discountPercent && (
                 <div className="bg-background/50 rounded-lg border p-4 text-center">
                   <p className="text-primary text-3xl font-bold">{currentTier.discountPercent}%</p>
-                  <p className="text-muted-foreground text-xs">Discount</p>
+                  <p className="text-muted-foreground text-xs">{t("discountLabel")}</p>
                 </div>
               )}
             </div>
@@ -170,7 +175,7 @@ export default function AccountMembershipPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold">{profile.totalPoints.toLocaleString()}</div>
-                <div className="text-muted-foreground text-sm">Total Points Earned</div>
+                <div className="text-muted-foreground text-sm">{t("totalPointsEarned")}</div>
               </div>
             </CardContent>
           </Card>
@@ -181,7 +186,7 @@ export default function AccountMembershipPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold">{coupons.length}</div>
-                <div className="text-muted-foreground text-sm">Active Coupons</div>
+                <div className="text-muted-foreground text-sm">{t("activeCouponsLabel")}</div>
               </div>
             </CardContent>
           </Card>
@@ -192,7 +197,7 @@ export default function AccountMembershipPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold">{profile.currentPoints.toLocaleString()}</div>
-                <div className="text-muted-foreground text-sm">Available Points</div>
+                <div className="text-muted-foreground text-sm">{t("availablePointsBalance")}</div>
               </div>
             </CardContent>
           </Card>
@@ -248,7 +253,7 @@ export default function AccountMembershipPage() {
                           size="sm"
                           onClick={() => {
                             navigator.clipboard.writeText(coupon.code);
-                            toast.success("Code copied!");
+                            toast.success(tAccount("toastCouponCopied"));
                           }}
                         >
                           <Copy className="h-3 w-3" />
@@ -293,7 +298,7 @@ export default function AccountMembershipPage() {
                 })}
               </div>
             ) : (
-              <p className="text-muted-foreground py-6 text-center">No coupons available</p>
+              <p className="text-muted-foreground py-6 text-center">{tAccount("noCoupons")}</p>
             )}
           </CardContent>
         </Card>
@@ -330,7 +335,7 @@ export default function AccountMembershipPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground py-6 text-center">No points activity yet</p>
+              <p className="text-muted-foreground py-6 text-center">{tAccount("noPointsActivity")}</p>
             )}
           </CardContent>
         </Card>

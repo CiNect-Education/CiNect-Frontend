@@ -93,11 +93,11 @@ export default function AccountTicketsPage() {
   return (
     <div>
       <PageHeader
-        title={t("tickets") ?? "My tickets"}
-        description="View all your upcoming and past movie tickets."
+        title={t("tickets")}
+        description={t("ticketsPageDesc")}
         breadcrumbs={[
           { label: t("title"), href: "/account/profile" },
-          { label: t("tickets") ?? "Tickets" },
+          { label: t("tickets") },
         ]}
       />
 

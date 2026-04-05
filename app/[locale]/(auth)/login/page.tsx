@@ -109,7 +109,7 @@ export default function LoginPage() {
                       <Input
                         type="text"
                         inputMode="email"
-                        placeholder="ten"
+                        placeholder={t("emailPlaceholder")}
                         className="pr-24"
                         {...field}
                       />
@@ -143,7 +143,7 @@ export default function LoginPage() {
               )}
             />
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : t("loginBtn")}
+              {isLoading ? t("signingIn") : t("loginBtn")}
             </Button>
           </form>
         </Form>

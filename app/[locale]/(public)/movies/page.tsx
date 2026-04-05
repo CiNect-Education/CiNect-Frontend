@@ -24,12 +24,12 @@ import type { PaginationMeta } from "@/types/api";
 import Image from "next/image";
 
 const SORT_OPTIONS = [
-  { value: "releaseDate:desc", label: "Newest First" },
-  { value: "releaseDate:asc", label: "Oldest First" },
-  { value: "title:asc", label: "Title A-Z" },
-  { value: "title:desc", label: "Title Z-A" },
-  { value: "rating:desc", label: "Highest Rated" },
-  { value: "rating:asc", label: "Lowest Rated" },
+  { value: "releaseDate:desc", labelKey: "sortNewestFirst" as const },
+  { value: "releaseDate:asc", labelKey: "sortOldestFirst" as const },
+  { value: "title:asc", labelKey: "sortTitleAsc" as const },
+  { value: "title:desc", labelKey: "sortTitleDesc" as const },
+  { value: "rating:desc", labelKey: "sortRatingDesc" as const },
+  { value: "rating:asc", labelKey: "sortRatingAsc" as const },
 ];
 
 function MoviesContent() {
@@ -91,8 +91,8 @@ function MoviesContent() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
       <PageHeader
-        title={t("title") || "Movies"}
-        description={t("description") || "Browse our complete movie collection"}
+        title={t("title")}
+        description={t("description")}
       />
 
       <div className="mt-8 flex flex-col gap-6 lg:flex-row">
@@ -106,16 +106,16 @@ function MoviesContent() {
           {/* Sticky Sort Bar */}
           <div className="cinect-glass sticky top-0 z-10 mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border px-4 py-3">
             <span className="text-muted-foreground text-sm">
-              {total > 0 ? `${total} movies` : "No results"}
+              {t("resultsSummary", { count: total })}
             </span>
             <Select value={sort || "releaseDate:desc"} onValueChange={updateSort}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Sort by" />
+                <SelectValue placeholder={t("sortBy")} />
               </SelectTrigger>
               <SelectContent>
                 {SORT_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
+                    {t(opt.labelKey)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -139,9 +139,9 @@ function MoviesContent() {
           ) : movies.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
               <Film className="text-muted-foreground mb-3 h-12 w-12" />
-              <h3 className="mb-2 text-lg font-semibold">{t("noResults") || "No movies found"}</h3>
+              <h3 className="mb-2 text-lg font-semibold">{t("noResults")}</h3>
               <p className="text-muted-foreground text-sm">
-                {t("tryDifferentFilters") || "Try adjusting your filters"}
+                {t("tryDifferentFilters")}
               </p>
             </div>
           ) : (

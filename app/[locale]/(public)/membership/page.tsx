@@ -44,6 +44,7 @@ function toArray<T>(v: unknown): T[] {
 
 export default function MembershipPage() {
   const t = useTranslations("membership");
+  const tNav = useTranslations("nav");
   const { data: tiersRes, isLoading, error, refetch } = useMembershipTiers();
   const { data: eventsRes } = useMembershipEvents();
 
@@ -119,9 +120,9 @@ export default function MembershipPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
       <PageHeader
-        title={t("title") ?? "Membership Tiers"}
-        description="Choose the perfect membership tier and unlock exclusive cinema benefits"
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Membership" }]}
+        title={t("title")}
+        description={t("pageDescription")}
+        breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("title") }]}
       />
 
       {/* Animated Tier Badges - Cards */}

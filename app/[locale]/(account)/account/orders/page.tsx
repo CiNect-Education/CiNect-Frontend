@@ -70,7 +70,7 @@ export default function OrdersPage() {
             <div className="relative flex-1">
               <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
-                placeholder="Search by order ID, movie, cinema..."
+                placeholder={t("ordersSearchPlaceholder")}
                 className="pl-9"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -94,7 +94,7 @@ export default function OrdersPage() {
                   variant={status === s ? "default" : "outline"}
                   onClick={() => setStatus(s)}
                 >
-                  {s === "ALL" ? "All" : s}
+                  {t(`orderStatus${s}` as "orderStatusALL")}
                 </Button>
               ))}
             </div>
@@ -115,13 +115,13 @@ export default function OrdersPage() {
           <CardContent className="py-12">
             <EmptyState
               icon={Ticket}
-              title="No orders found"
-              description="Try changing filters, or complete a booking to see it here."
-              actionLabel="Browse movies"
+              title={t("ordersNoMatchesTitle")}
+              description={t("ordersNoMatchesDesc")}
+              actionLabel={t("browseMovies")}
             />
             <div className="mt-4 flex justify-center">
               <Button asChild>
-                <Link href="/movies">Browse movies</Link>
+                <Link href="/movies">{t("browseMovies")}</Link>
               </Button>
             </div>
           </CardContent>

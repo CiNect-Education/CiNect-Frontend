@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +26,9 @@ function toList<T>(v: unknown): T[] {
 export default function CinemaDetailPage() {
   const params = useParams();
   const t = useTranslations("cinemas");
+  const tNav = useTranslations("nav");
+  const locale = useLocale();
+  const timeLocaleTag = locale.startsWith("vi") ? "vi-VN" : "en-US";
   const cinemaId = params.id as string;
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
 
@@ -42,7 +45,7 @@ export default function CinemaDetailPage() {
       if (!acc[key]) {
         acc[key] = {
           movieId: st.movieId,
-          movieTitle: st.movieTitle || "Movie",
+          movieTitle: st.movieTitle || t("movieTitleFallback"),
           moviePosterUrl: st.moviePosterUrl,
           items: [] as Showtime[],
         };
@@ -62,9 +65,9 @@ export default function CinemaDetailPage() {
         <PageHeader
           title=""
           breadcrumbs={[
-            { label: "Home", href: "/" },
-            { label: t("title") || "Cinemas", href: "/cinemas" },
-            { label: "Cinema Detail" },
+            { label: tNav("home"), href: "/" },
+            { label: t("title"), href: "/cinemas" },
+            { label: t("breadcrumbDetail") },
           ]}
         />
         <Skeleton className="mb-6 aspect-video max-w-2xl rounded-lg" />
@@ -86,9 +89,9 @@ export default function CinemaDetailPage() {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
         <div className="rounded-lg border border-dashed p-12 text-center">
-          <p className="text-muted-foreground">Cinema not found</p>
+          <p className="text-muted-foreground">{t("cinemaNotFound")}</p>
           <Button variant="outline" className="mt-4" asChild>
-            <Link href="/cinemas">Back to Cinemas</Link>
+            <Link href="/cinemas">{t("backToCinemas")}</Link>
           </Button>
         </div>
       </div>
@@ -111,8 +114,8 @@ export default function CinemaDetailPage() {
       <PageHeader
         title={cinema.name}
         breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: t("title") || "Cinemas", href: "/cinemas" },
+          { label: tNav("home"), href: "/" },
+          { label: t("title"), href: "/cinemas" },
           { label: cinema.name },
         ]}
       />
@@ -199,7 +202,7 @@ export default function CinemaDetailPage() {
                     onClick={() => setSelectedDate(dateStr)}
                     className="shrink-0"
                   >
-                    {d.toLocaleDateString("en-US", {
+                    {d.toLocaleDateString(timeLocaleTag, {
                       weekday: "short",
                       day: "numeric",
                       month: "short",
@@ -243,9 +246,10 @@ export default function CinemaDetailPage() {
                       {group.items.map((st) => (
                         <Button key={st.id} size="sm" variant="outline" asChild>
                           <Link href={`/booking/${st.id}`}>
-                            {new Date(st.startTime).toLocaleTimeString([], {
+                            {new Date(st.startTime).toLocaleTimeString(timeLocaleTag, {
                               hour: "2-digit",
                               minute: "2-digit",
+                              hour12: !locale.startsWith("vi"),
                             })}
                             {st.format && st.format !== "2D" && (
                               <Badge variant="secondary" className="ml-1 text-[10px]">

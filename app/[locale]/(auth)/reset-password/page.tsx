@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
@@ -24,20 +25,23 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-const resetSchema = z
-  .object({
-    password: z.string().min(6),
-    confirmPassword: z.string().min(6),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-type ResetFormValues = z.infer<typeof resetSchema>;
+type ResetFormValues = { password: string; confirmPassword: string };
 
 export default function ResetPasswordPage() {
   const t = useTranslations("auth");
+  const resetSchema = useMemo(
+    () =>
+      z
+        .object({
+          password: z.string().min(6),
+          confirmPassword: z.string().min(6),
+        })
+        .refine((data) => data.password === data.confirmPassword, {
+          message: t("passwordsMismatch"),
+          path: ["confirmPassword"],
+        }),
+    [t]
+  );
 
   const form = useForm<ResetFormValues>({
     resolver: zodResolver(resetSchema),
