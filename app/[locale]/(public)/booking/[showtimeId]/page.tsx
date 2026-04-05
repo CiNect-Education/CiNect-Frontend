@@ -28,6 +28,10 @@ import { useShowtime } from "@/hooks/queries/use-cinemas";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { format } from "date-fns";
+import { enUS } from "date-fns/locale";
+import { vi as viDateLocale } from "date-fns/locale";
+import { useLocale, useTranslations } from "next-intl";
+import { formatVnd, localizeAudioLabel, localizeRoomName } from "@/lib/showtime-display";
 
 function extractConflictedSeatIds(error: unknown): string[] {
   if (!(error instanceof ApiError) || error.status !== 409) return [];
@@ -64,9 +68,13 @@ function normalizeIsoDate(value: unknown): string | null {
 export default function BookingPage() {
   const params = useParams();
   const router = useRouter();
-  const locale = (params as unknown as { locale?: string }).locale;
+  const locale = useLocale();
   const showtimeId = params.showtimeId as string;
   const isMobile = useIsMobile();
+  const tb = useTranslations("booking");
+  const tShow = useTranslations("showtimeDisplay");
+  const dateFnsLocale = locale.startsWith("vi") ? viDateLocale : enUS;
+  const formatPrice = useCallback((amount: number) => formatVnd(amount, locale), [locale]);
 
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [holdId, setHoldId] = useState<string | null>(null);
@@ -136,8 +144,8 @@ export default function BookingPage() {
       setExpiresAt(normalizeIsoDate(expiresAtVal));
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
-        const returnTo = `/${locale ?? ""}/booking/${showtimeId}`.replace("//", "/");
-        router.push(`/${locale ?? ""}/login?returnTo=${encodeURIComponent(returnTo)}`.replace("//", "/"));
+        const returnTo = `/${locale}/booking/${showtimeId}`;
+        router.push(`/${locale}/login?returnTo=${encodeURIComponent(returnTo)}`);
         return;
       }
       const failed = extractConflictedSeatIds(err);
@@ -177,7 +185,7 @@ export default function BookingPage() {
 
   const handleProceed = () => {
     if (!holdId) return;
-    router.push(`/${locale ?? ""}/checkout/${holdId}`.replace("//", "/"));
+    router.push(`/${locale}/checkout/${holdId}`);
   };
 
   // Intentionally avoid releasing on unmount.
@@ -224,11 +232,12 @@ export default function BookingPage() {
     return byType;
   }, [seatArray]);
 
-  const seatTypeLabel = (t: string) => {
-    if (t === "VIP") return "VIP";
-    if (t === "COUPLE") return "Couple";
-    if (t === "DISABLED") return "Disabled";
-    return "Standard";
+  const seatTypeLabel = (typeKey: string) => {
+    if (typeKey === "VIP") return tb("vip");
+    if (typeKey === "COUPLE") return tb("couple");
+    if (typeKey === "DISABLED") return tb("disabled");
+    if (typeKey === "WHEELCHAIR") return tb("wheelchair");
+    return tb("standard");
   };
 
   const startDate = useMemo(() => {
@@ -348,7 +357,7 @@ export default function BookingPage() {
                 {showtime?.moviePosterUrl ? (
                   <Image
                     src={showtime.moviePosterUrl}
-                    alt={showtime?.movieTitle ?? "Movie poster"}
+                    alt={showtime?.movieTitle ?? tb("moviePosterAlt")}
                     fill
                     sizes="240px"
                     className="object-cover"
@@ -369,28 +378,30 @@ export default function BookingPage() {
                 <div className="space-y-1">
                   <div className="text-muted-foreground flex items-center gap-2 text-xs font-semibold tracking-[0.22em] uppercase">
                     <MonitorPlay className="h-4 w-4" />
-                    Seat selection
+                    {tb("seatSelectionEyebrow")}
                   </div>
                   <h1 className="text-2xl font-bold leading-tight sm:text-3xl">
-                    {showtime?.movieTitle ?? "Select Your Seats"}
+                    {showtime?.movieTitle ?? tb("selectYourSeatsFallback")}
                   </h1>
                   <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                     {showtime?.cinemaName && (
                       <span className="inline-flex items-center gap-1.5">
                         <MapPin className="h-4 w-4" />
                         {showtime.cinemaName}
-                        {showtime?.roomName ? ` • ${showtime.roomName}` : ""}
+                        {showtime?.roomName
+                          ? ` • ${localizeRoomName(showtime.roomName, (k, v) => tShow(k, v))}`
+                          : ""}
                       </span>
                     )}
                     {startDate && (
                       <>
                         <span className="inline-flex items-center gap-1.5">
                           <Calendar className="h-4 w-4" />
-                          {format(startDate, "PPP")}
+                          {format(startDate, "PPP", { locale: dateFnsLocale })}
                         </span>
                         <span className="inline-flex items-center gap-1.5">
                           <Clock className="h-4 w-4" />
-                          {format(startDate, "p")}
+                          {format(startDate, "p", { locale: dateFnsLocale })}
                         </span>
                       </>
                     )}
@@ -399,9 +410,17 @@ export default function BookingPage() {
 
                 <div className="flex flex-wrap items-center gap-2">
                   {showtime?.format && <Badge variant="outline">{showtime.format}</Badge>}
-                  {showtime?.language && <Badge variant="outline">{showtime.language}</Badge>}
-                  {showtime?.subtitles && <Badge variant="outline">{showtime.subtitles}</Badge>}
-                  {showtime?.memberExclusive && <Badge>Members</Badge>}
+                  {showtime?.language && (
+                    <Badge variant="outline">
+                      {localizeAudioLabel(showtime.language, (k) => tShow(k))}
+                    </Badge>
+                  )}
+                  {showtime?.subtitles && (
+                    <Badge variant="outline">
+                      {localizeAudioLabel(showtime.subtitles, (k) => tShow(k))}
+                    </Badge>
+                  )}
+                  {showtime?.memberExclusive && <Badge>{tb("membersBadge")}</Badge>}
                 </div>
               </div>
 
@@ -409,18 +428,18 @@ export default function BookingPage() {
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-muted-foreground text-sm">
-                  Tip: hover a seat for details, drag to pan, pinch/wheel to zoom.
+                  {tb("seatMapTip")}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="outline">
                     {typeof showtime?.availableSeats === "number"
-                      ? `${showtime.availableSeats} available`
-                      : "Live availability"}
+                      ? tb("availableSeatsCount", { count: showtime.availableSeats })
+                      : tb("liveAvailability")}
                   </Badge>
                   <Badge variant="outline">
-                    Base from{" "}
+                    {tb("baseFrom")}{" "}
                     {typeof showtime?.basePrice === "number" && Number.isFinite(showtime.basePrice)
-                      ? `$${showtime.basePrice.toFixed(2)}`
+                      ? formatPrice(showtime.basePrice)
                       : "—"}
                   </Badge>
                 </div>
@@ -436,8 +455,8 @@ export default function BookingPage() {
                     const priceLabel =
                       Number.isFinite(s.min) && Number.isFinite(s.max)
                         ? s.min === s.max
-                          ? `$${s.min.toFixed(2)}`
-                          : `$${s.min.toFixed(2)}–$${s.max.toFixed(2)}`
+                          ? formatPrice(s.min)
+                          : `${formatPrice(s.min)}–${formatPrice(s.max)}`
                         : "—";
                     return (
                       <Badge key={type} variant="outline" className="gap-2">
@@ -471,7 +490,7 @@ export default function BookingPage() {
         <div className="hidden lg:sticky lg:top-4 lg:block lg:self-start">
           <Card className="cinect-glass border-border/60">
             <CardHeader>
-              <CardTitle>Booking Summary</CardTitle>
+              <CardTitle>{tb("bookingSummary")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {!isMobile && expiresAt && (
@@ -482,7 +501,7 @@ export default function BookingPage() {
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Some seats are no longer available. Please select different seats.
+                    {tb("seatsConflictMessage")}
                   </AlertDescription>
                 </Alert>
               )}
@@ -491,7 +510,7 @@ export default function BookingPage() {
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Please select at least one seat or use &quot;Choose Best Seats&quot;.
+                    {tb("selectSeatHint")}
                   </AlertDescription>
                 </Alert>
               )}
@@ -503,14 +522,14 @@ export default function BookingPage() {
                 disabled={holdId != null || seatArray.length === 0}
                 onClick={handleAutoPickSeats}
               >
-                Choose Best Seats
+                {tb("chooseBestSeats")}
               </Button>
 
               {selectedSeats.length > 0 && (
                 <>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Seats:</span>
+                      <span className="text-muted-foreground">{tb("seatsCountLabel")}:</span>
                       <span className="font-medium">{selectedSeats.length}</span>
                     </div>
                     <div className="space-y-2 text-xs">
@@ -530,7 +549,7 @@ export default function BookingPage() {
                             </div>
                           </div>
                           <div className="font-semibold tabular-nums">
-                            ${(seat.price ?? 0).toFixed(2)}
+                            {formatPrice(seat.price ?? 0)}
                           </div>
                         </div>
                       ))}
@@ -539,11 +558,11 @@ export default function BookingPage() {
                       {(() => {
                         const counts = selectedSeatDetails.reduce(
                           (acc, s) => {
-                            const t =
+                            const kind =
                               (s as { type?: string; seatType?: string }).type ??
                               (s as { seatType?: string }).seatType ??
                               "STANDARD";
-                            const key = String(t);
+                            const key = String(kind);
                             acc[key] = (acc[key] ?? 0) + 1;
                             return acc;
                           },
@@ -561,8 +580,10 @@ export default function BookingPage() {
                     </div>
                     <Separator />
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total:</span>
-                      <span className="text-lg font-bold tabular-nums">${totalPrice.toFixed(2)}</span>
+                      <span className="text-muted-foreground">{tb("totalLabel")}:</span>
+                      <span className="text-lg font-bold tabular-nums">
+                        {formatPrice(totalPrice)}
+                      </span>
                     </div>
                   </div>
                 </>
@@ -575,11 +596,11 @@ export default function BookingPage() {
                   disabled={selectedSeats.length === 0 || holdMutation.isPending}
                   onClick={() => void handleHoldSeats()}
                 >
-                  {holdMutation.isPending ? "Holding..." : "Continue"}
+                  {holdMutation.isPending ? tb("holding") : tb("continueBooking")}
                 </Button>
               ) : (
                 <Button className="w-full" size="lg" onClick={handleProceed}>
-                  Proceed to Checkout
+                  {tb("proceedToCheckout")}
                 </Button>
               )}
             </CardContent>
@@ -595,10 +616,10 @@ export default function BookingPage() {
             <div>
               <div className="text-sm font-medium">
                 {holdId
-                  ? "Seats held"
-                  : `${selectedSeats.length} seat${selectedSeats.length !== 1 ? "s" : ""} selected`}
+                  ? tb("seatsHeldStatus")
+                  : tb("seatsSelectedCount", { count: selectedSeats.length })}
               </div>
-              <div className="text-lg font-bold tabular-nums">${totalPrice.toFixed(2)}</div>
+              <div className="text-lg font-bold tabular-nums">{formatPrice(totalPrice)}</div>
             </div>
             {!holdId ? (
               <Button
@@ -606,11 +627,11 @@ export default function BookingPage() {
                 disabled={selectedSeats.length === 0 || holdMutation.isPending}
                 onClick={() => void handleHoldSeats()}
               >
-                {holdMutation.isPending ? "Holding..." : "Continue"}
+                {holdMutation.isPending ? tb("holding") : tb("continueBooking")}
               </Button>
             ) : (
               <Button size="lg" onClick={handleProceed}>
-                Proceed
+                {tb("proceedShort")}
               </Button>
             )}
           </div>
@@ -622,13 +643,11 @@ export default function BookingPage() {
       <Dialog open={expireModalOpen} onOpenChange={setExpireModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Hold Expired</DialogTitle>
-            <DialogDescription>
-              Your seat hold has expired. Please select seats again to continue.
-            </DialogDescription>
+            <DialogTitle>{tb("holdExpiredTitle")}</DialogTitle>
+            <DialogDescription>{tb("holdExpiredDescription")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={closeExpireModal}>OK</Button>
+            <Button onClick={closeExpireModal}>{tb("ok")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

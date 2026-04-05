@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { AlertCircle, RefreshCw, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -25,6 +26,9 @@ export function ApiErrorState({
   compact = false,
   className = "",
 }: ApiErrorStateProps) {
+  const t = useTranslations("errors");
+  const tCommon = useTranslations("common");
+
   if (!error) return null;
 
   const isApiError = error instanceof ApiError;
@@ -34,7 +38,25 @@ export function ApiErrorState({
   const message = isApiError ? error.toastMessage : error.message;
   const isDev = process.env.NODE_ENV === "development";
 
-  const resolvedTitle = title ?? getDefaultTitle(status);
+  const resolvedTitle =
+    title ??
+    (() => {
+      if (!status) return t("apiUnknown");
+      switch (status) {
+        case 401:
+          return t("apiUnauthorized");
+        case 403:
+          return t("apiForbiddenTitle");
+        case 404:
+          return t("apiNotFoundTitle");
+        case 422:
+          return t("apiValidationTitle");
+        case 429:
+          return t("apiRateLimitedTitle");
+        default:
+          return status >= 500 ? t("apiServerTitle") : t("apiFailedTitle");
+      }
+    })();
 
   if (compact) {
     return (
@@ -51,7 +73,7 @@ export function ApiErrorState({
             className="text-destructive hover:text-destructive h-7 px-2"
           >
             <RefreshCw className="mr-1 h-3 w-3" />
-            Retry
+            {tCommon("retryShort")}
           </Button>
         )}
       </div>
@@ -71,7 +93,7 @@ export function ApiErrorState({
       {onRetry && (
         <Button onClick={onRetry} variant="outline" size="sm" className="mb-4">
           <RefreshCw className="mr-2 h-4 w-4" />
-          Try Again
+          {t("tryAgain")}
         </Button>
       )}
 
@@ -81,19 +103,19 @@ export function ApiErrorState({
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="sm" className="text-muted-foreground text-xs">
               <ChevronDown className="mr-1 h-3 w-3" />
-              Debug Details (dev only)
+              {t("debugDetailsDev")}
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="bg-muted/50 mt-2 rounded-md border p-3 text-left font-mono text-xs">
               {status !== undefined && (
                 <p>
-                  <span className="text-muted-foreground">Status:</span> {status}
+                  <span className="text-muted-foreground">{t("statusCode")}:</span> {status}
                 </p>
               )}
               {requestId && (
                 <p>
-                  <span className="text-muted-foreground">Request ID:</span> {requestId}
+                  <span className="text-muted-foreground">{t("requestId")}:</span> {requestId}
                 </p>
               )}
               {details != null && (
@@ -107,22 +129,4 @@ export function ApiErrorState({
       )}
     </div>
   );
-}
-
-function getDefaultTitle(status?: number): string {
-  if (!status) return "Something went wrong";
-  switch (status) {
-    case 401:
-      return "Authentication Required";
-    case 403:
-      return "Access Denied";
-    case 404:
-      return "Not Found";
-    case 422:
-      return "Validation Error";
-    case 429:
-      return "Rate Limited";
-    default:
-      return status >= 500 ? "Server Error" : "Request Failed";
-  }
 }

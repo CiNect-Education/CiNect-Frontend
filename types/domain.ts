@@ -331,7 +331,7 @@ export interface MembershipProfile {
 export interface GiftCard {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   imageUrl?: string;
   value: number;
   price: number;

@@ -37,6 +37,7 @@ import type { UserRole } from "@/types/domain";
 
 export function AdminSidebar() {
   const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
   const pathname = usePathname();
   const { user } = useAuth();
   const role =
@@ -239,7 +240,7 @@ export function AdminSidebar() {
             <SidebarMenuButton asChild>
               <Link href="/" className="text-muted-foreground">
                 <ArrowLeft className="h-4 w-4" />
-                <span>Back to site</span>
+                <span>{tCommon("backToSite")}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

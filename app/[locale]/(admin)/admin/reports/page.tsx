@@ -71,6 +71,11 @@ function parseReportTab(v: string | null): ReportTab {
   return "sales";
 }
 
+function ReportsLoadingFallback() {
+  const t = useTranslations("common");
+  return <div className="text-muted-foreground p-8 text-sm">{t("loadingReports")}</div>;
+}
+
 function AdminReportsPage() {
   const t = useTranslations("admin");
   const [dateFrom, setDateFrom] = useState<string>(
@@ -120,35 +125,47 @@ function AdminReportsPage() {
     occupancy: number;
   }>(cinemasRes?.data ?? cinemasRes);
 
-  const exportSalesCSV = () => {
+  const exportSalesCSV = useCallback(() => {
     downloadCSV(
-      ["Date", "Revenue", "Bookings"],
+      [t("csvDate"), t("csvRevenue"), t("csvBookings")],
       salesData.map((r) => [r.date, r.revenue, r.bookings]),
       `sales-report-${dateFrom}-${dateTo}.csv`
     );
-  };
+  }, [salesData, dateFrom, dateTo, t]);
 
-  const exportMoviesCSV = () => {
+  const exportMoviesCSV = useCallback(() => {
     downloadCSV(
-      ["Movie ID", "Movie Title", "Revenue", "Bookings", "Occupancy"],
+      [
+        t("csvMovieId"),
+        t("csvMovieTitle"),
+        t("csvRevenue"),
+        t("csvBookings"),
+        t("csvOccupancy"),
+      ],
       moviesData.map((r) => [r.movieId, r.movieTitle, r.revenue, r.bookings, r.occupancy ?? ""]),
       `movies-report-${dateFrom}-${dateTo}.csv`
     );
-  };
+  }, [moviesData, dateFrom, dateTo, t]);
 
-  const exportCinemasCSV = () => {
+  const exportCinemasCSV = useCallback(() => {
     downloadCSV(
-      ["Cinema ID", "Cinema Name", "Revenue", "Bookings", "Occupancy"],
+      [
+        t("csvCinemaId"),
+        t("csvCinemaName"),
+        t("csvRevenue"),
+        t("csvBookings"),
+        t("csvOccupancy"),
+      ],
       cinemasData.map((r) => [r.cinemaId, r.cinemaName, r.revenue, r.bookings, r.occupancy ?? ""]),
       `cinemas-report-${dateFrom}-${dateTo}.csv`
     );
-  };
+  }, [cinemasData, dateFrom, dateTo, t]);
 
   return (
     <div>
       <PageHeader
         title={t("reports")}
-        description="Business analytics and performance reports for your cinema chain."
+        description={t("descReports")}
         breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("reports") }]}
         actions={
           <div className="flex items-center gap-2">
@@ -172,24 +189,24 @@ function AdminReportsPage() {
 
       <Tabs value={activeTab} onValueChange={(v) => setReportTab(parseReportTab(v))}>
         <TabsList className="cinect-glass border">
-          <TabsTrigger value="sales">Sales</TabsTrigger>
-          <TabsTrigger value="movies">Movies</TabsTrigger>
-          <TabsTrigger value="cinemas">Cinemas</TabsTrigger>
+          <TabsTrigger value="sales">{t("reportsTabSales")}</TabsTrigger>
+          <TabsTrigger value="movies">{t("reportsTabMovies")}</TabsTrigger>
+          <TabsTrigger value="cinemas">{t("reportsTabCinemas")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sales" className="space-y-6">
           <Card className="cinect-glass border">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Sales Report</CardTitle>
+              <CardTitle>{t("salesReport")}</CardTitle>
               <Button variant="outline" size="sm" onClick={exportSalesCSV}>
                 <Download className="mr-2 h-4 w-4" />
-                Export CSV
+                {t("exportCsv")}
               </Button>
             </CardHeader>
             <CardContent>
               {salesData.length === 0 ? (
                 <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
-                  No sales data for this period
+                  {t("reportsNoSalesData")}
                 </div>
               ) : (
                 <div className="mb-6 h-64 w-full min-w-0">
@@ -208,7 +225,7 @@ function AdminReportsPage() {
                         stroke="hsl(var(--primary))"
                         strokeWidth={2}
                         dot={false}
-                        name="Revenue"
+                        name={t("chartRevenue")}
                       />
                       <Line
                         type="monotone"
@@ -216,7 +233,7 @@ function AdminReportsPage() {
                         stroke="hsl(var(--chart-2))"
                         strokeWidth={2}
                         dot={false}
-                        name="Bookings"
+                        name={t("chartBookings")}
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -226,9 +243,9 @@ function AdminReportsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Revenue</TableHead>
-                      <TableHead className="text-right">Bookings</TableHead>
+                      <TableHead>{t("csvDate")}</TableHead>
+                      <TableHead className="text-right">{t("csvRevenue")}</TableHead>
+                      <TableHead className="text-right">{t("csvBookings")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -242,7 +259,7 @@ function AdminReportsPage() {
                     {salesData.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={3} className="text-muted-foreground text-center">
-                          No data
+                          {t("reportsTableNoData")}
                         </TableCell>
                       </TableRow>
                     )}
@@ -256,16 +273,16 @@ function AdminReportsPage() {
         <TabsContent value="movies" className="space-y-6">
           <Card className="cinect-glass border">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Movie Performance</CardTitle>
+              <CardTitle>{t("reportsMoviePerformance")}</CardTitle>
               <Button variant="outline" size="sm" onClick={exportMoviesCSV}>
                 <Download className="mr-2 h-4 w-4" />
-                Export CSV
+                {t("exportCsv")}
               </Button>
             </CardHeader>
             <CardContent>
               {moviesData.length === 0 ? (
                 <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
-                  No movie data for this period
+                  {t("reportsNoMovieData")}
                 </div>
               ) : (
                 <div className="mb-6 h-64 w-full min-w-0">
@@ -293,10 +310,10 @@ function AdminReportsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Movie</TableHead>
-                      <TableHead className="text-right">Revenue</TableHead>
-                      <TableHead className="text-right">Bookings</TableHead>
-                      <TableHead className="text-right">Occupancy</TableHead>
+                      <TableHead>{t("colMovie")}</TableHead>
+                      <TableHead className="text-right">{t("csvRevenue")}</TableHead>
+                      <TableHead className="text-right">{t("csvBookings")}</TableHead>
+                      <TableHead className="text-right">{t("csvOccupancy")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -313,7 +330,7 @@ function AdminReportsPage() {
                     {moviesData.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={4} className="text-muted-foreground text-center">
-                          No data
+                          {t("reportsTableNoData")}
                         </TableCell>
                       </TableRow>
                     )}
@@ -327,16 +344,16 @@ function AdminReportsPage() {
         <TabsContent value="cinemas" className="space-y-6">
           <Card className="cinect-glass border">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Cinema Performance</CardTitle>
+              <CardTitle>{t("reportsCinemaPerformance")}</CardTitle>
               <Button variant="outline" size="sm" onClick={exportCinemasCSV}>
                 <Download className="mr-2 h-4 w-4" />
-                Export CSV
+                {t("exportCsv")}
               </Button>
             </CardHeader>
             <CardContent>
               {cinemasData.length === 0 ? (
                 <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
-                  No cinema data for this period
+                  {t("reportsNoCinemaData")}
                 </div>
               ) : (
                 <div className="mb-6 h-64 w-full min-w-0">
@@ -364,10 +381,10 @@ function AdminReportsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Cinema</TableHead>
-                      <TableHead className="text-right">Revenue</TableHead>
-                      <TableHead className="text-right">Bookings</TableHead>
-                      <TableHead className="text-right">Occupancy</TableHead>
+                      <TableHead>{t("occupancyTableCinema")}</TableHead>
+                      <TableHead className="text-right">{t("csvRevenue")}</TableHead>
+                      <TableHead className="text-right">{t("csvBookings")}</TableHead>
+                      <TableHead className="text-right">{t("csvOccupancy")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -384,7 +401,7 @@ function AdminReportsPage() {
                     {cinemasData.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={4} className="text-muted-foreground text-center">
-                          No data
+                          {t("reportsTableNoData")}
                         </TableCell>
                       </TableRow>
                     )}
@@ -402,7 +419,7 @@ function AdminReportsPage() {
 export default function AdminReportsPageRoute() {
   return (
     <Suspense
-      fallback={<div className="text-muted-foreground p-8 text-sm">Loading reports…</div>}
+      fallback={<ReportsLoadingFallback />}
     >
       <AdminReportsPage />
     </Suspense>

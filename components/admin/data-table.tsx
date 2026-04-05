@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -51,15 +52,18 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
-  searchPlaceholder = "Search...",
+  searchPlaceholder,
   pageSize = 10,
   hidePagination = false,
   isLoading = false,
   className,
   tableClassName,
-  emptyMessage = "No results.",
+  emptyMessage,
   toolbarRight,
 }: DataTableProps<TData, TValue>) {
+  const t = useTranslations("common");
+  const resolvedSearchPlaceholder = searchPlaceholder ?? t("search");
+  const resolvedEmptyMessage = emptyMessage ?? t("dataTableEmptyDefault");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
@@ -95,7 +99,7 @@ export function DataTable<TData, TValue>({
               <div className="relative w-full max-w-md">
                 <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                 <Input
-                  placeholder={searchPlaceholder}
+                  placeholder={resolvedSearchPlaceholder}
                   value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
                   onChange={(event) =>
                     table.getColumn(searchKey)?.setFilterValue(event.target.value)
@@ -107,11 +111,9 @@ export function DataTable<TData, TValue>({
             {!isLoading && (
               <div className="text-muted-foreground hidden text-sm sm:block">
                 {hasActiveSearch ? (
-                  <>
-                    {filteredCount} / {totalCount} results
-                  </>
+                  <>{t("dataTableResultsOf", { filtered: filteredCount, total: totalCount })}</>
                 ) : (
-                  <>{totalCount} items</>
+                  <>{t("dataTableItemsTotal", { count: totalCount })}</>
                 )}
               </div>
             )}
@@ -164,7 +166,7 @@ export function DataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  <div className="text-muted-foreground text-sm">{emptyMessage}</div>
+                  <div className="text-muted-foreground text-sm">{resolvedEmptyMessage}</div>
                 </TableCell>
               </TableRow>
             )}
@@ -175,7 +177,10 @@ export function DataTable<TData, TValue>({
       {!hidePagination && (
         <div className="flex items-center justify-between">
           <div className="text-muted-foreground text-sm">
-            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+            {t("dataTablePageOf", {
+              current: table.getState().pagination.pageIndex + 1,
+              total: table.getPageCount(),
+            })}
           </div>
           <div className="flex gap-2">
             <Button
@@ -185,7 +190,7 @@ export function DataTable<TData, TValue>({
               disabled={isLoading || !table.getCanPreviousPage()}
             >
               <ChevronLeft className="h-4 w-4" />
-              Previous
+              {t("previous")}
             </Button>
             <Button
               variant="outline"
@@ -193,7 +198,7 @@ export function DataTable<TData, TValue>({
               onClick={() => table.nextPage()}
               disabled={isLoading || !table.getCanNextPage()}
             >
-              Next
+              {t("next")}
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

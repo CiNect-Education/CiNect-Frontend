@@ -55,16 +55,14 @@ import {
 import { ApiError } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
-const showtimeFormSchema = z.object({
-  movieId: z.string().min(1, "Movie is required"),
-  cinemaId: z.string().min(1, "Cinema is required"),
-  roomId: z.string().min(1, "Room is required"),
-  startTime: z.string().min(1, "Start time is required"),
-  basePrice: z.coerce.number().min(0),
-  format: z.enum(["2D", "3D", "IMAX", "4DX", "DOLBY"]),
-});
-
-type ShowtimeFormValues = z.infer<typeof showtimeFormSchema>;
+type ShowtimeFormValues = {
+  movieId: string;
+  cinemaId: string;
+  roomId: string;
+  startTime: string;
+  basePrice: number;
+  format: "2D" | "3D" | "IMAX" | "4DX" | "DOLBY";
+};
 
 function getMinutesOfDay(iso: string): number {
   const d = new Date(iso);
@@ -73,6 +71,7 @@ function getMinutesOfDay(iso: string): number {
 
 export default function AdminShowtimesPage() {
   const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
   const [cinemaFilter, setCinemaFilter] = useState<string>("");
   const [dateFilter, setDateFilter] = useState<string>(new Date().toISOString().slice(0, 10));
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -103,6 +102,19 @@ export default function AdminShowtimesPage() {
   const createMutation = useCreateShowtime();
   const updateMutation = useUpdateShowtime();
   const deleteMutation = useDeleteShowtime();
+
+  const showtimeFormSchema = useMemo(
+    () =>
+      z.object({
+        movieId: z.string().min(1, t("validation.movieRequired")),
+        cinemaId: z.string().min(1, t("validation.cinemaRequired")),
+        roomId: z.string().min(1, t("validation.roomRequired")),
+        startTime: z.string().min(1, t("validation.startTimeRequired")),
+        basePrice: z.coerce.number().min(0),
+        format: z.enum(["2D", "3D", "IMAX", "4DX", "DOLBY"]),
+      }),
+    [t]
+  );
 
   const form = useForm<ShowtimeFormValues>({
     resolver: zodResolver(showtimeFormSchema),
@@ -181,7 +193,7 @@ export default function AdminShowtimesPage() {
       setDialogOpen(false);
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        setConflictError(err.message || "This showtime overlaps with an existing one.");
+        setConflictError(err.message || t("showtimeOverlap"));
         const details = err.details as { overlappingIds?: string[] } | undefined;
         if (details?.overlappingIds) {
           setConflictIds(new Set(details.overlappingIds));
@@ -200,12 +212,12 @@ export default function AdminShowtimesPage() {
   return (
     <AdminPageShell
       title={t("showtimes")}
-      description="Schedule and manage movie showtimes across all cinemas."
+      description={t("descShowtimes")}
       breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("showtimes") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Showtime
+          {t("addShowtime")}
         </Button>
       }
     >
@@ -215,10 +227,10 @@ export default function AdminShowtimesPage() {
           onValueChange={(v) => setCinemaFilter(v === "all" ? "" : v)}
         >
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="Cinema" />
+            <SelectValue placeholder={t("cinemaFilterPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All cinemas</SelectItem>
+            <SelectItem value="all">{t("allCinemasFilter")}</SelectItem>
             {cinemas.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
@@ -261,7 +273,7 @@ export default function AdminShowtimesPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => openEdit(st)}
-                      aria-label="Edit showtime"
+                      aria-label={t("ariaEditShowtime")}
                     >
                       <Pencil className="h-3 w-3" />
                     </Button>
@@ -269,14 +281,14 @@ export default function AdminShowtimesPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => setDeleteTarget(st)}
-                      aria-label="Delete showtime"
+                      aria-label={t("ariaDeleteShowtime")}
                     >
                       <Trash2 className="text-destructive h-3 w-3" />
                     </Button>
                   </div>
                 ))}
                 {roomShowtimes.length === 0 && (
-                  <span className="text-muted-foreground">No showtimes</span>
+                  <span className="text-muted-foreground">{t("noShowtimes")}</span>
                 )}
               </div>
             </div>
@@ -284,7 +296,7 @@ export default function AdminShowtimesPage() {
         })}
         {rooms.length === 0 && (
           <div className="cinect-glass text-muted-foreground flex h-32 items-center justify-center rounded-lg border border-dashed">
-            Select a cinema to see rooms and showtimes
+            {t("showtimesSelectCinemaHint")}
           </div>
         )}
       </div>
@@ -292,7 +304,7 @@ export default function AdminShowtimesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="cinect-glass max-w-lg border">
           <DialogHeader>
-            <DialogTitle>{editingShowtime ? "Edit Showtime" : "Add Showtime"}</DialogTitle>
+            <DialogTitle>{editingShowtime ? t("editShowtime") : t("addShowtime")}</DialogTitle>
           </DialogHeader>
           {conflictError && (
             <div className="bg-destructive/10 text-destructive rounded p-3 text-sm">
@@ -306,11 +318,11 @@ export default function AdminShowtimesPage() {
                 name="movieId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Movie</FormLabel>
+                    <FormLabel>{t("labelMovie")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select movie" />
+                          <SelectValue placeholder={t("selectMovie")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -330,11 +342,11 @@ export default function AdminShowtimesPage() {
                 name="cinemaId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cinema</FormLabel>
+                    <FormLabel>{t("cinema")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select cinema" />
+                          <SelectValue placeholder={t("selectCinema")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -354,11 +366,11 @@ export default function AdminShowtimesPage() {
                 name="roomId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Room</FormLabel>
+                    <FormLabel>{t("labelRoomShort")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select room" />
+                          <SelectValue placeholder={t("selectRoom")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -379,7 +391,7 @@ export default function AdminShowtimesPage() {
                   name="startTime"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Start</FormLabel>
+                      <FormLabel>{t("labelStart")}</FormLabel>
                       <FormControl>
                         <Input type="datetime-local" {...field} />
                       </FormControl>
@@ -392,7 +404,7 @@ export default function AdminShowtimesPage() {
                   name="basePrice"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Base price (₫)</FormLabel>
+                      <FormLabel>{t("basePriceVnd")}</FormLabel>
                       <FormControl>
                         <Input type="number" {...field} />
                       </FormControl>
@@ -406,7 +418,7 @@ export default function AdminShowtimesPage() {
                 name="format"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Format</FormLabel>
+                    <FormLabel>{t("labelFormat")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -427,13 +439,13 @@ export default function AdminShowtimesPage() {
               />
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancel
+                  {tCommon("cancel")}
                 </Button>
                 <Button
                   type="submit"
                   disabled={createMutation.isPending || updateMutation.isPending}
                 >
-                  {editingShowtime ? "Update" : "Create"}
+                  {editingShowtime ? tCommon("save") : tCommon("create")}
                 </Button>
               </DialogFooter>
             </form>
@@ -444,18 +456,16 @@ export default function AdminShowtimesPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent className="cinect-glass border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Showtime</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this showtime? This action cannot be undone.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t("deleteShowtime")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("deleteShowtimeConfirm")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {tCommon("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

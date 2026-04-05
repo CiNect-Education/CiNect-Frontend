@@ -25,6 +25,7 @@ function toList<T>(v: unknown): T[] {
 export default function NewsArticlePage() {
   const params = useParams();
   const t = useTranslations("news");
+  const tNav = useTranslations("nav");
   const slug = params.slug as string;
 
   const { data: articleRes, isLoading, error, refetch } = useNewsArticle(slug);
@@ -54,9 +55,9 @@ export default function NewsArticlePage() {
         <PageHeader
           title=""
           breadcrumbs={[
-            { label: "Home", href: "/" },
-            { label: t("title") || "News", href: "/news" },
-            { label: "Article" },
+            { label: tNav("home"), href: "/" },
+            { label: t("title"), href: "/news" },
+            { label: t("articleLoading") },
           ]}
         />
         <Skeleton className="mb-4 h-10 w-3/4" />
@@ -84,9 +85,9 @@ export default function NewsArticlePage() {
       <div className="mx-auto max-w-3xl px-4 py-8 lg:px-6">
         <div className="rounded-lg border border-dashed p-12 text-center">
           <Newspaper className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
-          <p className="text-muted-foreground">Article not found</p>
+          <p className="text-muted-foreground">{t("articleNotFound")}</p>
           <Link href="/news" className="text-primary mt-4 inline-block hover:underline">
-            Back to News
+            {t("backToNews")}
           </Link>
         </div>
       </div>
@@ -98,8 +99,8 @@ export default function NewsArticlePage() {
       <PageHeader
         title=""
         breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: t("title") || "News", href: "/news" },
+          { label: tNav("home"), href: "/" },
+          { label: t("title"), href: "/news" },
           { label: article.title },
         ]}
       />

@@ -13,29 +13,30 @@ import { Shield, Save } from "lucide-react";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
 
-const PERMISSIONS = [
-  { key: "movies.read", label: "Movies (Read)" },
-  { key: "movies.write", label: "Movies (Write)" },
-  { key: "cinemas.read", label: "Cinemas (Read)" },
-  { key: "cinemas.write", label: "Cinemas (Write)" },
-  { key: "rooms.read", label: "Rooms (Read)" },
-  { key: "rooms.write", label: "Rooms (Write)" },
-  { key: "showtimes.read", label: "Showtimes (Read)" },
-  { key: "showtimes.write", label: "Showtimes (Write)" },
-  { key: "bookings.read", label: "Bookings (Read)" },
-  { key: "bookings.write", label: "Bookings (Write)" },
-  { key: "pricing.read", label: "Pricing (Read)" },
-  { key: "pricing.write", label: "Pricing (Write)" },
-  { key: "promotions.read", label: "Promotions (Read)" },
-  { key: "promotions.write", label: "Promotions (Write)" },
-  { key: "users.read", label: "Users (Read)" },
-  { key: "users.write", label: "Users (Write)" },
-  { key: "reports.read", label: "Reports (Read)" },
-  { key: "analytics.read", label: "Analytics (Read)" },
-];
+const PERMISSION_ROWS = [
+  ["movies.read", "permMoviesRead"],
+  ["movies.write", "permMoviesWrite"],
+  ["cinemas.read", "permCinemasRead"],
+  ["cinemas.write", "permCinemasWrite"],
+  ["rooms.read", "permRoomsRead"],
+  ["rooms.write", "permRoomsWrite"],
+  ["showtimes.read", "permShowtimesRead"],
+  ["showtimes.write", "permShowtimesWrite"],
+  ["bookings.read", "permBookingsRead"],
+  ["bookings.write", "permBookingsWrite"],
+  ["pricing.read", "permPricingRead"],
+  ["pricing.write", "permPricingWrite"],
+  ["promotions.read", "permPromotionsRead"],
+  ["promotions.write", "permPromotionsWrite"],
+  ["users.read", "permUsersRead"],
+  ["users.write", "permUsersWrite"],
+  ["reports.read", "permReportsRead"],
+  ["analytics.read", "permAnalyticsRead"],
+] as const;
 
 export default function AdminRolesPage() {
   const t = useTranslations("admin");
+  const tToast = useTranslations("toast");
   const { data, isLoading, error, refetch } = useAdminRoles();
   const rolesRaw = data?.data;
   const roles = useMemo(() => rolesRaw ?? [], [rolesRaw]);
@@ -78,10 +79,10 @@ export default function AdminRolesPage() {
           permissions: permissionMap[role.id] || [],
         });
       }
-      toast.success("Roles updated successfully");
+      toast.success(tToast("rolesUpdated"));
       refetch();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to update roles";
+      const message = err instanceof Error ? err.message : tToast("rolesUpdateFailed");
       toast.error(message);
     } finally {
       setSaving(false);
@@ -92,7 +93,7 @@ export default function AdminRolesPage() {
     return (
       <AdminPageShell
         title={t("roles")}
-        description="Configure permissions for each role."
+        description={t("descRoles")}
         breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("roles") }]}
       >
         <div className="space-y-6">
@@ -110,12 +111,12 @@ export default function AdminRolesPage() {
   return (
     <AdminPageShell
       title={t("roles")}
-      description="Configure permissions for each role."
+      description={t("descRoles")}
       breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("roles") }]}
       actions={
         <Button onClick={handleSave} disabled={saving}>
           <Save className="mr-2 h-4 w-4" />
-          {saving ? "Saving..." : "Save Changes"}
+          {saving ? t("saving") : t("saveChanges")}
         </Button>
       }
     >
@@ -123,18 +124,16 @@ export default function AdminRolesPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Shield className="text-primary h-5 w-5" />
-            <CardTitle>Permission Matrix</CardTitle>
+            <CardTitle>{t("permissionMatrixTitle")}</CardTitle>
           </div>
-          <CardDescription>
-            Check/uncheck permissions for each role. ADMIN typically has full access.
-          </CardDescription>
+          <CardDescription>{t("permissionMatrixDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b">
-                  <th className="px-4 py-3 text-left font-medium">Permission</th>
+                  <th className="px-4 py-3 text-left font-medium">{t("colPermission")}</th>
                   {roles.map((role) => (
                     <th key={role.id} className="px-4 py-3 text-center font-medium uppercase">
                       {role.name}
@@ -143,14 +142,14 @@ export default function AdminRolesPage() {
                 </tr>
               </thead>
               <tbody>
-                {PERMISSIONS.map((perm) => (
-                  <tr key={perm.key} className="hover:bg-muted/50 border-b">
-                    <td className="px-4 py-3">{perm.label}</td>
+                {PERMISSION_ROWS.map(([permKey, labelKey]) => (
+                  <tr key={permKey} className="hover:bg-muted/50 border-b">
+                    <td className="px-4 py-3">{t(labelKey)}</td>
                     {roles.map((role) => (
                       <td key={role.id} className="px-4 py-3 text-center">
                         <Checkbox
-                          checked={hasPermission(role.id, perm.key)}
-                          onCheckedChange={() => togglePermission(role.id, perm.key)}
+                          checked={hasPermission(role.id, permKey)}
+                          onCheckedChange={() => togglePermission(role.id, permKey)}
                         />
                       </td>
                     ))}

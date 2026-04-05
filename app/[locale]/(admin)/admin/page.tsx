@@ -73,7 +73,7 @@ export default function AdminDashboardPage() {
     <div>
       <PageHeader
         title={t("dashboard")}
-        description="Overview of your cinema business performance."
+        description={t("descDashboard")}
       />
 
       {/* KPI Cards */}
@@ -99,14 +99,14 @@ export default function AdminDashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="cinect-glass border">
           <CardHeader>
-            <CardTitle className="text-lg">Revenue</CardTitle>
+            <CardTitle className="text-lg">{t("revenue")}</CardTitle>
           </CardHeader>
           <CardContent>
             {revenueLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : revenueData.length === 0 ? (
               <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed text-sm">
-                No revenue data
+                {t("dashNoRevenueData")}
               </div>
             ) : (
               <div className="h-64 w-full min-w-0">
@@ -135,14 +135,14 @@ export default function AdminDashboardPage() {
 
         <Card className="cinect-glass border">
           <CardHeader>
-            <CardTitle className="text-lg">Occupancy</CardTitle>
+            <CardTitle className="text-lg">{t("occupancy")}</CardTitle>
           </CardHeader>
           <CardContent>
             {occupancyLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : occupancyData.length === 0 ? (
               <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed text-sm">
-                No occupancy data
+                {t("dashNoOccupancyData")}
               </div>
             ) : (
               <div className="h-64 w-full min-w-0">
@@ -165,7 +165,7 @@ export default function AdminDashboardPage() {
 
         <Card className="cinect-glass border lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-lg">Recent Bookings</CardTitle>
+            <CardTitle className="text-lg">{t("recentBookings")}</CardTitle>
           </CardHeader>
           <CardContent>
             {bookingsLoading ? (
@@ -183,7 +183,7 @@ export default function AdminDashboardPage() {
               </div>
             ) : recentBookings.length === 0 ? (
               <div className="text-muted-foreground flex h-48 items-center justify-center text-sm">
-                No recent bookings
+                {t("dashNoRecentBookings")}
               </div>
             ) : (
               <div className="space-y-3">

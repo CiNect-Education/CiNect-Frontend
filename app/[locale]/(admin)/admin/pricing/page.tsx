@@ -67,6 +67,8 @@ type PricingFormValues = z.infer<typeof pricingFormSchema>;
 
 export default function AdminPricingPage() {
   const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
+  const tb = useTranslations("booking");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<PricingRule | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<PricingRule | null>(null);
@@ -152,40 +154,40 @@ export default function AdminPricingPage() {
     () => [
       {
         accessorKey: "seatType",
-        header: "Seat Type",
+        header: t("colSeatType"),
       },
       {
         accessorKey: "dayType",
-        header: "Day Type",
+        header: t("colDayType"),
       },
       {
         accessorKey: "timeSlot",
-        header: "Time Slot",
+        header: t("colTimeSlot"),
       },
       {
         accessorKey: "roomFormat",
-        header: "Format",
+        header: t("colRoomFormat"),
       },
       {
         accessorKey: "price",
-        header: "Price",
+        header: t("colPrice"),
         cell: ({ row }) => (row.original.price?.toLocaleString() ?? "0") + " ₫",
       },
       {
         accessorKey: "isActive",
-        header: "Active",
-        cell: ({ row }) => (row.original.isActive ? "Yes" : "No"),
+        header: t("colActive"),
+        cell: ({ row }) => (row.original.isActive ? t("yes") : t("no")),
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t("colActions"),
         cell: ({ row }) => (
           <div className="flex gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => openEdit(row.original)}
-              aria-label="Edit pricing rule"
+              aria-label={t("ariaEditPricing")}
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -193,7 +195,7 @@ export default function AdminPricingPage() {
               variant="ghost"
               size="icon"
               onClick={() => setDeleteTarget(row.original)}
-              aria-label="Delete pricing rule"
+              aria-label={t("ariaDeletePricing")}
             >
               <Trash2 className="text-destructive h-4 w-4" />
             </Button>
@@ -201,34 +203,34 @@ export default function AdminPricingPage() {
         ),
       },
     ],
-    [openEdit]
+    [openEdit, t]
   );
 
   return (
     <AdminPageShell
       title={t("pricing")}
-      description="Configure ticket pricing rules by cinema, room type, day, and time."
+      description={t("descPricing")}
       breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("pricing") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Rule
+          {t("addRule")}
         </Button>
       }
     >
       <DataTable
         columns={columns}
         data={rules}
-        searchPlaceholder="Search rules..."
+        searchPlaceholder={t("searchRules")}
         className="cinect-glass rounded-lg border p-4"
         isLoading={rulesLoading}
-        emptyMessage="No pricing rules found."
+        emptyMessage={t("emptyPricing")}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="cinect-glass max-w-lg border">
           <DialogHeader>
-            <DialogTitle>{editingRule ? "Edit Rule" : "Add Rule"}</DialogTitle>
+            <DialogTitle>{editingRule ? t("editRule") : t("addRule")}</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -238,7 +240,7 @@ export default function AdminPricingPage() {
                   name="seatType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Seat Type</FormLabel>
+                      <FormLabel>{t("colSeatType")}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -248,7 +250,13 @@ export default function AdminPricingPage() {
                         <SelectContent>
                           {(["STANDARD", "VIP", "COUPLE", "DISABLED"] as SeatType[]).map((s) => (
                             <SelectItem key={s} value={s}>
-                              {s}
+                              {s === "VIP"
+                                ? tb("vip")
+                                : s === "COUPLE"
+                                  ? tb("couple")
+                                  : s === "DISABLED"
+                                    ? tb("disabled")
+                                    : tb("standard")}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -262,7 +270,7 @@ export default function AdminPricingPage() {
                   name="dayType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Day Type</FormLabel>
+                      <FormLabel>{t("colDayType")}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -272,7 +280,11 @@ export default function AdminPricingPage() {
                         <SelectContent>
                           {(["WEEKDAY", "WEEKEND", "HOLIDAY"] as DayType[]).map((d) => (
                             <SelectItem key={d} value={d}>
-                              {d}
+                              {d === "WEEKDAY"
+                                ? t("pricingDayWeekday")
+                                : d === "WEEKEND"
+                                  ? t("pricingDayWeekend")
+                                  : t("pricingDayHoliday")}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -288,7 +300,7 @@ export default function AdminPricingPage() {
                   name="timeSlot"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Time Slot</FormLabel>
+                      <FormLabel>{t("colTimeSlot")}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -296,9 +308,15 @@ export default function AdminPricingPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {(["MORNING", "AFTERNOON", "EVENING", "NIGHT"] as TimeSlot[]).map((t) => (
-                            <SelectItem key={t} value={t}>
-                              {t}
+                          {(["MORNING", "AFTERNOON", "EVENING", "NIGHT"] as TimeSlot[]).map((slot) => (
+                            <SelectItem key={slot} value={slot}>
+                              {slot === "MORNING"
+                                ? t("pricingSlotMorning")
+                                : slot === "AFTERNOON"
+                                  ? t("pricingSlotAfternoon")
+                                  : slot === "EVENING"
+                                    ? t("pricingSlotEvening")
+                                    : t("pricingSlotNight")}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -312,7 +330,7 @@ export default function AdminPricingPage() {
                   name="roomFormat"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Room Format</FormLabel>
+                      <FormLabel>{t("colRoomFormat")}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -337,18 +355,18 @@ export default function AdminPricingPage() {
                 name="cinemaId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cinema (optional)</FormLabel>
+                    <FormLabel>{t("labelCinemaOptional")}</FormLabel>
                     <Select
                       onValueChange={(v) => field.onChange(v === "none" ? "" : v)}
                       value={field.value || "none"}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="All cinemas" />
+                          <SelectValue placeholder={t("allCinemasFilter")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="none">All cinemas</SelectItem>
+                        <SelectItem value="none">{t("allCinemasFilter")}</SelectItem>
                         {cinemas.map((c) => (
                           <SelectItem key={c.id} value={c.id}>
                             {c.name}
@@ -365,7 +383,7 @@ export default function AdminPricingPage() {
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Price (₫)</FormLabel>
+                    <FormLabel>{t("labelPriceAmountVnd")}</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
@@ -378,7 +396,7 @@ export default function AdminPricingPage() {
                 name="isActive"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <FormLabel>Active</FormLabel>
+                    <FormLabel>{t("colActive")}</FormLabel>
                     <FormControl>
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
@@ -387,13 +405,13 @@ export default function AdminPricingPage() {
               />
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancel
+                  {tCommon("cancel")}
                 </Button>
                 <Button
                   type="submit"
                   disabled={createMutation.isPending || updateMutation.isPending}
                 >
-                  {editingRule ? "Update" : "Create"}
+                  {editingRule ? t("updateUserBtn") : tCommon("create")}
                 </Button>
               </DialogFooter>
             </form>
@@ -404,18 +422,16 @@ export default function AdminPricingPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent className="cinect-glass border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Pricing Rule</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this rule? This action cannot be undone.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t("deletePricingRule")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("deletePricingRuleDesc")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {tCommon("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

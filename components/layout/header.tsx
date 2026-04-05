@@ -10,6 +10,10 @@ import { GlobalSearch } from "@/components/shared/global-search";
 import { SettingsPanel } from "@/components/shared/settings-panel";
 import { MobileNav } from "./mobile-nav";
 import { ClientOnly } from "@/components/system/client-only";
+import {
+  BOOKING_CITY_CHANGED_EVENT,
+  SELECTED_CITY_STORAGE_KEY,
+} from "@/lib/booking-region";
 
 const CORE_NAV = [
   { key: "movies", href: "/movies" },
@@ -42,19 +46,25 @@ export function Header() {
   const [cityName, setCityName] = useState<string>("");
 
   useEffect(() => {
-    const saved = localStorage.getItem("selected_city");
-    if (saved) {
-      const city = CITIES.find((c) => c.id === saved);
-      if (city) setCityName(city.name);
-    }
-
-    function onStorage() {
-      const val = localStorage.getItem("selected_city");
+    function syncCityLabel() {
+      const val = localStorage.getItem(SELECTED_CITY_STORAGE_KEY);
       const city = CITIES.find((c) => c.id === val);
       setCityName(city?.name || "");
     }
+    syncCityLabel();
+
+    function onStorage() {
+      syncCityLabel();
+    }
+    function onLocalChange() {
+      syncCityLabel();
+    }
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener(BOOKING_CITY_CHANGED_EVENT, onLocalChange);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener(BOOKING_CITY_CHANGED_EVENT, onLocalChange);
+    };
   }, []);
 
   return (
