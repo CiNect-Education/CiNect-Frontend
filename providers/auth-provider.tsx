@@ -102,6 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       phone?: string;
     }) => {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { confirmPassword, ...payload } = data;
         const response = await registerMutation.mutateAsync(payload);
         const { tokens } = response.data;
