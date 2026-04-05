@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
-import type { Seat, Booking, SnackItem, Promotion } from "@/types/domain";
+import { normalizeHoldDetails } from "@/lib/normalize-hold-details";
+import type { ApiEnvelope } from "@/types/api";
+import type { Seat, Booking, SnackItem, Promotion, HoldDetails } from "@/types/domain";
 import { toast } from "sonner";
 
 // Get showtime seats
@@ -44,26 +46,19 @@ export function useReleaseHold() {
   });
 }
 
-// Get hold details (for checkout)
-export interface HoldDetails {
-  holdId: string;
-  showtimeId: string;
-  expiresAt: string;
-  seats: Array<{ id: string; row: string; number: number; type: string; price?: number }>;
-  showtime?: {
-    movieTitle?: string;
-    cinemaName?: string;
-    roomName?: string;
-    startTime?: string;
-    format?: string;
-    cinemaId?: string;
-  };
-}
+export type { HoldDetails };
 
 export function useHold(holdId?: string) {
   return useQuery({
     queryKey: ["holds", holdId],
-    queryFn: () => apiClient.get<HoldDetails>(`/holds/${holdId}`),
+    queryFn: async ({ signal }) => {
+      const res = await apiClient.get<unknown>(`/holds/${holdId}`, undefined, { signal });
+      const normalized = normalizeHoldDetails(res.data);
+      return {
+        ...res,
+        data: normalized ?? undefined,
+      } as ApiEnvelope<HoldDetails>;
+    },
     enabled: !!holdId,
   });
 }

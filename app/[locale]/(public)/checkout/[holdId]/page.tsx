@@ -50,7 +50,7 @@ export default function CheckoutPage() {
   const FAVORITE_COMBO_KEY = "cinect_favorite_combo";
 
   const { data: holdRes, isLoading: holdLoading, error: holdError } = useHold(holdId);
-  const hold = holdRes?.data as import("@/hooks/queries/use-booking-flow").HoldDetails | undefined;
+  const hold = holdRes?.data as import("@/types/domain").HoldDetails | undefined;
   const holdShowtimeId = hold?.showtimeId;
   const cinemaId = hold?.showtime?.cinemaId;
 
