@@ -10,7 +10,7 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import type { MovieListItem, CinemaListItem } from "@/types/domain";
@@ -76,35 +76,31 @@ export function GlobalSearch() {
   };
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors"
-        aria-label="Search"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors"
+          aria-label="Search"
         >
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.3-4.3" />
-        </svg>
-        <span className="sr-only">Search</span>
-      </button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="overflow-hidden p-0 shadow-lg">
-          <DialogTitle className="sr-only">Search</DialogTitle>
-          <DialogDescription className="sr-only">
-            Search movies and cinemas by name.
-          </DialogDescription>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <span className="sr-only">Search</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" sideOffset={10} className="w-[min(92vw,420px)] overflow-hidden p-0 shadow-lg">
           <Command
             shouldFilter={false}
             className="[&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
@@ -120,7 +116,7 @@ export function GlobalSearch() {
                   ? "Type at least 2 characters to search"
                   : isLoading
                     ? "Searching..."
-                    : "No results found."}
+                    : "Rất tiếc, không tìm thấy phim phù hợp với lựa chọn của bạn!"}
               </CommandEmpty>
               {hasResults && (
                 <>
@@ -133,7 +129,18 @@ export function GlobalSearch() {
                           onSelect={() => handleSelect(`/movies/${movie.id}`)}
                           className="flex items-center gap-3"
                         >
-                          <Film className="h-4 w-4 shrink-0" />
+                          {movie.posterUrl ? (
+                            <img
+                              src={movie.posterUrl}
+                              alt={movie.title}
+                              className="h-10 w-8 shrink-0 rounded object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="bg-muted flex h-10 w-8 shrink-0 items-center justify-center rounded">
+                              <Film className="h-4 w-4" />
+                            </div>
+                          )}
                           <span>{movie.title}</span>
                         </CommandItem>
                       ))}
@@ -158,8 +165,7 @@ export function GlobalSearch() {
               )}
             </CommandList>
           </Command>
-        </DialogContent>
-      </Dialog>
-    </>
+      </PopoverContent>
+    </Popover>
   );
 }
