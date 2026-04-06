@@ -67,7 +67,10 @@ export function useHold(holdId?: string) {
 export function useSnacks(cinemaId?: string) {
   return useQuery({
     queryKey: ["snacks", cinemaId],
-    queryFn: () => apiClient.get<SnackItem[]>("/snacks", cinemaId ? { cinemaId } : undefined),
+    queryFn: () => 
+      cinemaId 
+        ? apiClient.get<SnackItem[]>(`/snacks/cinema/${cinemaId}`) 
+        : apiClient.get<SnackItem[]>("/snacks"),
   });
 }
 
@@ -79,6 +82,8 @@ interface CreateBookingPayload {
   snacks?: Array<{ snackId: string; quantity: number }>;
   usePoints?: number;
   giftCardCode?: string;
+  seatIds?: string[];
+  paymentMethod?: string;
 }
 
 export function useCreateBooking() {
@@ -88,9 +93,11 @@ export function useCreateBooking() {
         showtimeId: data.showtimeId,
         holdId: data.holdId,
         promotionCode: data.promoCode,
-        pointsToUse: data.usePoints,
+        pointsUsed: data.usePoints,
         giftCardCode: data.giftCardCode,
         snacks: data.snacks,
+        ...(data.seatIds ? { seatIds: data.seatIds } : {}),
+        ...(data.paymentMethod ? { paymentMethod: data.paymentMethod } : {}),
       }),
     onError: (error: unknown) => {
       const message = error instanceof Error ? error.message : "Failed to create booking";
