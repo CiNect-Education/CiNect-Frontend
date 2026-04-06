@@ -54,6 +54,37 @@ import {
 } from "@/hooks/queries/use-admin";
 import { ApiError } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
+import { unwrapList } from "@/lib/admin-data";
+
+const ALL_CINEMAS_VALUE = "__ALL_CINEMAS__";
+
+type RawShowtime = Partial<Showtime> & {
+  movie?: { title?: string; posterUrl?: string };
+  cinema?: { name?: string };
+  room?: { name?: string };
+};
+
+function normalizeShowtime(raw: RawShowtime): Showtime {
+  return {
+    id: String(raw.id ?? ""),
+    movieId: String(raw.movieId ?? ""),
+    roomId: String(raw.roomId ?? ""),
+    cinemaId: String(raw.cinemaId ?? ""),
+    startTime: String(raw.startTime ?? ""),
+    endTime: String(raw.endTime ?? raw.startTime ?? ""),
+    basePrice: Number(raw.basePrice ?? 0),
+    format: (raw.format ?? "2D") as Showtime["format"],
+    language: raw.language,
+    subtitles: raw.subtitles,
+    movieTitle: raw.movieTitle ?? raw.movie?.title,
+    moviePosterUrl: raw.moviePosterUrl ?? raw.movie?.posterUrl,
+    cinemaName: raw.cinemaName ?? raw.cinema?.name,
+    roomName: raw.roomName ?? raw.room?.name,
+    availableSeats: raw.availableSeats,
+    totalSeats: raw.totalSeats,
+    memberExclusive: raw.memberExclusive,
+  };
+}
 
 type ShowtimeFormValues = {
   movieId: string;
@@ -93,11 +124,13 @@ export default function AdminShowtimesPage() {
   const { data: cinemasRes } = useAdminCinemas();
   const { data: roomsRes } = useAdminRooms(cinemaFilter ? { cinemaId: cinemaFilter } : undefined);
 
-  const showtimesRaw = showtimesRes?.data;
-  const showtimes = useMemo(() => showtimesRaw ?? [], [showtimesRaw]);
-  const movies = moviesRes?.data ?? [];
-  const cinemas = cinemasRes?.data ?? [];
-  const rooms = roomsRes?.data ?? [];
+  const showtimesRaw = unwrapList<RawShowtime>(showtimesRes?.data ?? showtimesRes);
+  const showtimes = useMemo(() => showtimesRaw.map(normalizeShowtime), [showtimesRaw]);
+  const movies = unwrapList<{ id: string; title: string }>(moviesRes?.data ?? moviesRes);
+  const cinemas = unwrapList<{ id: string; name: string }>(cinemasRes?.data ?? cinemasRes);
+  const rooms = unwrapList<{ id: string; name: string; format: string; cinemaName?: string; cinemaId?: string }>(
+    roomsRes?.data ?? roomsRes
+  );
 
   const createMutation = useCreateShowtime();
   const updateMutation = useUpdateShowtime();
@@ -130,7 +163,15 @@ export default function AdminShowtimesPage() {
 
   const roomsByRoom = useMemo(() => {
     const map = new Map<string, Showtime[]>();
-    for (const s of showtimes) {
+    const filtered = showtimes.filter((s) => {
+      if (cinemaFilter && s.cinemaId !== cinemaFilter) return false;
+      if (dateFilter) {
+        const d = s.startTime ? s.startTime.slice(0, 10) : "";
+        if (d !== dateFilter) return false;
+      }
+      return true;
+    });
+    for (const s of filtered) {
       const list = map.get(s.roomId) ?? [];
       list.push(s);
       map.set(s.roomId, list);
@@ -139,7 +180,7 @@ export default function AdminShowtimesPage() {
       list.sort((a, b) => getMinutesOfDay(a.startTime) - getMinutesOfDay(b.startTime));
     }
     return map;
-  }, [showtimes]);
+  }, [showtimes, cinemaFilter, dateFilter]);
 
   function openCreate() {
     setConflictError(null);
@@ -223,14 +264,14 @@ export default function AdminShowtimesPage() {
     >
       <div className="cinect-glass mb-6 flex flex-wrap gap-3 rounded-lg border p-4">
         <Select
-          value={cinemaFilter || "all"}
-          onValueChange={(v) => setCinemaFilter(v === "all" ? "" : v)}
+          value={cinemaFilter || ALL_CINEMAS_VALUE}
+          onValueChange={(v) => setCinemaFilter(v === ALL_CINEMAS_VALUE ? "" : v)}
         >
           <SelectTrigger className="w-48">
             <SelectValue placeholder={t("cinemaFilterPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("allCinemasFilter")}</SelectItem>
+            <SelectItem value={ALL_CINEMAS_VALUE}>{t("allCinemasFilter")}</SelectItem>
             {cinemas.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}

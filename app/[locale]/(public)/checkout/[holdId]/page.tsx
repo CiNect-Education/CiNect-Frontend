@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,13 +30,19 @@ import { useLocale, useTranslations } from "next-intl";
 import { apiClient } from "@/lib/api-client";
 import { localizeRoomName } from "@/lib/showtime-display";
 import { getApiBaseUrl } from "@/lib/api-discovery";
+import { useAuth } from "@/providers/auth-provider";
 
 export default function CheckoutPage() {
   const params = useParams();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const locale = useLocale();
   const holdId = params.holdId as string;
   const tShow = useTranslations("showtimeDisplay");
+  const tCheckout = useTranslations("checkout");
+  const tBookingFlow = useTranslations("bookingFlow");
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const toLocalePath = useCallback(
     (path: string) => `/${locale}${path.startsWith("/") ? "" : "/"}${path}`,
@@ -58,6 +64,13 @@ export default function CheckoutPage() {
   const [hasFavoriteCombo, setHasFavoriteCombo] = useState(false);
 
   const FAVORITE_COMBO_KEY = "cinect_favorite_combo";
+
+  useEffect(() => {
+    if (authLoading || isAuthenticated) return;
+    const query = searchParams.toString();
+    const returnTo = `${pathname}${query ? `?${query}` : ""}`;
+    router.replace(`/${locale}/login?returnTo=${encodeURIComponent(returnTo)}`);
+  }, [authLoading, isAuthenticated, locale, pathname, router, searchParams]);
 
   const { data: holdRes, isLoading: holdLoading, error: holdError } = useHold(holdId);
   const hold = holdRes?.data as import("@/types/domain").HoldDetails | undefined;
@@ -198,17 +211,28 @@ export default function CheckoutPage() {
           typeof payload === "object" && payload && "transactionId" in payload
             ? (payload as { transactionId?: string }).transactionId
             : (res as { transactionId?: string }).transactionId;
+        const paymentUrlObj = paymentUrl
+          ? new URL(paymentUrl, typeof window !== "undefined" ? window.location.origin : "http://localhost:3000")
+          : null;
+        const parsedTransactionId = paymentUrlObj?.searchParams.get("transactionId") ?? undefined;
+        const finalTransactionId = transactionId || parsedTransactionId;
 
-        const isSimulatedGateway = !!paymentUrl && paymentUrl.includes("payment-sim.cinect.local");
+        const isSimulatedGateway =
+          !!paymentUrlObj &&
+          (paymentUrlObj.hostname.includes("payment-sim.cinect.local") ||
+            paymentUrlObj.pathname.includes("/payment/simulated"));
 
-        if (isSimulatedGateway && transactionId) {
+        if (isSimulatedGateway && finalTransactionId) {
           // Dev fallback for mock gateway: complete callback immediately.
-          await apiClient.post(`/payments/callback?transactionId=${transactionId}&success=true`);
-          router.push(toLocalePath(`/payment/callback?transactionId=${transactionId}`));
+          await apiClient.post("/payments/callback", {
+            transactionId: finalTransactionId,
+            success: true,
+          });
+          router.push(toLocalePath(`/payment/callback?transactionId=${finalTransactionId}`));
         } else if (paymentUrl) {
           window.location.href = paymentUrl;
-        } else if (transactionId) {
-          router.push(toLocalePath(`/payment/callback?transactionId=${transactionId}`));
+        } else if (finalTransactionId) {
+          router.push(toLocalePath(`/payment/callback?transactionId=${finalTransactionId}`));
         } else {
           router.push(toLocalePath(`/tickets/${bookingId}`));
         }
@@ -237,7 +261,7 @@ export default function CheckoutPage() {
   const seatsTotal = holdSeats.reduce((s, seat) => s + (seat.price ?? 0), 0);
   const estimatedTotal = seatsTotal + snacksTotal;
 
-  if (holdLoading || (step === 2 && !hold)) {
+  if (authLoading || !isAuthenticated || holdLoading || (step === 2 && !hold)) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16">
         <Skeleton className="mb-6 h-8 w-48" />
@@ -257,7 +281,7 @@ export default function CheckoutPage() {
   if (!hold) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <p className="text-muted-foreground">Hold not found or expired.</p>
+        <p className="text-muted-foreground">{tBookingFlow("holdNotFound")}</p>
       </div>
     );
   }
@@ -268,11 +292,11 @@ export default function CheckoutPage() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="text-muted-foreground text-xs font-semibold tracking-[0.22em] uppercase">
-              Secure checkout
+              {tCheckout("secureCheckout")}
             </div>
-            <h1 className="text-3xl font-bold">Checkout</h1>
+            <h1 className="text-3xl font-bold">{tCheckout("title")}</h1>
             <div className="text-muted-foreground mt-1 text-sm">
-              Review your seats, add snacks, then complete payment.
+              {tCheckout("subtitle")}
             </div>
           </div>
           {hold.showtime?.startTime && (
@@ -298,22 +322,22 @@ export default function CheckoutPage() {
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="1" className="gap-2">
                     <Film className="h-4 w-4" />
-                    Review
+                    {tCheckout("reviewSeats")}
                   </TabsTrigger>
                   <TabsTrigger value="2" className="gap-2">
                     <Popcorn className="h-4 w-4" />
-                    Snacks
+                    {tCheckout("addSnacks")}
                   </TabsTrigger>
                   <TabsTrigger value="3" className="gap-2" disabled={!bookingId}>
                     <CreditCard className="h-4 w-4" />
-                    Payment
+                    {tCheckout("paymentMethod")}
                   </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="1" className="mt-6">
                   <div className="space-y-4">
                     <div>
-                      <h3 className="font-semibold">{hold.showtime?.movieTitle ?? "Movie"}</h3>
+                      <h3 className="font-semibold">{hold.showtime?.movieTitle ?? tCheckout("movieFallback")}</h3>
                       <p className="text-muted-foreground text-sm">
                         {[
                           hold.showtime?.cinemaName,
@@ -331,12 +355,12 @@ export default function CheckoutPage() {
                       )}
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium">Seats</h4>
+                      <h4 className="text-sm font-medium">{tCheckout("seatsCountLabel")}</h4>
                       <p className="text-muted-foreground">
                         {holdSeats.map((s) => `${s.row}${s.number}`).join(", ")}
                       </p>
                     </div>
-                    <Button onClick={handleContinueFromReview}>Continue to Snacks</Button>
+                    <Button onClick={handleContinueFromReview}>{tBookingFlow("continueToSnacks")}</Button>
                   </div>
                 </TabsContent>
 
@@ -353,7 +377,6 @@ export default function CheckoutPage() {
                       snacks={snackItems}
                       selectedSnacks={selectedSnacks}
                       onSnackChange={handleSnackChange}
-                      onSkip={handleContinueFromSnacks}
                       onContinue={handleContinueFromSnacks}
                       onSaveFavorite={handleSaveFavoriteCombo}
                       onApplyFavorite={handleApplyFavoriteCombo}
@@ -365,7 +388,7 @@ export default function CheckoutPage() {
                 <TabsContent value="3" className="mt-6">
                   {!bookingId ? (
                     <p className="text-muted-foreground">
-                      Creating booking... If this persists, go back and continue from Snacks.
+                      {tCheckout("creatingBookingHint")}
                     </p>
                   ) : (
                     <PaymentStep

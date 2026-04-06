@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { useRef } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -43,10 +44,58 @@ export default function TicketPage() {
 
   const { data: bookingRes, isLoading, error, refetch } = useBooking(bookingId);
   const booking = bookingRes?.data as import("@/types/domain").Booking | undefined;
+  const ticketRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = () => {
-    // Use browser print dialog so users can choose "Save as PDF"
-    window.print();
+    const ticketNode = ticketRef.current;
+    if (!ticketNode) {
+      window.print();
+      return;
+    }
+
+    const printWindow = window.open("", "_blank", "noopener,noreferrer,width=960,height=1280");
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+
+    const styleTags = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+      .map((el) => el.outerHTML)
+      .join("\n");
+
+    printWindow.document.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>CiNect Ticket</title>
+          ${styleTags}
+          <style>
+            @page { margin: 1cm; }
+            body {
+              margin: 0;
+              padding: 16px;
+              print-color-adjust: exact;
+              -webkit-print-color-adjust: exact;
+              background: #fff;
+            }
+            .ticket-print-shell {
+              max-width: 760px;
+              margin: 0 auto;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="ticket-print-shell">${ticketNode.outerHTML}</div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
   };
 
   if (isLoading) {
@@ -94,7 +143,8 @@ export default function TicketPage() {
         </div>
       </div>
 
-      <Card className="cinect-glass print:shadow-none">
+      <div ref={ticketRef}>
+        <Card className="cinect-glass print:shadow-none">
         <CardHeader className="space-y-4">
           <div className="flex items-start justify-between">
             <div className="space-y-2">
@@ -253,7 +303,8 @@ export default function TicketPage() {
             </div>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
 
       {/* Print Styles */}
       <style jsx global>{`

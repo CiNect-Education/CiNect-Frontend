@@ -10,8 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
-import { useShowtimes } from "@/hooks/queries/use-cinemas";
-import { useCinemas } from "@/hooks/queries/use-cinemas";
+import { useShowtimes, useCinemas, useProvincesLegacy, useProvincesNew } from "@/hooks/queries/use-cinemas";
 import { Calendar, MapPin, Clock, Film, Ticket } from "lucide-react";
 import type { Showtime } from "@/types/domain";
 import Image from "next/image";
@@ -25,11 +24,11 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
-  BOOKING_CITIES,
   BOOKING_CITY_CHANGED_EVENT,
   SELECTED_CITY_STORAGE_KEY,
   bookingCityLabel,
   localCalendarDate,
+  normalizeBookingCityId,
   persistSelectedBookingCity,
 } from "@/lib/booking-region";
 import { DetectRegionButton } from "@/components/shared/detect-region-button";
@@ -52,6 +51,21 @@ function toList<T>(v: unknown): T[] {
   return Array.isArray(arr) ? arr : [];
 }
 
+function formatDateChipLabel(date: Date, locale: string): string {
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const weekday = date.getDay();
+
+  if (locale.startsWith("vi")) {
+    const viWeekdays = ["CN", "Th 2", "Th 3", "Th 4", "Th 5", "Th 6", "Th 7"];
+    return `${viWeekdays[weekday]}, ${day} thg ${month}`;
+  }
+
+  const enWeekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const enMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${enWeekdays[weekday]}, ${enMonths[month - 1]} ${day}`;
+}
+
 export default function ShowtimesPageClient() {
   const t = useTranslations("showtimes");
   const tNav = useTranslations("nav");
@@ -64,15 +78,45 @@ export default function ShowtimesPageClient() {
   const timeLocaleTag = locale.startsWith("vi") ? "vi-VN" : "en-US";
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { data: provincesRes } = useProvincesNew();
+  const { data: legacyRes } = useProvincesLegacy();
+  const [storedCity, setStoredCity] = useState("");
+  const [addressMode, setAddressMode] = useState<"new" | "legacy">("new");
+  const [cityQuery, setCityQuery] = useState("");
+  const [cityPickerOpen, setCityPickerOpen] = useState(false);
+  const [cityInputValue, setCityInputValue] = useState("");
 
-  const cityOptions = useMemo(
-    () =>
-      BOOKING_CITIES.map((c) => ({
-        id: c.id,
-        label: bookingCityLabel(c.id, locale),
-      })),
-    [locale]
+  const provincesNew = useMemo(
+    () => toList<{ code: string; nameVi: string; nameEn: string }>(provincesRes?.data),
+    [provincesRes?.data]
   );
+  const provincesLegacy = useMemo(
+    () =>
+      toList<{
+        code: string;
+        nameVi: string;
+        nameEn: string;
+        provinceNew: { code: string; nameVi: string; nameEn: string };
+      }>(legacyRes?.data),
+    [legacyRes?.data]
+  );
+  const cityOptions = useMemo(() => {
+    if (addressMode === "legacy" && provincesLegacy.length > 0) {
+      return provincesLegacy.map((p) => ({
+        id: p.code,
+        label: locale.startsWith("vi") ? p.nameVi : p.nameEn,
+      }));
+    }
+    return provincesNew.map((p) => ({
+      id: p.code,
+      label: locale.startsWith("vi") ? p.nameVi : p.nameEn,
+    }));
+  }, [addressMode, locale, provincesLegacy, provincesNew]);
+  const filteredCityOptions = useMemo(() => {
+    const q = cityQuery.trim().toLowerCase();
+    if (!q) return cityOptions;
+    return cityOptions.filter((c) => c.label.toLowerCase().includes(q));
+  }, [cityOptions, cityQuery]);
 
   const cityFromParams = searchParams.get("city") || "";
   const dateFromParams = searchParams.get("date") || "";
@@ -82,22 +126,31 @@ export default function ShowtimesPageClient() {
   const timeRange = searchParams.get("timeRange") || "";
   const language = searchParams.get("language") || "";
 
-  const [storedCity, setStoredCity] = useState("");
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setStoredCity(localStorage.getItem(SELECTED_CITY_STORAGE_KEY) || "");
+      setStoredCity(normalizeBookingCityId(localStorage.getItem(SELECTED_CITY_STORAGE_KEY) || ""));
     }
   }, []);
 
   useEffect(() => {
     function onCityChanged() {
-      setStoredCity(localStorage.getItem(SELECTED_CITY_STORAGE_KEY) || "");
+      setStoredCity(normalizeBookingCityId(localStorage.getItem(SELECTED_CITY_STORAGE_KEY) || ""));
     }
     window.addEventListener(BOOKING_CITY_CHANGED_EVENT, onCityChanged);
     return () => window.removeEventListener(BOOKING_CITY_CHANGED_EVENT, onCityChanged);
   }, []);
 
-  const city = cityFromParams || storedCity;
+  const city = normalizeBookingCityId(cityFromParams || storedCity);
+  useEffect(() => {
+    if (!city) return;
+    if (provincesLegacy.some((p) => p.code === city)) {
+      setAddressMode("legacy");
+      return;
+    }
+    if (provincesNew.some((p) => p.code === city)) {
+      setAddressMode("new");
+    }
+  }, [city, provincesLegacy, provincesNew]);
   const today = new Date();
   const date = dateFromParams || localCalendarDate(today);
   const next7Days = Array.from({ length: 8 }, (_, i) => {
@@ -119,12 +172,23 @@ export default function ShowtimesPageClient() {
   const cinemas = toList<import("@/types/domain").CinemaListItem>(cinemasRes?.data ?? cinemasRes);
 
   function setCity(c: string) {
-    persistSelectedBookingCity(c);
-    setStoredCity(c);
+    const normalized = normalizeBookingCityId(c);
+    persistSelectedBookingCity(normalized);
+    setStoredCity(normalized);
     const p = new URLSearchParams(searchParams.toString());
-    if (c) p.set("city", c);
+    if (normalized) p.set("city", normalized);
     else p.delete("city");
     router.push(`?${p.toString()}`);
+  }
+
+  function handleAddressModeChange(nextMode: "new" | "legacy") {
+    setAddressMode(nextMode);
+    if (!city) return;
+    const existsInNext =
+      nextMode === "legacy"
+        ? provincesLegacy.some((p) => p.code === city)
+        : provincesNew.some((p) => p.code === city);
+    if (!existsInNext) setCity("");
   }
 
   function setDate(d: string) {
@@ -142,8 +206,12 @@ export default function ShowtimesPageClient() {
 
   const cityLabel = useMemo(() => {
     if (!city) return "";
-    return bookingCityLabel(city, locale);
-  }, [city, locale]);
+    return cityOptions.find((c) => c.id === city)?.label ?? bookingCityLabel(city, locale);
+  }, [city, locale, cityOptions]);
+  useEffect(() => {
+    if (cityPickerOpen) return;
+    setCityInputValue(cityLabel || "");
+  }, [cityLabel]);
 
   const filteredShowtimes = showtimes.filter((st) => {
     if (format && st.format !== format) return false;
@@ -199,19 +267,73 @@ export default function ShowtimesPageClient() {
               onApplied={(id) => setCity(id)}
             />
 
-            <Select value={city || ALL} onValueChange={(v) => setCity(v === ALL ? "" : v)}>
-              <SelectTrigger className="h-9 w-[220px]">
-                <SelectValue placeholder={tCommon("allCities")} />
+            <Select value={addressMode} onValueChange={(v) => handleAddressModeChange(v as "new" | "legacy")}>
+              <SelectTrigger className="h-9 w-[190px]">
+                <SelectValue placeholder={tCommon("addressSystem")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>{tCommon("allCities")}</SelectItem>
-                {cityOptions.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.label}
-                  </SelectItem>
-                ))}
+                <SelectItem value="new">{tCommon("addressSystemNew")}</SelectItem>
+                <SelectItem value="legacy">{tCommon("addressSystemLegacy")}</SelectItem>
               </SelectContent>
             </Select>
+
+            <div className="relative w-[220px]">
+              <Input
+                value={cityInputValue}
+                onFocus={() => {
+                  setCityPickerOpen(true);
+                  setCityQuery(cityInputValue);
+                }}
+                onBlur={() => {
+                  window.setTimeout(() => {
+                    setCityPickerOpen(false);
+                    setCityQuery("");
+                    setCityInputValue(cityLabel || "");
+                  }, 120);
+                }}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setCityInputValue(v);
+                  setCityQuery(v);
+                  setCityPickerOpen(true);
+                }}
+                placeholder={tCommon("allCities")}
+                className="h-9"
+              />
+              {cityPickerOpen && (
+                <div className="bg-popover absolute top-full z-50 mt-1 max-h-72 w-full overflow-auto rounded-md border p-1 shadow-md">
+                  <button
+                    type="button"
+                    className="hover:bg-accent hover:text-accent-foreground w-full rounded-sm px-2 py-1.5 text-left text-sm"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setCity("");
+                      setCityInputValue("");
+                      setCityQuery("");
+                      setCityPickerOpen(false);
+                    }}
+                  >
+                    {tCommon("allCities")}
+                  </button>
+                  {filteredCityOptions.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className="hover:bg-accent hover:text-accent-foreground w-full rounded-sm px-2 py-1.5 text-left text-sm"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setCity(c.id);
+                        setCityInputValue(c.label);
+                        setCityQuery("");
+                        setCityPickerOpen(false);
+                      }}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="text-muted-foreground text-sm">
@@ -253,11 +375,7 @@ export default function ShowtimesPageClient() {
                     ? tHome("today")
                     : d.getDate() === today.getDate() + 1
                       ? tHome("tomorrow")
-                      : d.toLocaleDateString(locale.startsWith("vi") ? "vi-VN" : "en-US", {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                        })}
+                      : formatDateChipLabel(d, locale)}
                 </Button>
               );
             })}

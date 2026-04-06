@@ -82,7 +82,7 @@ export function SocialLoginButtons() {
           onClick={() => handleSocialLogin("facebook")}
         >
           <FacebookIcon className="h-5 w-5" />
-          <span className="sr-only">Facebook</span>
+          <span className="sr-only">{t("loginWithFacebook")}</span>
         </Button>
         <Button
           variant="outline"

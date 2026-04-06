@@ -30,6 +30,7 @@ import {
   useAdminAnalyticsPeakHours,
 } from "@/hooks/queries/use-admin";
 import { exportToCSV, exportToPDF } from "@/lib/export-utils";
+import { unwrapList } from "@/lib/admin-data";
 import { format } from "date-fns";
 
 type DateRange = "7d" | "30d" | "90d" | "custom";
@@ -50,12 +51,26 @@ const PIE_COLORS = [
   "hsl(var(--chart-5))",
 ];
 
-function toArray<T>(v: unknown): T[] {
-  if (!v) return [];
-  if (Array.isArray(v)) return v;
-  const d = v as { data?: unknown };
-  const arr = d.data;
-  return Array.isArray(arr) ? arr : [];
+type RawMovieReport = {
+  movieId?: string;
+  id?: string;
+  movieTitle?: string;
+  title?: string;
+  revenue?: number;
+  bookings?: number;
+  bookingCount?: number;
+  occupancy?: number;
+  occupancyRate?: number;
+};
+
+function normalizeMovieReport(item: RawMovieReport) {
+  return {
+    movieId: item.movieId ?? item.id ?? "",
+    movieTitle: item.movieTitle ?? item.title ?? "",
+    revenue: Number(item.revenue ?? 0),
+    bookings: Number(item.bookings ?? item.bookingCount ?? 0),
+    occupancy: Number(item.occupancy ?? item.occupancyRate ?? 0),
+  };
 }
 
 export default function AdminAnalyticsPage() {
@@ -80,27 +95,21 @@ export default function AdminAnalyticsPage() {
   const { data: segmentsRes } = useAdminAnalyticsCustomerSegments();
   const { data: peakHoursRes } = useAdminAnalyticsPeakHours();
 
-  const revenueData = toArray<{ date: string; revenue: number; predicted?: boolean }>(
+  const revenueData = unwrapList<{ date: string; revenue: number; predicted?: boolean }>(
     revenueRes?.data ?? revenueRes
   );
-  const forecastData = toArray<{ date: string; revenue: number }>(forecastRes?.data ?? forecastRes);
-  const occupancyData = toArray<{
+  const forecastData = unwrapList<{ date: string; revenue: number }>(forecastRes?.data ?? forecastRes);
+  const occupancyData = unwrapList<{
     cinemaId: string;
     cinemaName: string;
     date: string;
     occupancy: number;
   }>(occupancyRes?.data ?? occupancyRes);
-  const moviesData = toArray<{
-    movieId: string;
-    movieTitle: string;
-    revenue: number;
-    bookings: number;
-    occupancy?: number;
-  }>(moviesRes?.data ?? moviesRes);
-  const segmentsData = toArray<{ segment: string; count: number; percentage: number }>(
+  const moviesData = unwrapList<RawMovieReport>(moviesRes?.data ?? moviesRes).map(normalizeMovieReport);
+  const segmentsData = unwrapList<{ segment: string; count: number; percentage: number }>(
     segmentsRes?.data ?? segmentsRes
   );
-  const peakHoursData = toArray<{ hour: number; bookings: number }>(
+  const peakHoursData = unwrapList<{ hour: number; bookings: number }>(
     peakHoursRes?.data ?? peakHoursRes
   );
 

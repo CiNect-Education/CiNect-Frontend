@@ -56,12 +56,32 @@ import {
 } from "@/hooks/queries/use-admin";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { unwrapList } from "@/lib/admin-data";
+import { ApiErrorState } from "@/components/system/api-error-state";
 
-function toList<T>(v: unknown): T[] {
-  if (Array.isArray(v)) return v as T[];
-  if (v && typeof v === "object" && "data" in v && Array.isArray((v as { data: unknown }).data))
-    return (v as { data: T[] }).data;
-  return [];
+type RawUser = Partial<User> & {
+  userRoles?: Array<{ role?: { name?: UserRole } }>;
+};
+
+function normalizeUser(raw: RawUser): User {
+  const roleFromJoin = raw.userRoles?.[0]?.role?.name;
+  return {
+    id: String(raw.id ?? ""),
+    email: String(raw.email ?? ""),
+    fullName: String(raw.fullName ?? ""),
+    phone: raw.phone,
+    avatar: raw.avatar,
+    role: (raw.role ?? roleFromJoin ?? "USER") as UserRole,
+    membershipTier: raw.membershipTier,
+    membershipPoints: raw.membershipPoints,
+    dateOfBirth: raw.dateOfBirth,
+    gender: raw.gender,
+    city: raw.city,
+    isActive: raw.isActive,
+    emailVerified: raw.emailVerified,
+    createdAt: String(raw.createdAt ?? ""),
+    updatedAt: String(raw.updatedAt ?? raw.createdAt ?? ""),
+  };
 }
 
 type CreateUserFormValues = {
@@ -112,11 +132,16 @@ export default function AdminUsersPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
-  const { data: usersRes, isLoading: usersLoading } = useAdminUsers();
-  const actualUsers = toList<User>(usersRes?.data ?? usersRes);
+  const {
+    data: usersRes,
+    isLoading: usersLoading,
+    error: usersError,
+    refetch: refetchUsers,
+  } = useAdminUsers({ limit: 500 });
+  const actualUsers = unwrapList<RawUser>(usersRes?.data ?? usersRes).map(normalizeUser);
 
   const { data: cinemasRes } = useAdminCinemas();
-  const actualCinemas = toList<{ id: string; name: string }>(cinemasRes?.data ?? cinemasRes);
+  const actualCinemas = unwrapList<{ id: string; name: string }>(cinemasRes?.data ?? cinemasRes);
 
   const createMutation = useCreateUser();
   const updateMutation = useUpdateUser();
@@ -191,7 +216,6 @@ export default function AdminUsersPage() {
       email: values.email,
       role: values.role as UserRole,
       city: values.city || undefined,
-      ...(values.cinemaIds?.length ? { cinemaIds: values.cinemaIds } : {}),
     } as Parameters<typeof updateMutation.mutateAsync>[0]);
     setEditDialogOpen(false);
   }
@@ -267,15 +291,19 @@ export default function AdminUsersPage() {
         </Button>
       }
     >
-      <DataTable
-        columns={columns}
-        data={actualUsers}
-        searchKey="fullName"
-        searchPlaceholder={t("searchUsers")}
-        className="cinect-glass rounded-lg border p-4"
-        isLoading={usersLoading}
-        emptyMessage={t("emptyUsers")}
-      />
+      {usersError && !usersLoading ? (
+        <ApiErrorState error={usersError} onRetry={() => void refetchUsers()} />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={actualUsers}
+          searchKey="fullName"
+          searchPlaceholder={t("searchUsers")}
+          className="cinect-glass rounded-lg border p-4"
+          isLoading={usersLoading}
+          emptyMessage={t("emptyUsers")}
+        />
+      )}
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="cinect-glass max-w-lg border">
@@ -329,7 +357,7 @@ export default function AdminUsersPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{tAuth("role")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t("selectRole")} />

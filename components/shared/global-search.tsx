@@ -11,7 +11,12 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import type { MovieListItem, CinemaListItem } from "@/types/domain";
@@ -79,31 +84,33 @@ export function GlobalSearch() {
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors"
-          aria-label={tCommon("searchAria")}
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors"
+        aria-label={tCommon("searchAria")}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.3-4.3" />
-          </svg>
-          <span className="sr-only">{tCommon("searchAria")}</span>
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="end" sideOffset={10} className="w-[min(92vw,420px)] overflow-hidden p-0 shadow-lg">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <span className="sr-only">{tCommon("searchAria")}</span>
+      </button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="overflow-hidden p-0 shadow-lg">
+          <DialogTitle className="sr-only">{t("dialogTitle")}</DialogTitle>
+          <DialogDescription className="sr-only">{t("dialogDescription")}</DialogDescription>
           <Command
             shouldFilter={false}
             className="[&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
@@ -119,7 +126,7 @@ export function GlobalSearch() {
                   ? t("minChars")
                   : isLoading
                     ? t("searching")
-                    : "Rất tiếc, không tìm thấy phim phù hợp với lựa chọn của bạn!"}
+                    : t("noResults")}
               </CommandEmpty>
               {hasResults && (
                 <>
@@ -155,7 +162,7 @@ export function GlobalSearch() {
                         <CommandItem
                           key={cinema.id}
                           value={`cinema-${cinema.id}`}
-                          onSelect={() => handleSelect(`/cinemas/${cinema.id}`)}
+                          onSelect={() => handleSelect(`/cinemas/${cinema.slug || cinema.id}`)}
                           className="flex items-center gap-3"
                         >
                           <Building2 className="h-4 w-4 shrink-0" />
@@ -168,7 +175,8 @@ export function GlobalSearch() {
               )}
             </CommandList>
           </Command>
-      </PopoverContent>
-    </Popover>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

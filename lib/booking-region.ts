@@ -26,6 +26,55 @@ export const BOOKING_CITIES = [
 
 export type BookingCityId = (typeof BOOKING_CITIES)[number]["id"];
 
+const CITY_ALIASES: Record<string, string> = {
+  hcm: "ho-chi-minh-city",
+  hn: "ha-noi",
+  dn: "da-nang",
+  hp: "hai-phong",
+  ct: "can-tho",
+  bd: "ho-chi-minh-city",
+  nt: "khanh-hoa",
+  vt: "ho-chi-minh-city",
+};
+
+export type BookingCityOption = {
+  id: string;
+  label: string;
+};
+
+export function normalizeBookingCityId(cityId: string): string {
+  const v = (cityId || "").trim().toLowerCase();
+  return CITY_ALIASES[v] ?? v;
+}
+
+export function buildBookingCityOptions(
+  locale: string,
+  provincesNew: Array<{ code: string; nameVi: string; nameEn: string }>,
+  provincesLegacy: Array<{
+    code: string;
+    nameVi: string;
+    nameEn: string;
+    provinceNew: { code: string; nameVi: string; nameEn: string };
+  }>
+): BookingCityOption[] {
+  if (provincesNew.length === 0) {
+    return BOOKING_CITIES.map((c) => ({ id: c.id, label: bookingCityLabel(c.id, locale) }));
+  }
+
+  const suffix = locale.startsWith("vi") ? " (tỉnh cũ)" : " (legacy)";
+  const newOptions = provincesNew.map((p) => ({
+    id: p.code,
+    label: locale.startsWith("vi") ? p.nameVi : p.nameEn,
+  }));
+  const legacyOptions = provincesLegacy
+    .filter((p) => !provincesNew.some((n) => n.code === p.code))
+    .map((p) => ({
+      id: p.code,
+      label: `${locale.startsWith("vi") ? p.nameVi : p.nameEn}${suffix}`,
+    }));
+  return [...newOptions, ...legacyOptions];
+}
+
 export function bookingCityLabel(id: string, locale: string): string {
   const c = BOOKING_CITIES.find((x) => x.id === id);
   if (!c) return id;

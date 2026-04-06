@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import type { UserRole } from "@/types/domain";
 import {
   Card,
   CardContent,
@@ -33,22 +34,13 @@ import {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
-const loginSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .min(1, "Email là bắt buộc")
-    .regex(EMAIL_REGEX, "Email không đúng định dạng (ví dụ: ten@domain.com)"),
-  password: z
-    .string()
-    .min(1, "Mật khẩu là bắt buộc")
-    .regex(
-      PASSWORD_REGEX,
-      "Mật khẩu phải có ít nhất 8 ký tự gồm chữ thường, chữ hoa, số và ký tự đặc biệt"
-    ),
-});
+type LoginFormValues = { email: string; password: string };
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+function resolvePostLoginPath(role: UserRole | undefined, returnTo: string): string {
+  const isAdmin = role === "ADMIN" || role === "STAFF";
+  if (!isAdmin) return returnTo;
+  return returnTo.startsWith("/admin") ? returnTo : "/admin";
+}
 
 export default function LoginPage() {
   const t = useTranslations("auth");
@@ -57,11 +49,49 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const loginSchema = useMemo(
+    () =>
+      z.object({
+        email: z
+          .string()
+          .trim()
+          .min(1, t("validationRequiredEmail"))
+          .regex(EMAIL_REGEX, t("validationInvalidEmail")),
+        password: z
+          .string()
+          .min(1, t("validationRequiredPassword"))
+          .regex(PASSWORD_REGEX, t("validationInvalidPassword")),
+      }),
+    [t]
+  );
 
-  const rawReturnTo = searchParams.get("returnTo") || "/account/profile";
-  // `useRouter()` here is locale-aware, so strip leading "/{locale}" if present
-  const returnTo =
-    rawReturnTo.startsWith(`/${locale}/`) ? rawReturnTo.replace(`/${locale}`, "") : rawReturnTo;
+  const returnTo = useMemo(() => {
+    const queryReturnTo = searchParams.get("returnTo");
+    if (queryReturnTo) {
+      return queryReturnTo.startsWith(`/${locale}/`)
+        ? queryReturnTo.replace(`/${locale}`, "")
+        : queryReturnTo;
+    }
+
+    if (typeof window !== "undefined") {
+      try {
+        const ref = document.referrer ? new URL(document.referrer) : null;
+        const sameOrigin = ref && ref.origin === window.location.origin;
+        const path = ref ? `${ref.pathname}${ref.search}` : "";
+        const isAuthPage = /^\/(vi|en)\/(login|register|forgot-password|reset-password|callback)/.test(
+          path
+        );
+
+        if (sameOrigin && path && !isAuthPage) {
+          return path.startsWith(`/${locale}/`) ? path.replace(`/${locale}`, "") : path;
+        }
+      } catch {
+        // Ignore malformed referrer URL and fallback to home page.
+      }
+    }
+
+    return "/";
+  }, [locale, searchParams]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -71,17 +101,17 @@ export default function LoginPage() {
   });
 
   function onInvalidSubmit() {
-    toast.error("Vui lòng kiểm tra lại email và mật khẩu");
+    toast.error(t("validationCheckLoginForm"));
   }
 
   async function onSubmit(data: LoginFormValues) {
     setIsLoading(true);
     try {
-      await login({
+      const user = await login({
         email: data.email.trim().toLowerCase(),
         password: data.password,
       });
-      router.push(returnTo);
+      router.push(resolvePostLoginPath(user?.role, returnTo));
     } catch {
       // Error toast already shown in AuthProvider
     } finally {
@@ -93,7 +123,7 @@ export default function LoginPage() {
     <Card>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">{t("login")}</CardTitle>
-        <CardDescription>Enter your credentials to access your account</CardDescription>
+        <CardDescription>{t("loginSubtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>

@@ -33,6 +33,49 @@ import {
   useAdminCancelBooking,
   useAdminRefundBooking,
 } from "@/hooks/queries/use-admin";
+import { unwrapList } from "@/lib/admin-data";
+import { ApiErrorState } from "@/components/system/api-error-state";
+
+const ALL_STATUS_VALUE = "__ALL_STATUS__";
+
+type RawBooking = Partial<Booking> & {
+  showtime?: {
+    startTime?: string;
+    movie?: { title?: string; posterUrl?: string };
+    cinema?: { name?: string };
+    room?: { name?: string };
+  };
+  user?: { id?: string };
+};
+
+function normalizeBooking(raw: RawBooking): Booking {
+  const showtimeStart = raw.showtime?.startTime;
+  return {
+    id: String(raw.id ?? ""),
+    userId: String(raw.userId ?? raw.user?.id ?? ""),
+    showtimeId: String(raw.showtimeId ?? raw.showtime?.startTime ?? ""),
+    seats: (raw.seats ?? []) as Booking["seats"],
+    snacks: (raw.snacks ?? []) as Booking["snacks"],
+    totalAmount: Number(raw.totalAmount ?? 0),
+    discountAmount: Number(raw.discountAmount ?? 0),
+    finalAmount: Number(raw.finalAmount ?? raw.totalAmount ?? 0),
+    status: (raw.status ?? "PENDING") as Booking["status"],
+    payment: raw.payment,
+    promotionCode: raw.promotionCode,
+    pointsUsed: raw.pointsUsed,
+    giftCardCode: raw.giftCardCode,
+    movieTitle: String(raw.movieTitle ?? raw.showtime?.movie?.title ?? ""),
+    moviePosterUrl: raw.moviePosterUrl ?? raw.showtime?.movie?.posterUrl,
+    cinemaName: String(raw.cinemaName ?? raw.showtime?.cinema?.name ?? ""),
+    roomName: String(raw.roomName ?? raw.showtime?.room?.name ?? ""),
+    showtime: String(raw.showtime ?? showtimeStart ?? ""),
+    format: (raw.format ?? "2D") as Booking["format"],
+    qrCode: raw.qrCode,
+    expiresAt: raw.expiresAt,
+    createdAt: String(raw.createdAt ?? ""),
+    updatedAt: String(raw.updatedAt ?? raw.createdAt ?? ""),
+  };
+}
 
 export default function AdminBookingsPage() {
   const t = useTranslations("admin");
@@ -50,12 +93,37 @@ export default function AdminBookingsPage() {
       from: dateFrom || undefined,
       to: dateTo || undefined,
       search: search || undefined,
+      limit: 500,
     }),
     [statusFilter, dateFrom, dateTo, search]
   );
 
-  const { data: bookingsRes, isLoading: bookingsLoading } = useAdminBookings(params);
-  const bookings = bookingsRes?.data ?? [];
+  const {
+    data: bookingsRes,
+    isLoading: bookingsLoading,
+    error: bookingsError,
+    refetch: refetchBookings,
+  } = useAdminBookings(params);
+  const bookings = unwrapList<RawBooking>(bookingsRes?.data ?? bookingsRes).map(normalizeBooking);
+  const filteredBookings = useMemo(() => {
+    return bookings.filter((b) => {
+      if (statusFilter && b.status !== statusFilter) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        const text = `${b.id} ${b.movieTitle} ${b.cinemaName} ${b.userId}`.toLowerCase();
+        if (!text.includes(q)) return false;
+      }
+      if (dateFrom) {
+        const from = new Date(`${dateFrom}T00:00:00`);
+        if (new Date(b.createdAt) < from) return false;
+      }
+      if (dateTo) {
+        const to = new Date(`${dateTo}T23:59:59.999`);
+        if (new Date(b.createdAt) > to) return false;
+      }
+      return true;
+    });
+  }, [bookings, statusFilter, search, dateFrom, dateTo]);
   const cancelMutation = useAdminCancelBooking();
   const refundMutation = useAdminRefundBooking();
 
@@ -191,14 +259,14 @@ export default function AdminBookingsPage() {
           />
         </div>
         <Select
-          value={statusFilter || "all"}
-          onValueChange={(v) => setStatusFilter(v === "all" ? "" : v)}
+          value={statusFilter || ALL_STATUS_VALUE}
+          onValueChange={(v) => setStatusFilter(v === ALL_STATUS_VALUE ? "" : v)}
         >
           <SelectTrigger className="w-40">
             <SelectValue placeholder={t("status")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value={ALL_STATUS_VALUE}>All statuses</SelectItem>
             <SelectItem value="PENDING">Pending</SelectItem>
             <SelectItem value="CONFIRMED">Confirmed</SelectItem>
             <SelectItem value="CANCELLED">Cancelled</SelectItem>
@@ -221,15 +289,19 @@ export default function AdminBookingsPage() {
         />
       </div>
 
-      <DataTable
-        columns={columns}
-        data={bookings}
-        searchKey="movieTitle"
-        searchPlaceholder={t("searchBookingsMovie")}
-        className="cinect-glass rounded-lg border p-4"
-        isLoading={bookingsLoading}
-        emptyMessage={t("emptyBookings")}
-      />
+      {bookingsError && !bookingsLoading ? (
+        <ApiErrorState error={bookingsError} onRetry={() => void refetchBookings()} />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={filteredBookings}
+          searchKey="movieTitle"
+          searchPlaceholder={t("searchBookingsMovie")}
+          className="cinect-glass rounded-lg border p-4"
+          isLoading={bookingsLoading}
+          emptyMessage={t("emptyBookings")}
+        />
+      )}
 
       <AlertDialog open={!!cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)}>
         <AlertDialogContent className="cinect-glass border">

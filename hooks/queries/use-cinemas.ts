@@ -9,6 +9,26 @@ import type { Cinema, CinemaListItem, Showtime, Seat } from "@/types/domain";
 import type { QueryParams } from "@/types/api";
 import { z } from "zod";
 
+export type ProvinceNewItem = {
+  id: string;
+  code: string;
+  nameVi: string;
+  nameEn: string;
+  sortOrder: number;
+};
+
+export type ProvinceLegacyItem = {
+  id: string;
+  code: string;
+  nameVi: string;
+  nameEn: string;
+  provinceNew: {
+    code: string;
+    nameVi: string;
+    nameEn: string;
+  };
+};
+
 // ─── Cinema list ───────────────────────────────────────────────────
 
 export function useCinemas(params?: QueryParams) {
@@ -21,6 +41,38 @@ export function useCinema(id: string) {
   return useApiQuery<Cinema>(["cinema", id], `/cinemas/${id}`, undefined, {
     schema: cinemaSchema as unknown as z.ZodType<Cinema>,
     enabled: !!id,
+  });
+}
+
+export function useProvincesNew() {
+  return useApiQuery<ProvinceNewItem[]>(["provinces", "new"], "/provinces/new", undefined, {
+    schema: z.array(
+      z.object({
+        id: z.string(),
+        code: z.string(),
+        nameVi: z.string(),
+        nameEn: z.string(),
+        sortOrder: z.number(),
+      })
+    ) as unknown as z.ZodType<ProvinceNewItem[]>,
+  });
+}
+
+export function useProvincesLegacy() {
+  return useApiQuery<ProvinceLegacyItem[]>(["provinces", "legacy"], "/provinces/legacy", undefined, {
+    schema: z.array(
+      z.object({
+        id: z.string(),
+        code: z.string(),
+        nameVi: z.string(),
+        nameEn: z.string(),
+        provinceNew: z.object({
+          code: z.string(),
+          nameVi: z.string(),
+          nameEn: z.string(),
+        }),
+      })
+    ) as unknown as z.ZodType<ProvinceLegacyItem[]>,
   });
 }
 

@@ -324,6 +324,8 @@ export interface MembershipProfile {
   tier: MembershipTier;
   currentPoints: number;
   totalPoints: number;
+  dailyCheckinStreak?: number;
+  lastDailyCheckinAt?: string;
   nextTier?: MembershipTier;
   pointsToNextTier?: number;
   memberSince: string;

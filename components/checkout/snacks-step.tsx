@@ -12,7 +12,6 @@ interface SnacksStepProps {
   snacks: SnackItem[];
   selectedSnacks: Array<{ snackId: string; quantity: number }>;
   onSnackChange: (snackId: string, quantity: number) => void;
-  onSkip: () => void;
   onContinue: () => void;
   onSaveFavorite?: () => void;
   onApplyFavorite?: () => void;
@@ -23,7 +22,6 @@ export function SnacksStep({
   snacks,
   selectedSnacks,
   onSnackChange,
-  onSkip,
   onContinue,
   onSaveFavorite,
   onApplyFavorite,
@@ -146,9 +144,6 @@ export function SnacksStep({
           )}
         </div>
         <div className="flex flex-1 gap-2">
-          <Button type="button" variant="outline" className="flex-1" onClick={onSkip}>
-            {t("skipSnacks")}
-          </Button>
           <Button type="button" className="flex-1" onClick={onContinue}>
             {t("continueToPayment")}
           </Button>
