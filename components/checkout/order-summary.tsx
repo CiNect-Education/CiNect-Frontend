@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
+import { formatVnd } from "@/lib/showtime-display";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { Booking } from "@/types/domain";
@@ -28,6 +30,9 @@ export function OrderSummary({
   giftCardCode,
   booking,
 }: OrderSummaryProps) {
+  const t = useTranslations("checkout");
+  const locale = useLocale();
+  const fmt = (n: number) => formatVnd(n, locale);
   const toNumber = (v: unknown): number => {
     if (typeof v === "number") return Number.isFinite(v) ? v : 0;
     if (typeof v === "string") {
@@ -49,10 +54,9 @@ export function OrderSummary({
 
   const total = hasBooking ? (toNumber(booking.finalAmount) || baseTotal) : baseTotal;
 
+  const seatCount = holdSeats.length || booking?.seats?.length || 0;
   const seatLabel =
-    holdSeats.length > 0 || (booking?.seats?.length ?? 0) > 0
-      ? `${holdSeats.length || booking?.seats?.length || 0} tickets`
-      : "Seats";
+    seatCount > 0 ? t("ticketsCount", { count: seatCount }) : t("seatsOnlyLabel");
 
   const appliedPromoCode = booking?.promotionCode ?? promoCode;
   const appliedPoints = booking?.pointsUsed ?? usePoints;
@@ -61,13 +65,13 @@ export function OrderSummary({
   return (
     <Card className="cinect-glass border">
       <CardHeader>
-        <CardTitle>Order Summary</CardTitle>
+        <CardTitle>{t("orderSummary")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
           <div className="mb-1 flex justify-between text-sm">
             <span className="text-muted-foreground">{seatLabel}</span>
-            <span className="font-medium">${seatsTotal.toFixed(2)}</span>
+            <span className="font-medium">{fmt(seatsTotal)}</span>
           </div>
           {(holdSeats.length > 0 || (booking?.seats?.length ?? 0) > 0) && (
             <p className="text-muted-foreground text-xs">
@@ -83,8 +87,8 @@ export function OrderSummary({
             <Separator />
             <div>
               <div className="mb-2 flex justify-between text-sm">
-                <span className="text-muted-foreground">Snacks & Drinks</span>
-                <span className="font-medium">${snacksTotal.toFixed(2)}</span>
+                <span className="text-muted-foreground">{t("snacksDrinks")}</span>
+                <span className="font-medium">{fmt(snacksTotal)}</span>
               </div>
               <div className="space-y-1">
                 {selectedSnacks.map((item) => {
@@ -95,9 +99,9 @@ export function OrderSummary({
                       className="text-muted-foreground flex justify-between text-xs"
                     >
                       <span>
-                        {item.quantity}x {item.snack?.name || "Item"}
+                        {item.quantity}x {item.snack?.name || t("snackLineItemFallback")}
                       </span>
-                      <span>${(price * item.quantity).toFixed(2)}</span>
+                      <span>{fmt(price * item.quantity)}</span>
                     </div>
                   );
                 })}
@@ -109,23 +113,25 @@ export function OrderSummary({
         <Separator />
 
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Subtotal</span>
-          <span className="font-medium">${baseTotal.toFixed(2)}</span>
+          <span className="text-muted-foreground">{t("subtotal")}</span>
+          <span className="font-medium">{fmt(baseTotal)}</span>
         </div>
 
         {hasBooking && toNumber(booking.discountAmount) > 0 && (
           <div className="text-primary space-y-1 text-sm">
             <div className="flex justify-between">
-              <span>Discount</span>
-              <span>-${toNumber(booking.discountAmount).toFixed(2)}</span>
+              <span>{t("discount")}</span>
+              <span>-{fmt(toNumber(booking.discountAmount))}</span>
             </div>
             {(appliedPromoCode || (appliedPoints ?? 0) > 0 || appliedGiftCardCode) && (
               <div className="text-muted-foreground space-y-0.5 text-xs">
-                {appliedPromoCode && <p>Promo code: {appliedPromoCode}</p>}
+                {appliedPromoCode && <p>{t("promoApplied", { code: appliedPromoCode })}</p>}
                 {appliedPoints && appliedPoints > 0 && (
-                  <p>Points used: {appliedPoints.toLocaleString()} pts</p>
+                  <p>{t("pointsUsed", { points: appliedPoints.toLocaleString() })}</p>
                 )}
-                {appliedGiftCardCode && <p>Gift card: {appliedGiftCardCode}</p>}
+                {appliedGiftCardCode && (
+                  <p>{t("giftCardApplied", { code: appliedGiftCardCode })}</p>
+                )}
               </div>
             )}
           </div>
@@ -134,8 +140,8 @@ export function OrderSummary({
         <Separator />
 
         <div className="flex justify-between">
-          <span className="font-semibold">Total</span>
-          <span className="text-2xl font-bold tabular-nums">${total.toFixed(2)}</span>
+          <span className="font-semibold">{t("total")}</span>
+          <span className="text-2xl font-bold tabular-nums">{fmt(total)}</span>
         </div>
       </CardContent>
     </Card>

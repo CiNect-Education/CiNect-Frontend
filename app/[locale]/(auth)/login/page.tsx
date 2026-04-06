@@ -105,12 +105,20 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>{t("email")}</FormLabel>
                   <FormControl>
-                    <Input
-                      type="email"
-                      inputMode="email"
-                      placeholder="ten@domain.com"
-                      {...field}
-                    />
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        inputMode="email"
+                        placeholder={t("emailPlaceholder")}
+                        className="pr-24"
+                        {...field}
+                      />
+                      {field.value && !field.value.includes("@") ? (
+                        <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm">
+                          @gmail.com
+                        </span>
+                      ) : null}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -135,7 +143,7 @@ export default function LoginPage() {
               )}
             />
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : t("loginBtn")}
+              {isLoading ? t("signingIn") : t("loginBtn")}
             </Button>
           </form>
         </Form>

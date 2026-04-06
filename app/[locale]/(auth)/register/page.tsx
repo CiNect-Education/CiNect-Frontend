@@ -121,7 +121,7 @@ export default function RegisterPage() {
     <Card>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">{t("register")}</CardTitle>
-        <CardDescription>Create your CiNect account</CardDescription>
+        <CardDescription>{t("registerSubtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -133,7 +133,7 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>{t("fullName")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nguyen Van A" {...field} />
+                    <Input placeholder={t("namePlaceholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -146,12 +146,20 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>{t("email")}</FormLabel>
                   <FormControl>
-                    <Input
-                      type="email"
-                      inputMode="email"
-                      placeholder="ten@domain.com"
-                      {...field}
-                    />
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        inputMode="email"
+                        placeholder={t("emailPlaceholder")}
+                        className="pr-24"
+                        {...field}
+                      />
+                      {field.value && !field.value.includes("@") ? (
+                        <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm">
+                          @gmail.com
+                        </span>
+                      ) : null}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -164,7 +172,12 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>{t("phone")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="0901234567" inputMode="tel" maxLength={10} {...field} />
+                    <Input
+                      placeholder={t("phonePlaceholder")}
+                      inputMode="tel"
+                      maxLength={10}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -189,7 +202,7 @@ export default function RegisterPage() {
                         size="icon"
                         className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground"
                         onClick={() => setShowPassword((p) => !p)}
-                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
@@ -218,7 +231,7 @@ export default function RegisterPage() {
                         size="icon"
                         className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground"
                         onClick={() => setShowConfirmPassword((p) => !p)}
-                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                        aria-label={showConfirmPassword ? t("hidePassword") : t("showPassword")}
                       >
                         {showConfirmPassword ? (
                           <EyeOff className="h-4 w-4" />
@@ -233,7 +246,7 @@ export default function RegisterPage() {
               )}
             />
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating account..." : t("registerBtn")}
+              {isLoading ? t("creatingAccount") : t("registerBtn")}
             </Button>
           </form>
         </Form>

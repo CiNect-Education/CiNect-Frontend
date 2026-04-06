@@ -113,6 +113,7 @@ function gridToSeats(grid: GridCell[][], roomId: string): Partial<Seat>[] {
 
 export default function AdminSeatsPage() {
   const t = useTranslations("admin");
+  const tb = useTranslations("booking");
   const [cinemaFilter, setCinemaFilter] = useState<string>("");
   const [roomId, setRoomId] = useState<string>("");
   const [previewMode, setPreviewMode] = useState(false);
@@ -290,15 +291,13 @@ export default function AdminSeatsPage() {
   return (
     <AdminPageShell
       title={t("seats")}
-      description="Design and manage seat maps for each screening room."
+      description={t("descSeats")}
       breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("seats") }]}
     >
       <Card className="cinect-glass mb-6 border">
         <CardHeader>
-          <CardTitle className="text-lg">Seat Map Editor</CardTitle>
-          <CardDescription>
-            Select a cinema and room to view and edit the seat layout.
-          </CardDescription>
+          <CardTitle className="text-lg">{t("seatMapEditorTitle")}</CardTitle>
+          <CardDescription>{t("seatMapEditorDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-3">
@@ -310,10 +309,10 @@ export default function AdminSeatsPage() {
               }}
             >
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Cinema" />
+                <SelectValue placeholder={t("cinemaFilterPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All cinemas</SelectItem>
+                <SelectItem value="all">{t("allCinemasFilter")}</SelectItem>
                 {cinemas.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.name}
@@ -323,7 +322,7 @@ export default function AdminSeatsPage() {
             </Select>
             <Select value={roomId} onValueChange={setRoomId} disabled={!cinemaFilter}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Room" />
+                <SelectValue placeholder={t("selectRoom")} />
               </SelectTrigger>
               <SelectContent>
                 {rooms.map((r) => (
@@ -338,7 +337,7 @@ export default function AdminSeatsPage() {
           {roomId && grid.length > 0 && (
             <>
               <div className="flex flex-wrap items-center gap-2 border-y py-3">
-                <span className="text-sm font-medium">Toolbar:</span>
+                <span className="text-sm font-medium">{t("seatsToolbar")}:</span>
                 <Select
                   value={selectedType}
                   onValueChange={(v) => setSelectedType(v as SeatCellType)}
@@ -347,43 +346,53 @@ export default function AdminSeatsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {(Object.keys(SEAT_TYPE_STYLES) as SeatCellType[]).map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t}
+                    {(Object.keys(SEAT_TYPE_STYLES) as SeatCellType[]).map((typeKey) => (
+                      <SelectItem key={typeKey} value={typeKey}>
+                        {typeKey === "STANDARD"
+                          ? tb("standard")
+                          : typeKey === "VIP"
+                            ? tb("vip")
+                            : typeKey === "COUPLE"
+                              ? tb("couple")
+                              : typeKey === "DISABLED"
+                                ? tb("disabled")
+                                : typeKey === "WHEELCHAIR"
+                                  ? tb("wheelchair")
+                                  : tb("aisle")}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <Button size="sm" variant="outline" onClick={() => applyToSelected("type")}>
-                  Change type
+                  {t("seatsChangeType")}
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => applyToSelected("disable")}>
-                  Disable
+                  {t("seatsDisable")}
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => applyToSelected("delete")}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
                 <Button size="sm" variant="outline" onClick={addRow}>
-                  Add row
+                  {t("seatsAddRow")}
                 </Button>
                 <Button size="sm" variant="outline" onClick={addColumn}>
-                  Add column
+                  {t("seatsAddColumn")}
                 </Button>
                 <Button size="sm" variant="outline" onClick={handleExport}>
                   <Download className="mr-1 h-4 w-4" />
-                  Export JSON
+                  {t("seatsExportJson")}
                 </Button>
                 <Button size="sm" variant="outline" onClick={handleImport}>
                   <Upload className="mr-1 h-4 w-4" />
-                  Import JSON
+                  {t("seatsImportJson")}
                 </Button>
                 <div className="ml-4 flex items-center gap-2">
                   <Switch id="preview" checked={previewMode} onCheckedChange={setPreviewMode} />
-                  <Label htmlFor="preview">Preview mode</Label>
+                  <Label htmlFor="preview">{t("previewMode")}</Label>
                 </div>
                 <Button size="sm" onClick={handleSave} disabled={updateSeats.isPending}>
                   <Save className="mr-1 h-4 w-4" />
-                  Save
+                  {t("seatsSave")}
                 </Button>
               </div>
 
@@ -432,13 +441,13 @@ export default function AdminSeatsPage() {
 
           {roomId && (!selectedRoom || grid.length === 0) && (
             <div className="text-muted-foreground flex h-48 items-center justify-center rounded-lg border border-dashed">
-              No layout. Add rows/columns or import a layout.
+              {t("seatsNoLayout")}
             </div>
           )}
 
           {!roomId && (
             <div className="text-muted-foreground flex h-48 items-center justify-center rounded-lg border border-dashed">
-              Select a cinema and room to load the seat map.
+              {t("seatsSelectCinemaRoom")}
             </div>
           )}
         </CardContent>
@@ -446,7 +455,7 @@ export default function AdminSeatsPage() {
 
       <Card className="cinect-glass border">
         <CardHeader>
-          <CardTitle className="text-lg">Seat Types</CardTitle>
+          <CardTitle className="text-lg">{t("seatTypesTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-6">
@@ -465,14 +474,23 @@ export default function AdminSeatsPage() {
                     <Armchair className={cn("h-4 w-4", def.iconClassName ?? "text-white/80")} />
                   ) : null}
                 </div>
-                <span>{type}</span>
+                <span>
+                  {type === "STANDARD"
+                    ? tb("standard")
+                    : type === "VIP"
+                      ? tb("vip")
+                      : type === "COUPLE"
+                        ? tb("couple")
+                        : type === "DISABLED"
+                          ? tb("disabled")
+                          : type === "WHEELCHAIR"
+                            ? tb("wheelchair")
+                            : tb("aisle")}
+                </span>
               </div>
             ))}
           </div>
-          <p className="text-muted-foreground mt-2 text-xs">
-            Click to select • Shift+click for range • Ctrl+click for multi-select • Drag to select
-            rectangle
-          </p>
+          <p className="text-muted-foreground mt-2 text-xs">{t("seatsEditHint")}</p>
         </CardContent>
       </Card>
     </AdminPageShell>

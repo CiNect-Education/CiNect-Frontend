@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { User } from "@/types/domain";
@@ -29,6 +30,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const tToast = useTranslations("toast");
   const queryClient = useQueryClient();
   const [apiReady, setApiReady] = useState(false);
 
@@ -83,14 +85,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setRefreshToken(tokens.refreshToken);
         }
         await refetch();
-        toast.success("Welcome back!");
+        toast.success(tToast("welcomeBack"));
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Login failed";
+        const message = error instanceof Error ? error.message : tToast("loginFailed");
         toast.error(message);
         throw error;
       }
     },
-    [loginMutation, refetch]
+    [loginMutation, refetch, tToast]
   );
 
   const register = useCallback(
@@ -109,14 +111,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setRefreshToken(tokens.refreshToken);
         }
         await refetch();
-        toast.success("Account created successfully!");
+        toast.success(tToast("accountCreated"));
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Registration failed";
+        const message = error instanceof Error ? error.message : tToast("registerFailed");
         toast.error(message);
         throw error;
       }
     },
-    [registerMutation, refetch]
+    [registerMutation, refetch, tToast]
   );
 
   const logout = useCallback(async () => {
@@ -128,10 +130,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       clearTokens();
       queryClient.setQueryData(["auth", "me"], null);
       queryClient.clear();
-      toast.success("Logged out successfully");
+      toast.success(tToast("loggedOut"));
       router.push("/");
     }
-  }, [logoutMutation, queryClient, router]);
+  }, [logoutMutation, queryClient, router, tToast]);
 
   const value: AuthContextValue = {
     user,

@@ -11,6 +11,10 @@ import { useBooking } from "@/hooks/queries/use-booking-flow";
 import { Download, Calendar, MapPin, Clock, Users } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { format } from "date-fns";
+import { enUS } from "date-fns/locale";
+import { vi as viDateLocale } from "date-fns/locale";
+import { useLocale, useTranslations } from "next-intl";
+import { formatVnd, localizeRoomName } from "@/lib/showtime-display";
 
 function safeDate(value: unknown): Date | null {
   if (typeof value === "string" || typeof value === "number" || value instanceof Date) {
@@ -32,6 +36,10 @@ function toNumber(value: unknown): number {
 export default function TicketPage() {
   const params = useParams();
   const bookingId = params.bookingId as string;
+  const locale = useLocale();
+  const tShow = useTranslations("showtimeDisplay");
+  const dateFnsLocale = locale.startsWith("vi") ? viDateLocale : enUS;
+  const price = (n: number) => formatVnd(n, locale);
 
   const { data: bookingRes, isLoading, error, refetch } = useBooking(bookingId);
   const booking = bookingRes?.data as import("@/types/domain").Booking | undefined;
@@ -128,10 +136,10 @@ export default function TicketPage() {
               <div className="space-y-1">
                 <div className="text-sm font-medium">Date & Time</div>
                 <div className="text-muted-foreground text-sm">
-                  {showtimeDate ? format(showtimeDate, "PPP") : "—"}
+                  {showtimeDate ? format(showtimeDate, "PPP", { locale: dateFnsLocale }) : "—"}
                 </div>
                 <div className="text-muted-foreground text-sm">
-                  {showtimeDate ? format(showtimeDate, "p") : "—"}
+                  {showtimeDate ? format(showtimeDate, "p", { locale: dateFnsLocale }) : "—"}
                 </div>
               </div>
             </div>
@@ -141,7 +149,9 @@ export default function TicketPage() {
               <div className="space-y-1">
                 <div className="text-sm font-medium">Cinema</div>
                 <div className="text-muted-foreground text-sm">{cinemaName}</div>
-                <div className="text-muted-foreground text-sm">Room {roomName}</div>
+                <div className="text-muted-foreground text-sm">
+                  {roomName ? localizeRoomName(roomName, (k, v) => tShow(k, v)) : "—"}
+                </div>
               </div>
             </div>
 
@@ -160,7 +170,7 @@ export default function TicketPage() {
               <div className="space-y-1">
                 <div className="text-sm font-medium">Showtime</div>
                 <div className="text-muted-foreground text-sm">
-                  {showtimeDate ? format(showtimeDate, "PPpp") : "—"}
+                  {showtimeDate ? format(showtimeDate, "PPpp", { locale: dateFnsLocale }) : "—"}
                 </div>
               </div>
             </div>
@@ -178,11 +188,10 @@ export default function TicketPage() {
                         {snack.quantity}x {snack.name}
                       </span>
                       <span>
-                        $
-                        {(
+                        {price(
                           (toNumber(snack.unitPrice) || toNumber(snack.totalPrice)) *
-                          toNumber(snack.quantity)
-                        ).toFixed(2)}
+                            toNumber(snack.quantity)
+                        )}
                       </span>
                     </div>
                   ))}
@@ -198,37 +207,36 @@ export default function TicketPage() {
             {seats && seats.length > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Tickets ({seats.length})</span>
-                <span>${seats.reduce((s, seat) => s + toNumber(seat.price), 0).toFixed(2)}</span>
+                <span>{price(seats.reduce((s, seat) => s + toNumber(seat.price), 0))}</span>
               </div>
             )}
             {snacks && snacks.length > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Snacks</span>
                 <span>
-                  $
-                  {snacks
-                    .reduce(
+                  {price(
+                    snacks.reduce(
                       (s, snack) =>
                         s +
                         (toNumber(snack.totalPrice) ||
                           toNumber(snack.unitPrice) * toNumber(snack.quantity)),
                       0
                     )
-                    .toFixed(2)}
+                  )}
                 </span>
               </div>
             )}
             {toNumber(booking.discountAmount) > 0 && (
               <div className="text-primary flex justify-between text-sm">
                 <span>Discount</span>
-                <span>-${toNumber(booking.discountAmount).toFixed(2)}</span>
+                <span>-{price(toNumber(booking.discountAmount))}</span>
               </div>
             )}
             <Separator />
             <div className="flex justify-between font-bold">
               <span>Total Paid</span>
               <span className="text-lg">
-                ${(toNumber(payment?.amount) || toNumber(booking.finalAmount)).toFixed(2)}
+                {price(toNumber(payment?.amount) || toNumber(booking.finalAmount))}
               </span>
             </div>
           </div>
@@ -239,7 +247,9 @@ export default function TicketPage() {
             <div>Transaction ID: {payment?.transactionId ?? "N/A"}</div>
             <div>
               Booked on:{" "}
-              {safeDate(booking.createdAt) ? format(new Date(booking.createdAt), "PPp") : "—"}
+              {safeDate(booking.createdAt)
+                ? format(new Date(booking.createdAt), "PPp", { locale: dateFnsLocale })
+                : "—"}
             </div>
           </div>
         </CardContent>

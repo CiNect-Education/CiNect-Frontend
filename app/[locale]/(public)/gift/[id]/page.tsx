@@ -16,9 +16,17 @@ import { ApiErrorState } from "@/components/system/api-error-state";
 import { useGiftCard, usePurchaseGiftCard } from "@/hooks/queries/use-gifts";
 import { Gift, Mail, ShoppingCart } from "lucide-react";
 
+function giftStatusLabel(status: string, t: (key: string) => string): string {
+  if (status === "AVAILABLE") return t("statusAvailable");
+  if (status === "SOLD_OUT") return t("statusSoldOut");
+  if (status === "EXPIRED") return t("statusExpired");
+  return status;
+}
+
 export default function GiftDetailPage() {
   const params = useParams();
   const t = useTranslations("gift");
+  const tNav = useTranslations("nav");
   const giftId = params.id as string;
 
   const { data: giftRes, isLoading, error, refetch } = useGiftCard(giftId);
@@ -66,7 +74,7 @@ export default function GiftDetailPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
         <div className="rounded-lg border border-dashed p-12 text-center">
           <Gift className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
-          <p className="text-muted-foreground">Gift card not found</p>
+          <p className="text-muted-foreground">{t("giftCardNotFound")}</p>
         </div>
       </div>
     );
@@ -77,8 +85,8 @@ export default function GiftDetailPage() {
       <PageHeader
         title={giftCard.title}
         breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: t("title"), href: "/gift" },
+          { label: tNav("home"), href: "/" },
+          { label: t("giftCardsTitle"), href: "/gift" },
           { label: giftCard.title },
         ]}
       />
@@ -104,21 +112,21 @@ export default function GiftDetailPage() {
 
           <div className="flex items-center gap-4">
             <div>
-              <p className="text-muted-foreground text-sm">Value</p>
+              <p className="text-muted-foreground text-sm">{t("valueLabel")}</p>
               <p className="text-primary text-3xl font-bold">{giftCard.value.toLocaleString()}đ</p>
             </div>
             <div>
-              <p className="text-muted-foreground text-sm">Price</p>
+              <p className="text-muted-foreground text-sm">{t("priceLabel")}</p>
               <p className="text-2xl font-semibold">{giftCard.price.toLocaleString()}đ</p>
             </div>
             <Badge variant={giftCard.status === "AVAILABLE" ? "default" : "secondary"}>
-              {giftCard.status}
+              {giftStatusLabel(giftCard.status, t)}
             </Badge>
           </div>
 
           {giftCard.expiresAt && (
             <p className="text-muted-foreground text-sm">
-              Valid until: {new Date(giftCard.expiresAt).toLocaleDateString()}
+              {t("validUntilShort")} {new Date(giftCard.expiresAt).toLocaleDateString()}
             </p>
           )}
 
@@ -132,20 +140,24 @@ export default function GiftDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="recipientEmail">{t("recipientEmail")} (optional)</Label>
+                <Label htmlFor="recipientEmail">
+                  {t("recipientEmail")} {t("optionalSuffix")}
+                </Label>
                 <Input
                   id="recipientEmail"
                   type="email"
-                  placeholder="recipient@email.com"
+                  placeholder={t("recipientPlaceholder")}
                   value={recipientEmail}
                   onChange={(e) => setRecipientEmail(e.target.value)}
                 />
               </div>
               <div>
-                <Label htmlFor="message">{t("message")} (optional)</Label>
+                <Label htmlFor="message">
+                  {t("message")} {t("optionalSuffix")}
+                </Label>
                 <Textarea
                   id="message"
-                  placeholder="Add a personal message..."
+                  placeholder={t("messagePlaceholder")}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   rows={3}
@@ -159,7 +171,7 @@ export default function GiftDetailPage() {
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 {purchaseGiftCard.isPending
-                  ? "Processing..."
+                  ? t("processingPurchase")
                   : `${t("buyGiftCard")} - ${giftCard.price.toLocaleString()}đ`}
               </Button>
             </CardContent>

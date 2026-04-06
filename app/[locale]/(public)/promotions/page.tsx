@@ -28,6 +28,8 @@ function toList<T>(v: unknown): T[] {
 
 export default function PromotionsPage() {
   const t = useTranslations("promotions");
+  const tNav = useTranslations("nav");
+  const tCommon = useTranslations("common");
   const searchParams = useSearchParams();
   const router = useRouter();
   const [selectedPromo, setSelectedPromo] = useState<Promotion | null>(null);
@@ -58,17 +60,17 @@ export default function PromotionsPage() {
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
-      toast.success("Promo code copied to clipboard");
+      toast.success(t("toastCodeCopied"));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Failed to copy");
+      toast.error(t("toastCopyFailed"));
     }
   }
 
   async function handleVoucherLookup() {
     const code = voucherCode.trim();
     if (!code) {
-      toast.error("Vui lòng nhập mã voucher");
+      toast.error(t("toastEnterCode"));
       return;
     }
     setVoucherLoading(true);
@@ -77,13 +79,13 @@ export default function PromotionsPage() {
       const res = await apiClient.get<Promotion>("/promotions/lookup", { code });
       const promo = (res?.data ?? res) as Promotion;
       setVoucherLookup(promo);
-      toast.success("Tìm thấy voucher!");
+      toast.success(t("toastVoucherFound"));
     } catch (err: unknown) {
       const status = (err as { status?: number })?.status;
       if (status === 404) {
-        toast.error("Mã không tồn tại hoặc đã hết hạn");
+        toast.error(t("toastVoucherNotFound"));
       } else {
-        toast.error("Không thể tra cứu mã. Thử lại sau.");
+        toast.error(t("toastVoucherLookupError"));
       }
     } finally {
       setVoucherLoading(false);
@@ -93,9 +95,9 @@ export default function PromotionsPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
       <PageHeader
-        title={t("title") || "Promotions"}
-        description={t("description") || "Special offers and discounts"}
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: t("title") || "Promotions" }]}
+        title={t("title")}
+        description={t("description")}
+        breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("title") }]}
       />
 
       {/* Voucher code lookup — exclusive vouchers only visible when user enters code */}
@@ -104,10 +106,10 @@ export default function PromotionsPage() {
           <div className="flex-1 space-y-1">
             <label className="text-foreground flex items-center gap-2 text-sm font-medium">
               <TicketPercent className="h-4 w-4" />
-              Nhập mã voucher
+              {t("voucherCodeLabel")}
             </label>
             <Input
-              placeholder="VD: SUMMER2025"
+              placeholder={t("voucherCodePlaceholder")}
               value={voucherCode}
               onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === "Enter" && handleVoucherLookup()}
@@ -115,17 +117,13 @@ export default function PromotionsPage() {
             />
           </div>
           <Button onClick={handleVoucherLookup} disabled={voucherLoading}>
-            {voucherLoading ? "Đang tra cứu..." : "Tra cứu"}
+            {voucherLoading ? t("lookupVoucherLoading") : t("lookupVoucher")}
           </Button>
         </CardContent>
-        <p className="text-muted-foreground px-4 pb-2 text-xs">
-          Mã exclusive chỉ hiển thị khi bạn nhập đúng. Voucher thành viên xem tại trang Thành viên.
-        </p>
+        <p className="text-muted-foreground px-4 pb-2 text-xs">{t("voucherHint")}</p>
         {voucherLookup && (
           <CardContent className="border-t pt-4">
-            <p className="text-muted-foreground mb-2 text-xs">
-              Voucher của bạn (chỉ hiển thị khi nhập đúng mã):
-            </p>
+            <p className="text-muted-foreground mb-2 text-xs">{t("voucherResultIntro")}</p>
             <Card
               className="cursor-pointer overflow-hidden transition-all hover:shadow-lg"
               onClick={() => setSelectedPromo(voucherLookup)}
@@ -184,8 +182,8 @@ export default function PromotionsPage() {
       ) : promotions.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
           <Tag className="text-muted-foreground mb-3 h-12 w-12" />
-          <h3 className="mb-2 text-lg font-semibold">{t("emptyState") || "No promotions"}</h3>
-          <p className="text-muted-foreground text-sm">Check back later for new offers.</p>
+          <h3 className="mb-2 text-lg font-semibold">{t("emptyState")}</h3>
+          <p className="text-muted-foreground text-sm">{tCommon("checkBackOffers")}</p>
         </div>
       ) : (
         <>

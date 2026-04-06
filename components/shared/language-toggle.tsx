@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Languages } from "lucide-react";
@@ -11,12 +11,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const localeLabels: Record<string, string> = {
-  vi: "Tieng Viet",
-  en: "English",
-};
-
 export function LanguageToggle() {
+  const t = useTranslations("common");
+  const localeLabels: Record<string, string> = {
+    vi: t("localeVi"),
+    en: t("localeEn"),
+  };
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -30,7 +30,7 @@ export function LanguageToggle() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="h-9 w-9">
           <Languages className="h-4 w-4" />
-          <span className="sr-only">Change language</span>
+          <span className="sr-only">{t("changeLanguage")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

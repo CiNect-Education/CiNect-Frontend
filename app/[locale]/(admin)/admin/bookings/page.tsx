@@ -36,6 +36,7 @@ import {
 
 export default function AdminBookingsPage() {
   const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
@@ -74,32 +75,32 @@ export default function AdminBookingsPage() {
     () => [
       {
         accessorKey: "id",
-        header: "ID",
+        header: t("colBookingId"),
         cell: ({ row }) => (
           <span className="font-mono text-xs">{String(row.original.id).slice(0, 8)}...</span>
         ),
       },
       {
         accessorKey: "movieTitle",
-        header: "Movie",
+        header: t("colMovie"),
       },
       {
         accessorKey: "cinemaName",
-        header: "Cinema",
+        header: t("cinema"),
       },
       {
         id: "user",
-        header: "User",
+        header: t("colUser"),
         cell: ({ row }) => row.original.userId?.slice(0, 8) ?? "—",
       },
       {
         accessorKey: "finalAmount",
-        header: "Amount",
+        header: t("colAmount"),
         cell: ({ row }) => (row.original.finalAmount?.toLocaleString() ?? "0") + " ₫",
       },
       {
         accessorKey: "status",
-        header: "Status",
+        header: t("colStatus"),
         cell: ({ row }) => {
           const s = row.original.status;
           const variant =
@@ -110,18 +111,30 @@ export default function AdminBookingsPage() {
                 : s === "COMPLETED"
                   ? "secondary"
                   : "outline";
-          return <Badge variant={variant}>{s}</Badge>;
+          const label =
+            s === "PENDING"
+              ? t("bookingStatusPENDING")
+              : s === "HELD"
+                ? t("bookingStatusHELD")
+                : s === "CONFIRMED"
+                  ? t("bookingStatusCONFIRMED")
+                  : s === "COMPLETED"
+                    ? t("bookingStatusCOMPLETED")
+                    : s === "CANCELLED"
+                      ? t("bookingStatusCANCELLED")
+                      : s;
+          return <Badge variant={variant}>{label}</Badge>;
         },
       },
       {
         accessorKey: "createdAt",
-        header: "Date",
+        header: t("colDate"),
         cell: ({ row }) =>
           row.original.createdAt ? format(new Date(row.original.createdAt), "MMM d, HH:mm") : "—",
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t("colActions"),
         cell: ({ row }) => {
           const b = row.original;
           const canCancel = b.status !== "CANCELLED" && b.status !== "COMPLETED";
@@ -133,7 +146,7 @@ export default function AdminBookingsPage() {
                   variant="ghost"
                   size="icon"
                   onClick={() => setCancelTarget(b)}
-                  aria-label="Cancel booking"
+                  aria-label={t("ariaCancelBooking")}
                 >
                   <Ban className="text-destructive h-4 w-4" />
                 </Button>
@@ -143,7 +156,7 @@ export default function AdminBookingsPage() {
                   variant="ghost"
                   size="icon"
                   onClick={() => setRefundTarget(b)}
-                  aria-label="Refund booking"
+                  aria-label={t("ariaRefundBooking")}
                 >
                   <RotateCcw className="h-4 w-4" />
                 </Button>
@@ -153,25 +166,25 @@ export default function AdminBookingsPage() {
         },
       },
     ],
-    []
+    [t]
   );
 
   return (
     <AdminPageShell
       title={t("bookings")}
-      description="View and manage all customer bookings and orders."
+      description={t("descBookings")}
       breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("bookings") }]}
       actions={
         <Button variant="outline" size="sm">
           <Download className="mr-2 h-4 w-4" />
-          Export CSV
+          {t("exportCsv")}
         </Button>
       }
     >
       <div className="cinect-glass mb-6 flex flex-wrap gap-3 rounded-lg border p-4">
         <div className="relative min-w-[200px] flex-1">
           <Input
-            placeholder="Search bookings..."
+            placeholder={t("searchBookings")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -182,7 +195,7 @@ export default function AdminBookingsPage() {
           onValueChange={(v) => setStatusFilter(v === "all" ? "" : v)}
         >
           <SelectTrigger className="w-40">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t("status")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
@@ -194,14 +207,14 @@ export default function AdminBookingsPage() {
         </Select>
         <Input
           type="date"
-          placeholder="From"
+          placeholder={t("dateFrom")}
           value={dateFrom}
           onChange={(e) => setDateFrom(e.target.value)}
           className="w-40"
         />
         <Input
           type="date"
-          placeholder="To"
+          placeholder={t("dateTo")}
           value={dateTo}
           onChange={(e) => setDateTo(e.target.value)}
           className="w-40"
@@ -212,27 +225,25 @@ export default function AdminBookingsPage() {
         columns={columns}
         data={bookings}
         searchKey="movieTitle"
-        searchPlaceholder="Search by movie..."
+        searchPlaceholder={t("searchBookingsMovie")}
         className="cinect-glass rounded-lg border p-4"
         isLoading={bookingsLoading}
-        emptyMessage="No bookings found."
+        emptyMessage={t("emptyBookings")}
       />
 
       <AlertDialog open={!!cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)}>
         <AlertDialogContent className="cinect-glass border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to cancel this booking? This action cannot be undone.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t("cancelBookingTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("cancelBookingDesc")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCancel}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Cancel Booking
+              {t("confirmCancelBooking")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -241,14 +252,12 @@ export default function AdminBookingsPage() {
       <AlertDialog open={!!refundTarget} onOpenChange={(open) => !open && setRefundTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Refund Booking</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to refund this booking?
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t("refundBookingTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("refundBookingDesc")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRefund}>Refund</AlertDialogAction>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRefund}>{t("confirmRefund")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

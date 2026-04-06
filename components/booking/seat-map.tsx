@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { formatVnd } from "@/lib/showtime-display";
 import type { Seat } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -25,7 +26,8 @@ export function SeatMap({
   disabled,
   conflictedSeatIds,
 }: SeatMapProps) {
-  const t = useTranslations("booking");
+  const tb = useTranslations("booking");
+  const locale = useLocale();
 
   // Group seats by row
   const rowMap = useMemo(() => {
@@ -91,58 +93,71 @@ export function SeatMap({
     return !disabled && status === "AVAILABLE" && seatType !== "DISABLED";
   };
 
-  const typeLabel = (t: SeatUiType) => {
-    switch (t) {
+  const seatTypeUiLabel = (seatType: SeatUiType) => {
+    switch (seatType) {
       case "VIP":
-        return "VIP";
+        return tb("vip");
       case "COUPLE":
-        return "Couple";
+        return tb("couple");
       case "DISABLED":
-        return "Disabled";
+        return tb("disabled");
       default:
-        return "Standard";
+        return tb("standard");
+    }
+  };
+
+  const statusUiLabel = (status: SeatUiStatus) => {
+    switch (status) {
+      case "HELD":
+        return tb("seatUiHELD");
+      case "BOOKED":
+        return tb("seatUiBOOKED");
+      case "BLOCKED":
+        return tb("seatUiBLOCKED");
+      default:
+        return tb("seatUiAVAILABLE");
     }
   };
 
   return (
     <TooltipProvider delayDuration={120}>
       <div className="space-y-4">
-        <p className="text-muted-foreground text-sm">{t("seatMapHint")}</p>
+        <p className="text-muted-foreground text-sm">{tb("seatMapHint")}</p>
 
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <Badge
             variant="outline"
             className="border-[hsl(var(--seat-available-border))] bg-[hsl(var(--seat-available-bg))] text-[hsl(var(--seat-available-fg))]"
           >
-            {t("available")}
+            {tb("available")}
           </Badge>
-          <Badge variant="default">{t("selected")}</Badge>
+          <Badge variant="default">{tb("selected")}</Badge>
           <Badge
             variant="outline"
             className="border-[hsl(var(--seat-booked-border))] bg-[hsl(var(--seat-booked-bg))] text-[hsl(var(--seat-booked-fg))]"
           >
-            {t("booked")}
+            {tb("booked")}
           </Badge>
           <Badge
             variant="outline"
             className="border-[hsl(var(--seat-held-border))] bg-[hsl(var(--seat-held-bg))] text-[hsl(var(--seat-held-fg))]"
           >
-            {t("held")}
+            {tb("held")}
           </Badge>
           <Badge variant="outline" className="border-border bg-muted/40 text-muted-foreground">
-            {t("disabled")}
+            {tb("disabled")}
           </Badge>
           <Badge
             variant="outline"
             className="border-[hsl(var(--seat-vip-border))] bg-[hsl(var(--seat-vip-bg))] text-[hsl(var(--seat-vip-fg))]"
           >
-            {t("vip")}
+            {tb("vip")}
           </Badge>
           <Badge
             variant="outline"
             className="border-[hsl(var(--seat-couple-border))] bg-[hsl(var(--seat-couple-bg))] text-[hsl(var(--seat-couple-fg))]"
           >
-            {t("couple")}
+            {tb("couple")}
           </Badge>
         </div>
 
@@ -157,7 +172,7 @@ export function SeatMap({
           <div className="pointer-events-none mb-4">
             <div className="from-primary/60 h-2 rounded-t-3xl bg-gradient-to-b to-transparent" />
             <div className="text-muted-foreground mt-2 text-center text-xs font-semibold tracking-[0.22em]">
-              SCREEN
+              {tb("screenLabel").toUpperCase()}
             </div>
           </div>
 
@@ -201,23 +216,22 @@ export function SeatMap({
                                   getSeatColor(seat),
                                   isCouple && "w-[72px]"
                                 )}
-                                aria-label={`Seat ${row}${seat.number} - ${typeLabel(type)} - ${status}`}
+                                aria-label={`${tb("tooltipSeatTitle", { row, number: String(seat.number) })} — ${seatTypeUiLabel(type)} — ${statusUiLabel(status)}`}
                               >
                                 <span className="relative z-10">{seat.number}</span>
                               </button>
                             </TooltipTrigger>
                             <TooltipContent side="top" className="text-xs">
                               <div className="font-semibold">
-                                Seat {row}
-                                {seat.number}
+                                {tb("tooltipSeatTitle", { row, number: String(seat.number) })}
                               </div>
                               <div className="text-muted-foreground mt-0.5 flex items-center gap-2">
-                                <span>{typeLabel(type)}</span>
+                                <span>{seatTypeUiLabel(type)}</span>
                                 <span>•</span>
-                                <span>{status}</span>
+                                <span>{statusUiLabel(status)}</span>
                               </div>
                               <div className="mt-1 font-medium">
-                                {price > 0 ? `$${price.toFixed(2)}` : "—"}
+                                {price > 0 ? formatVnd(price, locale) : "—"}
                               </div>
                             </TooltipContent>
                           </Tooltip>

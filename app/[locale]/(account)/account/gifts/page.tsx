@@ -24,7 +24,7 @@ export default function AccountGiftsPage() {
   const handleCopyCode = async (code: string, id: string) => {
     await navigator.clipboard.writeText(code);
     setCopiedId(id);
-    toast.success("Gift card code copied!");
+    toast.success(t("toastGiftCardCopied"));
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -63,13 +63,13 @@ export default function AccountGiftsPage() {
           <CardContent className="py-12">
             <EmptyState
               icon={Gift}
-              title="No gift cards"
-              description="Gift cards you have purchased or received will appear here."
-              actionLabel="Browse Gift Cards"
+              title={t("noGiftCardsTitle")}
+              description={t("noGiftCardsDesc")}
+              actionLabel={t("browseGiftCards")}
             />
             <div className="mt-4 flex justify-center">
               <Button asChild>
-                <Link href="/gift">Browse Gift Cards</Link>
+                <Link href="/gift">{t("browseGiftCards")}</Link>
               </Button>
             </div>
           </CardContent>

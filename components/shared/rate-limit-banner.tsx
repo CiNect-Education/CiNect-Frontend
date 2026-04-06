@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { AlertTriangle } from "lucide-react";
 
 export function RateLimitBanner() {
+  const t = useTranslations("rateLimit");
   const [retryAfter, setRetryAfter] = useState<number | null>(null);
   const [countdown, setCountdown] = useState(0);
 
@@ -33,7 +35,11 @@ export function RateLimitBanner() {
   return (
     <div className="cinect-glass fixed top-0 right-0 left-0 z-[90] flex items-center justify-center gap-2 border-b px-4 py-2 text-center text-sm font-medium">
       <AlertTriangle className="text-primary h-4 w-4" />
-      <span>Too many requests. Please wait {countdown > 0 ? `${countdown}s` : "..."}</span>
+      <span>
+        {t("banner", {
+          wait: countdown > 0 ? t("waitSeconds", { seconds: countdown }) : t("waitEllipsis"),
+        })}
+      </span>
     </div>
   );
 }

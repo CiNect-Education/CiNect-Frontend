@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -44,9 +44,14 @@ const SECONDARY_NAV = [
 export function MobileNav() {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { isAuthenticated, user } = useAuth();
   const pathname = usePathname();
   const path = pathname.replace(/^\/(vi|en)/, "") || "/";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const initials =
     user?.fullName
@@ -55,12 +60,22 @@ export function MobileNav() {
       .join("")
       .toUpperCase() || "U";
 
+  // Radix Sheet/Dialog useIds must not run during SSR — order can diverge from client (e.g. ClientOnly siblings).
+  if (!mounted) {
+    return (
+      <Button type="button" variant="ghost" size="icon" className="h-9 w-9" disabled aria-hidden tabIndex={-1}>
+        <LayoutGrid className="h-5 w-5" />
+        <span className="sr-only">{t("mainMenu")}</span>
+      </Button>
+    );
+  }
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="h-9 w-9">
           <LayoutGrid className="h-5 w-5" />
-          <span className="sr-only">Menu</span>
+          <span className="sr-only">{t("mainMenu")}</span>
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="flex w-80 flex-col p-0">
