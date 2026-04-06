@@ -50,7 +50,7 @@ function MoviesContent() {
   const limit = 24;
 
   const params: Record<string, string | number | undefined> = {
-    q,
+    ...(q ? { search: q } : {}),
     status,
     genre,
     language,
