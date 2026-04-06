@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbo",
-    "dev:spring": "NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api/v1 next dev --turbo",
-    "dev:node": "NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api/v1 next dev --turbo",
+    "dev:spring": "cross-env NEXT_PUBLIC_API_BASE_URL=http://localhost:8081/api/v1 next dev --turbo",
+    "dev:node": "cross-env NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api/v1 next dev --turbo",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
