@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Home, Clock, Ticket, Crown, User } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,7 @@ const items = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const t = useTranslations("account");
   // Remove locale prefix for matching
   const path = pathname.replace(/^\/(vi|en)/, "") || "/";
 
@@ -24,6 +26,8 @@ export function BottomNav() {
         {items.map((item) => {
           const Icon = item.icon;
           const isActive = path === item.href || (item.href !== "/" && path.startsWith(item.href));
+          const label = item.key === "tickets" ? t("tickets") : item.key.charAt(0).toUpperCase() + item.key.slice(1);
+
           return (
             <Link
               key={item.key}
@@ -34,7 +38,7 @@ export function BottomNav() {
               )}
             >
               <Icon className="h-5 w-5" />
-              <span>{item.key.charAt(0).toUpperCase() + item.key.slice(1)}</span>
+              <span>{label}</span>
             </Link>
           );
         })}

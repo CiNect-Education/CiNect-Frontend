@@ -146,7 +146,7 @@ export default function BookingSuccessPage() {
               Download Ticket
             </Button>
             <Button asChild className="flex-1">
-              <Link href="/account/orders">View Orders</Link>
+              <Link href="/account/orders">View tickets</Link>
             </Button>
           </div>
         </CardContent>

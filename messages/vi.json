@@ -472,7 +472,7 @@
     "callbackBookingRedirect": "Đặt vé đã được xác nhận. Đang chuyển đến vé của bạn…",
     "callbackProcessingTitle": "Đang xử lý thanh toán",
     "callbackRetryPayment": "Thử thanh toán lại",
-    "callbackViewOrders": "Xem đơn hàng",
+    "callbackViewOrders": "Xem vé",
     "missingTransactionId": "Thiếu mã giao dịch",
     "verifyPaymentFailed": "Không thể xác minh thanh toán",
     "paymentNotSuccessfulDefault": "Thanh toán không thành công. Vui lòng thử lại."

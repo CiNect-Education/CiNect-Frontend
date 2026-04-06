@@ -472,7 +472,7 @@
     "callbackBookingRedirect": "Your booking has been confirmed. Redirecting to your ticket…",
     "callbackProcessingTitle": "Processing payment",
     "callbackRetryPayment": "Retry payment",
-    "callbackViewOrders": "View orders",
+    "callbackViewOrders": "View tickets",
     "missingTransactionId": "Missing transaction ID",
     "verifyPaymentFailed": "Failed to verify payment",
     "paymentNotSuccessfulDefault": "Your payment was not successful. Please try again."
