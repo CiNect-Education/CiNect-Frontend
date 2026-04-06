@@ -2,11 +2,11 @@
 
 Next.js frontend for the cinema booking platform. Part of the **CiNect** multi-repo setup:
 
-- **cinema-web-next** – This frontend
-- **cinema-api-spring** – Spring Boot API (port 8080)
-- **cinema-api-nest** – NestJS API (port 3001)
+- **cinect-frontend** - This frontend
+- **cinect-spring-backend** - Spring Boot API (port 8081)
+- **cinect-nest-backend** - NestJS API (port 3001)
 
-The frontend is **backend-agnostic** and uses `NEXT_PUBLIC_API_BASE_URL` to connect to either API.
+The frontend is **backend-agnostic** and can auto-detect running backend (`3001` or `8081`) when `NEXT_PUBLIC_API_BASE_URL` is not set.
 
 ## Tech Stack
 
@@ -28,7 +28,7 @@ The frontend is **backend-agnostic** and uses `NEXT_PUBLIC_API_BASE_URL` to conn
 
 ```bash
 git clone <repo-url>
-cd cinema-frontend
+cd cinect-frontend
 pnpm install
 ```
 
@@ -43,7 +43,9 @@ cp .env.example .env.local
 Edit `.env.local`:
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api/v1
+# Optional: force Spring or Nest explicitly
+# NEXT_PUBLIC_API_BASE_URL=http://localhost:8081/api/v1
+# NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api/v1
 ```
 
 ### 3. Development
@@ -58,15 +60,15 @@ App runs at [http://localhost:3000](http://localhost:3000).
 
 | Variable                   | Description                  | Default                        |
 | -------------------------- | ---------------------------- | ------------------------------ |
-| `NEXT_PUBLIC_API_BASE_URL` | Base URL for the backend API | `http://localhost:8080/api/v1` |
+| `NEXT_PUBLIC_API_BASE_URL` | Base URL for the backend API (optional) | Auto-detect (`3001` or `8081`) |
 
 Example `.env.example`:
 
 ```env
-# Backend API base URL (no trailing slash)
-# Spring Boot: http://localhost:8080/api/v1
+# Optional backend API base URL (no trailing slash)
+# Spring Boot: http://localhost:8081/api/v1
 # NestJS:      http://localhost:3001/api/v1
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api/v1
+# NEXT_PUBLIC_API_BASE_URL=http://localhost:8081/api/v1
 ```
 
 ## Scripts
@@ -74,7 +76,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api/v1
 | Script            | Description                                                   |
 | ----------------- | ------------------------------------------------------------- |
 | `pnpm dev`        | Start dev server (uses `.env.local` or default API)           |
-| `pnpm dev:spring` | Dev server with Spring Boot at `http://localhost:8080/api/v1` |
+| `pnpm dev:spring` | Dev server with Spring Boot at `http://localhost:8081/api/v1` |
 | `pnpm dev:node`   | Dev server with NestJS at `http://localhost:3001/api/v1`      |
 | `pnpm build`      | Production build                                              |
 | `pnpm start`      | Start production server                                       |
@@ -84,15 +86,15 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api/v1
 
 ## Backend Context
 
-- **Spring Boot** (port 8080): Uses `cinema_spring` database
-- **NestJS** (port 3001): Uses `cinema_node` database
+- **Spring Boot** (port 8081): Uses `cinect_spring` database
+- **NestJS** (port 3001): Uses `cinect_node` database
 
 The frontend only depends on `NEXT_PUBLIC_API_BASE_URL` and does not assume a specific backend.
 
 ## Project Structure
 
 ```
-cinema-frontend/
+cinect-frontend/
 ├── app/
 │   ├── [locale]/           # Internationalized routes
 │   │   ├── (public)/       # Public pages (movies, cinemas, etc.)
