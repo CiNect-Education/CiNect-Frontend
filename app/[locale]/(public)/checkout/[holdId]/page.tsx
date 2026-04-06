@@ -29,6 +29,7 @@ import { vi as viDateLocale } from "date-fns/locale";
 import { useLocale, useTranslations } from "next-intl";
 import { apiClient } from "@/lib/api-client";
 import { localizeRoomName } from "@/lib/showtime-display";
+import { getApiBaseUrl } from "@/lib/api-discovery";
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -62,6 +63,7 @@ export default function CheckoutPage() {
   const hold = holdRes?.data as import("@/types/domain").HoldDetails | undefined;
   const holdShowtimeId = hold?.showtimeId;
   const cinemaId = hold?.showtime?.cinemaId;
+  const holdSeats = hold?.seats ?? [];
 
   const { data: snacksRes, isLoading: snacksLoading, error: snacksError } = useSnacks(cinemaId);
   const snacksData = snacksRes?.data ?? snacksRes;
@@ -135,10 +137,19 @@ export default function CheckoutPage() {
   const handleContinueFromSnacks = useCallback(async () => {
     if (!holdShowtimeId) return;
     try {
+      const isSpring = getApiBaseUrl().includes("8081");
+      const extraPayload = isSpring
+        ? {
+            seatIds: holdSeats?.map((s) => s.id) || [],
+            paymentMethod: "CARD", // Default for Spring
+          }
+        : {};
+
       const res = await createBookingMutation.mutateAsync({
         showtimeId: holdShowtimeId,
         holdId,
         snacks: selectedSnacks.length > 0 ? selectedSnacks : undefined,
+        ...extraPayload,
       });
       const payload = res?.data ?? res;
       const id =
@@ -150,7 +161,7 @@ export default function CheckoutPage() {
     } catch {
       // Error handled by mutation
     }
-  }, [holdShowtimeId, holdId, selectedSnacks, createBookingMutation]);
+  }, [holdShowtimeId, holdId, selectedSnacks, holdSeats, createBookingMutation]);
 
   const handleApplyPromo = useCallback(() => {
     if (!bookingId || !promoCode.trim()) return;
@@ -223,7 +234,6 @@ export default function CheckoutPage() {
     0
   );
 
-  const holdSeats = hold?.seats ?? [];
   const seatsTotal = holdSeats.reduce((s, seat) => s + (seat.price ?? 0), 0);
   const estimatedTotal = seatsTotal + snacksTotal;
 
