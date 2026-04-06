@@ -8,7 +8,7 @@ const n = <T extends z.ZodTypeAny>(schema: T) =>
     .transform((v) => v ?? undefined);
 
 const FULL_NAME_REGEX = /^[\p{L}\s]+$/u;
-const GMAIL_EMAIL_REGEX = /^[A-Za-z0-9]+@gmail\.com$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PHONE_REGEX = /^\d{10}$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
@@ -19,7 +19,7 @@ export const loginSchema = z.object({
     .string()
     .trim()
     .min(1, "Email is required")
-    .regex(GMAIL_EMAIL_REGEX, "Email must be in ten@gmail.com format and contain no special characters"),
+    .regex(EMAIL_REGEX, "Email format is invalid (e.g. name@domain.com)"),
   password: z
     .string()
     .min(1, "Password is required")
@@ -35,7 +35,7 @@ export const registerSchema = z
       .string()
       .trim()
       .min(1, "Email is required")
-      .regex(GMAIL_EMAIL_REGEX, "Email must be in ten@gmail.com format and contain no special characters"),
+      .regex(EMAIL_REGEX, "Email format is invalid (e.g. name@domain.com)"),
     password: z
       .string()
       .min(1, "Password is required")

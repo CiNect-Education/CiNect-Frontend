@@ -30,7 +30,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-const GMAIL_EMAIL_REGEX = /^[A-Za-z0-9]+@gmail\.com$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
 const loginSchema = z.object({
@@ -38,7 +38,7 @@ const loginSchema = z.object({
     .string()
     .trim()
     .min(1, "Email là bắt buộc")
-    .regex(GMAIL_EMAIL_REGEX, "Email phải đúng định dạng ten@gmail.com và không chứa ký tự đặc biệt"),
+    .regex(EMAIL_REGEX, "Email không đúng định dạng (ví dụ: ten@domain.com)"),
   password: z
     .string()
     .min(1, "Mật khẩu là bắt buộc")
@@ -105,20 +105,12 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>{t("email")}</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Input
-                        type="text"
-                        inputMode="email"
-                        placeholder="ten"
-                        className="pr-24"
-                        {...field}
-                      />
-                      {field.value && !field.value.includes("@") ? (
-                        <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm">
-                          @gmail.com
-                        </span>
-                      ) : null}
-                    </div>
+                    <Input
+                      type="email"
+                      inputMode="email"
+                      placeholder="ten@domain.com"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
