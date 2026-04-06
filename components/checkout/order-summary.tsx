@@ -61,6 +61,7 @@ export function OrderSummary({
   const appliedPromoCode = booking?.promotionCode ?? promoCode;
   const appliedPoints = booking?.pointsUsed ?? usePoints;
   const appliedGiftCardCode = booking?.giftCardCode ?? giftCardCode;
+  const pointsDiscountAmount = Math.max(0, toNumber(appliedPoints) * 10);
 
   return (
     <Card className="cinect-glass border">
@@ -127,7 +128,10 @@ export function OrderSummary({
               <div className="text-muted-foreground space-y-0.5 text-xs">
                 {appliedPromoCode && <p>{t("promoApplied", { code: appliedPromoCode })}</p>}
                 {appliedPoints && appliedPoints > 0 && (
-                  <p>{t("pointsUsed", { points: appliedPoints.toLocaleString() })}</p>
+                  <p>
+                    {t("pointsUsed", { points: appliedPoints.toLocaleString() })} (
+                    {t("pointsDiscountAmount", { amount: fmt(pointsDiscountAmount) })})
+                  </p>
                 )}
                 {appliedGiftCardCode && (
                   <p>{t("giftCardApplied", { code: appliedGiftCardCode })}</p>

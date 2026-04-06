@@ -12,6 +12,7 @@ import { ApiErrorState } from "@/components/system/api-error-state";
 import { Shield, Save } from "lucide-react";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
+import { unwrapList } from "@/lib/admin-data";
 
 const PERMISSION_ROWS = [
   ["movies.read", "permMoviesRead"],
@@ -38,8 +39,7 @@ export default function AdminRolesPage() {
   const t = useTranslations("admin");
   const tToast = useTranslations("toast");
   const { data, isLoading, error, refetch } = useAdminRoles();
-  const rolesRaw = data?.data;
-  const roles = useMemo(() => rolesRaw ?? [], [rolesRaw]);
+  const roles = useMemo(() => unwrapList<{ id: string; name: string; permissions?: string[] }>(data?.data ?? data), [data]);
 
   const [permissionMap, setPermissionMap] = useState<Record<string, string[]>>({});
   const [saving, setSaving] = useState(false);

@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +14,14 @@ import { ApiErrorState } from "@/components/system/api-error-state";
 import { useBookings } from "@/hooks/queries/use-bookings";
 import { Link } from "@/i18n/navigation";
 import { format, isValid } from "date-fns";
-import { CalendarPlus, ExternalLink, Search, Ticket } from "lucide-react";
+import { enUS, vi as viDateLocale } from "date-fns/locale";
+import {
+  ArrowUpDown,
+  CalendarPlus,
+  ExternalLink,
+  Search,
+  Ticket,
+} from "lucide-react";
 import type { Booking, BookingStatus } from "@/types/domain";
 
 function toList<T>(v: unknown): T[] {
@@ -36,9 +44,14 @@ function safeDate(value: unknown): Date | null {
 
 export default function OrdersPage() {
   const t = useTranslations("account");
+  const locale = useLocale();
+  const dateFnsLocale = locale.startsWith("vi") ? viDateLocale : enUS;
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<BookingStatus | "ALL">("ALL");
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
+  const [sortBy, setSortBy] = useState<"showtime-desc" | "showtime-asc" | "amount-desc">(
+    "showtime-desc"
+  );
 
   const { data, isLoading, error, refetch } = useBookings({ limit: 200 });
   const bookings = useMemo(() => toList<Booking>(data?.data ?? data), [data]);
@@ -48,10 +61,13 @@ export default function OrdersPage() {
     return bookings.filter((booking) => {
       if (status !== "ALL" && booking.status !== status) return false;
       if (!q) return true;
+      const id = booking.id?.toLowerCase?.() ?? "";
+      const movie = booking.movieTitle?.toLowerCase?.() ?? "";
+      const cinema = booking.cinemaName?.toLowerCase?.() ?? "";
       return (
-        booking.id.toLowerCase().includes(q) ||
-        booking.movieTitle.toLowerCase().includes(q) ||
-        booking.cinemaName.toLowerCase().includes(q)
+        id.includes(q) ||
+        movie.includes(q) ||
+        cinema.includes(q)
       );
     });
   }, [bookings, query, status]);
@@ -75,13 +91,17 @@ export default function OrdersPage() {
       }
     }
 
-    return {
-      upcoming: upcomingList.sort(
-        (a, b) => new Date(a.showtime).getTime() - new Date(b.showtime).getTime()
-      ),
-      past: pastList.sort((a, b) => new Date(b.showtime).getTime() - new Date(a.showtime).getTime()),
+    const sorter = (a: Booking, b: Booking) => {
+      if (sortBy === "amount-desc") return (b.finalAmount ?? 0) - (a.finalAmount ?? 0);
+      if (sortBy === "showtime-asc") return new Date(a.showtime).getTime() - new Date(b.showtime).getTime();
+      return new Date(b.showtime).getTime() - new Date(a.showtime).getTime();
     };
-  }, [filtered, now]);
+
+    return {
+      upcoming: upcomingList.sort(sorter),
+      past: pastList.sort(sorter),
+    };
+  }, [filtered, now, sortBy]);
 
   const handleAddToCalendar = (booking: Booking) => {
     if (typeof window === "undefined") return;
@@ -119,6 +139,91 @@ export default function OrdersPage() {
     }
   };
 
+  const statusTone: Record<string, string> = {
+    COMPLETED: "bg-emerald-500/15 text-emerald-300 border-emerald-400/30",
+    CONFIRMED: "bg-sky-500/15 text-sky-300 border-sky-400/30",
+    PENDING: "bg-amber-500/15 text-amber-300 border-amber-400/30",
+    HELD: "bg-orange-500/15 text-orange-300 border-orange-400/30",
+    CANCELLED: "bg-rose-500/15 text-rose-300 border-rose-400/30",
+  };
+
+  const posterFallback = "https://placehold.co/240x360/0f172a/e2e8f0?text=No+Poster";
+
+  const renderTicketCard = (booking: Booking, isUpcoming: boolean) => (
+    <Card
+      key={booking.id}
+      className="cinect-glass group overflow-hidden border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+    >
+      <CardContent className="p-0">
+        <div className="from-primary/10 via-primary/5 to-transparent h-1 w-full bg-gradient-to-r" />
+        <div className="grid gap-4 p-4 sm:grid-cols-[84px_minmax(0,1fr)_auto] sm:items-center">
+          <div className="relative h-28 w-[84px] overflow-hidden rounded-md border">
+            <Image
+              src={booking.moviePosterUrl || posterFallback}
+              alt={booking.movieTitle || "Movie poster"}
+              fill
+              sizes="84px"
+              className="object-cover"
+            />
+          </div>
+
+          <div className="min-w-0 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="truncate text-base font-semibold">{booking.movieTitle || "Movie"}</p>
+              <Badge
+                variant="outline"
+                className={`text-[10px] tracking-wide uppercase ${statusTone[booking.status] ?? ""}`}
+              >
+                {t(`orderStatus${booking.status}` as "orderStatusCONFIRMED")}
+              </Badge>
+              <Badge variant="secondary" className="text-[10px]">
+                {booking.format ?? "2D"}
+              </Badge>
+            </div>
+
+            <p className="text-muted-foreground line-clamp-2 text-xs">
+              {booking.cinemaName || "Cinema"}
+              {booking.roomName ? ` • ${booking.roomName}` : ""} • {formatShowtimeLabel(booking.showtime)}
+            </p>
+
+            <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+              <span>Seats: {booking.seats?.map((s) => `${s.row}${s.number}`).join(", ") || "—"}</span>
+              <span>
+                {safeDate(booking.createdAt)
+                  ? format(safeDate(booking.createdAt) as Date, "PPp", { locale: dateFnsLocale })
+                  : "—"}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid min-w-[190px] gap-2">
+            <Button size="sm" variant={isUpcoming ? "default" : "outline"} asChild className="justify-start">
+              <Link href={`/tickets/${booking.id}`}>
+                <Ticket className="mr-1 h-4 w-4" />
+                {t("viewTicket")}
+              </Link>
+            </Button>
+            {isUpcoming && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="justify-start"
+                onClick={() => handleAddToCalendar(booking)}
+              >
+                <CalendarPlus className="mr-1 h-4 w-4" />
+                Add to calendar
+              </Button>
+            )}
+            <Button size="sm" variant="ghost" className="justify-start" onClick={() => handleShareTicket(booking)}>
+              <ExternalLink className="mr-1 h-4 w-4" />
+              Copy link
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div>
       <PageHeader
@@ -132,7 +237,7 @@ export default function OrdersPage() {
 
       <Card className="cinect-glass mb-6 border">
         <CardContent className="pt-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
             <div className="relative flex-1">
               <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
@@ -164,6 +269,33 @@ export default function OrdersPage() {
                 </Button>
               ))}
             </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={sortBy === "showtime-desc" ? "default" : "outline"}
+                onClick={() => setSortBy("showtime-desc")}
+              >
+                <ArrowUpDown className="mr-1 h-4 w-4" />
+                Newest showtime
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={sortBy === "showtime-asc" ? "default" : "outline"}
+                onClick={() => setSortBy("showtime-asc")}
+              >
+                Oldest showtime
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={sortBy === "amount-desc" ? "default" : "outline"}
+                onClick={() => setSortBy("amount-desc")}
+              >
+                Highest amount
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -191,51 +323,7 @@ export default function OrdersPage() {
                 </CardContent>
               </Card>
             ) : (
-              upcoming.map((booking) => (
-                <Card
-                  key={booking.id}
-                  className="cinect-glass overflow-hidden border transition-all hover:shadow-lg"
-                >
-                  <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold">{booking.movieTitle}</p>
-                      <p className="text-muted-foreground text-xs">
-                        {booking.cinemaName}
-                        {booking.roomName ? ` • ${booking.roomName}` : ""} • {formatShowtimeLabel(booking.showtime)}
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        Seats: {booking.seats?.map((s) => `${s.row}${s.number}`).join(", ") || "—"}
-                      </p>
-                      <div className="flex flex-wrap gap-1 pt-1">
-                        <Badge variant="outline" className="text-xs">
-                          {booking.status}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      <Button size="sm" variant="outline" asChild>
-                        <Link href={`/tickets/${booking.id}`}>
-                          <Ticket className="mr-1 h-4 w-4" />
-                          {t("viewTicket")}
-                        </Link>
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleAddToCalendar(booking)}
-                      >
-                        <CalendarPlus className="mr-1 h-4 w-4" />
-                        Add to calendar
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => handleShareTicket(booking)}>
-                        <ExternalLink className="mr-1 h-4 w-4" />
-                        Copy link
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+              upcoming.map((booking) => renderTicketCard(booking, true))
             )}
           </TabsContent>
 
@@ -247,39 +335,7 @@ export default function OrdersPage() {
                 </CardContent>
               </Card>
             ) : (
-              past.map((booking) => (
-                <Card
-                  key={booking.id}
-                  className="cinect-glass overflow-hidden border transition-all hover:shadow-lg"
-                >
-                  <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold">{booking.movieTitle}</p>
-                      <p className="text-muted-foreground text-xs">
-                        {booking.cinemaName}
-                        {booking.roomName ? ` • ${booking.roomName}` : ""} • {formatShowtimeLabel(booking.showtime)}
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        Seats: {booking.seats?.map((s) => `${s.row}${s.number}`).join(", ") || "—"}
-                      </p>
-                      <div className="flex flex-wrap gap-1 pt-1">
-                        <Badge variant="outline" className="text-xs">
-                          {booking.status}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      <Button size="sm" variant="outline" asChild>
-                        <Link href={`/tickets/${booking.id}`}>
-                          <Ticket className="mr-1 h-4 w-4" />
-                          {t("viewTicket")}
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+              past.map((booking) => renderTicketCard(booking, false))
             )}
           </TabsContent>
         </Tabs>

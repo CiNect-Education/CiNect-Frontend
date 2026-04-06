@@ -162,7 +162,7 @@ export function GlobalSearch() {
                         <CommandItem
                           key={cinema.id}
                           value={`cinema-${cinema.id}`}
-                          onSelect={() => handleSelect(`/cinemas/${cinema.id}`)}
+                          onSelect={() => handleSelect(`/cinemas/${cinema.slug || cinema.id}`)}
                           className="flex items-center gap-3"
                         >
                           <Building2 className="h-4 w-4 shrink-0" />

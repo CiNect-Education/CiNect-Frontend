@@ -32,12 +32,17 @@ export default function PaymentCallbackPage() {
     }
 
     apiClient
-      .get<{ id: string; bookingId: string; status: string }>("/payments/callback", {
+      .get<{ id?: string; paymentId?: string; bookingId?: string; status?: string }>("/payments/callback", {
         transactionId,
       })
       .then((res) => {
-        setPaymentId(res.data.id);
-        setBookingId(res.data.bookingId);
+        const resolvedPaymentId = res.data.paymentId ?? res.data.id ?? null;
+        const resolvedBookingId = res.data.bookingId ?? null;
+        setPaymentId(resolvedPaymentId);
+        setBookingId(resolvedBookingId);
+        if (!resolvedPaymentId || !resolvedBookingId) {
+          setError(tPay("verifyPaymentFailed"));
+        }
         setLoading(false);
       })
       .catch((err) => {
@@ -66,6 +71,19 @@ export default function PaymentCallbackPage() {
       return () => clearTimeout(timer);
     }
   }, [paymentSucceeded, confirmBooking.isSuccess, bookingId, router]);
+
+  useEffect(() => {
+    if (!bookingId || paymentStatus || paymentSucceeded || confirmBooking.isSuccess || confirmBooking.isPending) {
+      return;
+    }
+    // Fallback for local simulated gateway: callback may already be completed server-side.
+    const timer = setTimeout(() => {
+      confirmBooking.mutate(bookingId, {
+        onSettled: () => router.push(`/tickets/${bookingId}`),
+      });
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [bookingId, paymentStatus, paymentSucceeded, confirmBooking, router]);
 
   const [timedOut, setTimedOut] = useState(false);
   useEffect(() => {

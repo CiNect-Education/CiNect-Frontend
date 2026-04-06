@@ -52,6 +52,7 @@ import {
   useUpdatePromotion,
   useDeletePromotion,
 } from "@/hooks/queries/use-admin";
+import { unwrapList } from "@/lib/admin-data";
 
 type PromotionFormValues = {
   title: string;
@@ -92,7 +93,7 @@ export default function AdminPromotionsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Promotion | null>(null);
 
   const { data: promotionsRes, isLoading: promotionsLoading } = useAdminPromotions();
-  const promotions = promotionsRes?.data ?? [];
+  const promotions = unwrapList<Promotion>(promotionsRes?.data ?? promotionsRes);
   const createMutation = useCreatePromotion();
   const updateMutation = useUpdatePromotion();
   const deleteMutation = useDeletePromotion();

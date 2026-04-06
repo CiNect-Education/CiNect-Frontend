@@ -10,13 +10,9 @@ import {
 } from "@/lib/auth-storage";
 import { discoverApiBaseUrl, getApiBaseUrl } from "@/lib/api-discovery";
 
-// ─── Config ────────────────────────────────────────────────────────
-
-let API_BASE_URL = getApiBaseUrl();
-
 /** Call once on app startup to auto-detect the active backend. */
 export async function initApiClient(): Promise<void> {
-  API_BASE_URL = await discoverApiBaseUrl();
+  await discoverApiBaseUrl();
 }
 
 // ─── ApiError class ────────────────────────────────────────────────
@@ -77,7 +73,7 @@ function uuid(): string {
 }
 
 function buildUrl(path: string, params?: QueryParams): string {
-  const url = new URL(`${API_BASE_URL}${path}`);
+  const url = new URL(`${getApiBaseUrl()}${path}`);
   if (params) {
     for (const [key, value] of Object.entries(params)) {
       if (value !== undefined && value !== null && value !== "") {
@@ -93,7 +89,7 @@ function buildUrl(path: string, params?: QueryParams): string {
 async function doRefresh(
   refreshToken: string
 ): Promise<{ accessToken: string; refreshToken: string; expiresIn: number }> {
-  const url = `${API_BASE_URL}/auth/refresh`;
+  const url = `${getApiBaseUrl()}/auth/refresh`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },

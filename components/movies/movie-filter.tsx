@@ -20,16 +20,17 @@ import {
 import { X, SlidersHorizontal, ChevronDown } from "lucide-react";
 
 const GENRES = [
-  "ACTION",
-  "COMEDY",
-  "DRAMA",
-  "HORROR",
-  "SCIFI",
-  "ROMANCE",
-  "THRILLER",
-  "ANIMATION",
-  "DOCUMENTARY",
-  "FANTASY",
+  { value: "action", label: "Action" },
+  { value: "comedy", label: "Comedy" },
+  { value: "drama", label: "Drama" },
+  { value: "horror", label: "Horror" },
+  { value: "sci-fi", label: "Sci-Fi" },
+  { value: "romance", label: "Romance" },
+  { value: "thriller", label: "Thriller" },
+  { value: "animation", label: "Animation" },
+  { value: "documentary", label: "Documentary" },
+  { value: "fantasy", label: "Fantasy" },
+  { value: "adventure", label: "Adventure" },
 ];
 
 const AGE_RATINGS = ["P", "C13", "C16", "C18"] as const;
@@ -122,8 +123,8 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
           <SelectContent>
             <SelectItem value="all">{tCommon("allGenres")}</SelectItem>
             {GENRES.map((g) => (
-              <SelectItem key={g} value={g}>
-                {g}
+              <SelectItem key={g.value} value={g.value}>
+                {g.label}
               </SelectItem>
             ))}
           </SelectContent>

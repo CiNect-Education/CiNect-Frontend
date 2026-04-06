@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
@@ -24,14 +25,21 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-const forgotSchema = z.object({
-  email: z.string().email(),
-});
-
-type ForgotFormValues = z.infer<typeof forgotSchema>;
+type ForgotFormValues = { email: string };
 
 export default function ForgotPasswordPage() {
   const t = useTranslations("auth");
+  const forgotSchema = useMemo(
+    () =>
+      z.object({
+        email: z
+          .string()
+          .trim()
+          .min(1, t("validationRequiredEmail"))
+          .regex(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/, t("validationInvalidEmail")),
+      }),
+    [t]
+  );
 
   const form = useForm<ForgotFormValues>({
     resolver: zodResolver(forgotSchema),
@@ -46,9 +54,7 @@ export default function ForgotPasswordPage() {
     <Card>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">{t("forgotPassword")}</CardTitle>
-        <CardDescription>
-          Enter your email address and we will send you a reset link
-        </CardDescription>
+        <CardDescription>{t("forgotSubtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>

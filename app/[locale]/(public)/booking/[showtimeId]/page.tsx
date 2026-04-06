@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useRef, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useState, useCallback, useRef, useMemo, useEffect } from "react";
+import { useParams, useRouter, usePathname, useSearchParams } from "next/navigation";
 import { SeatMap } from "@/components/booking/seat-map";
 import { CountdownTimer } from "@/components/booking/countdown-timer";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ import { enUS } from "date-fns/locale";
 import { vi as viDateLocale } from "date-fns/locale";
 import { useLocale, useTranslations } from "next-intl";
 import { formatVnd, localizeAudioLabel, localizeRoomName } from "@/lib/showtime-display";
+import { useAuth } from "@/providers/auth-provider";
 
 function extractConflictedSeatIds(error: unknown): string[] {
   if (!(error instanceof ApiError) || error.status !== 409) return [];
@@ -68,6 +69,8 @@ function normalizeIsoDate(value: unknown): string | null {
 export default function BookingPage() {
   const params = useParams();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const locale = useLocale();
   const showtimeId = params.showtimeId as string;
   const isMobile = useIsMobile();
@@ -75,6 +78,7 @@ export default function BookingPage() {
   const tShow = useTranslations("showtimeDisplay");
   const dateFnsLocale = locale.startsWith("vi") ? viDateLocale : enUS;
   const formatPrice = useCallback((amount: number) => formatVnd(amount, locale), [locale]);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [holdId, setHoldId] = useState<string | null>(null);
@@ -83,6 +87,13 @@ export default function BookingPage() {
   const [expireModalOpen, setExpireModalOpen] = useState(false);
 
   const expiringRef = useRef(false);
+
+  useEffect(() => {
+    if (authLoading || isAuthenticated) return;
+    const query = searchParams.toString();
+    const returnTo = `${pathname}${query ? `?${query}` : ""}`;
+    router.replace(`/${locale}/login?returnTo=${encodeURIComponent(returnTo)}`);
+  }, [authLoading, isAuthenticated, locale, pathname, router, searchParams]);
 
   const { data: showtimeRes } = useShowtime(showtimeId);
   const showtime = (showtimeRes?.data ?? showtimeRes) as unknown as {
@@ -303,7 +314,7 @@ export default function BookingPage() {
     }
   };
 
-  if (isLoading) {
+  if (authLoading || !isAuthenticated || isLoading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8">
         <Skeleton className="mb-6 h-8 w-48" />

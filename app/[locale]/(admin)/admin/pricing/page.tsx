@@ -52,6 +52,25 @@ import {
   useUpdatePricingRule,
   useDeletePricingRule,
 } from "@/hooks/queries/use-admin";
+import { unwrapList } from "@/lib/admin-data";
+
+type RawPricingRule = Partial<PricingRule> & {
+  format?: RoomFormat;
+};
+
+function normalizePricingRule(raw: RawPricingRule): PricingRule {
+  return {
+    id: String(raw.id ?? ""),
+    seatType: (raw.seatType ?? "STANDARD") as SeatType,
+    dayType: (raw.dayType ?? "WEEKDAY") as DayType,
+    timeSlot: (raw.timeSlot ?? "MORNING") as TimeSlot,
+    roomFormat: (raw.roomFormat ?? raw.format ?? "2D") as RoomFormat,
+    price: Number(raw.price ?? 0),
+    isActive: Boolean(raw.isActive ?? true),
+    createdAt: String(raw.createdAt ?? ""),
+    updatedAt: String(raw.updatedAt ?? raw.createdAt ?? ""),
+  };
+}
 
 const pricingFormSchema = z.object({
   seatType: z.enum(["STANDARD", "VIP", "COUPLE", "DISABLED"]),
@@ -75,8 +94,8 @@ export default function AdminPricingPage() {
 
   const { data: rulesRes, isLoading: rulesLoading } = useAdminPricingRules();
   const { data: cinemasRes } = useAdminCinemas();
-  const rules = rulesRes?.data ?? [];
-  const cinemas = cinemasRes?.data ?? [];
+  const rules = unwrapList<RawPricingRule>(rulesRes?.data ?? rulesRes).map(normalizePricingRule);
+  const cinemas = unwrapList<{ id: string; name: string }>(cinemasRes?.data ?? cinemasRes);
 
   const createMutation = useCreatePricingRule();
   const updateMutation = useUpdatePricingRule();
@@ -132,6 +151,7 @@ export default function AdminPricingPage() {
       dayType: values.dayType,
       timeSlot: values.timeSlot,
       roomFormat: values.roomFormat,
+      format: values.roomFormat,
       price: values.price,
       isActive: values.isActive,
       ...(values.cinemaId && values.cinemaId !== "none" && { cinemaId: values.cinemaId }),

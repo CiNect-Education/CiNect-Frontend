@@ -43,6 +43,7 @@ import {
   useUpdateCinema,
   useDeleteCinema,
 } from "@/hooks/queries/use-admin";
+import { unwrapList } from "@/lib/admin-data";
 
 type CinemaFormValues = {
   name: string;
@@ -76,7 +77,7 @@ export default function AdminCinemasPage() {
   const [deleteTarget, setDeleteTarget] = useState<Cinema | null>(null);
 
   const { data: cinemasRes, isLoading: cinemasLoading } = useAdminCinemas();
-  const cinemas = cinemasRes?.data ?? [];
+  const cinemas = unwrapList<Cinema>(cinemasRes?.data ?? cinemasRes);
   const createMutation = useCreateCinema();
   const updateMutation = useUpdateCinema();
   const deleteMutation = useDeleteCinema();

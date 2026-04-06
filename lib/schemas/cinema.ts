@@ -37,7 +37,7 @@ export const cinemaSchema = z
     amenities: z.array(z.string()).optional().default([]),
     latitude: n(z.number()),
     longitude: n(z.number()),
-    rooms: z.array(roomSchema).optional().default([]),
+    rooms: z.array(roomSchema).optional().nullable().transform((v) => v ?? []),
     createdAt: z.string(),
     updatedAt: z.string(),
   })

@@ -34,13 +34,51 @@ import {
   useAdminReportMovies,
   useAdminReportCinemas,
 } from "@/hooks/queries/use-admin";
+import { unwrapList } from "@/lib/admin-data";
 import { format } from "date-fns";
 
-function toList<T>(v: unknown): T[] {
-  if (Array.isArray(v)) return v as T[];
-  if (v && typeof v === "object" && "data" in v && Array.isArray((v as { data: unknown }).data))
-    return (v as { data: T[] }).data;
-  return [];
+type RawMovieReport = {
+  movieId?: string;
+  id?: string;
+  movieTitle?: string;
+  title?: string;
+  revenue?: number;
+  bookings?: number;
+  bookingCount?: number;
+  occupancy?: number;
+  occupancyRate?: number;
+};
+
+type RawCinemaReport = {
+  cinemaId?: string;
+  id?: string;
+  cinemaName?: string;
+  name?: string;
+  revenue?: number;
+  bookings?: number;
+  bookingCount?: number;
+  occupancy?: number;
+  occupancyRate?: number;
+};
+
+function normalizeMovieReport(item: RawMovieReport) {
+  return {
+    movieId: item.movieId ?? item.id ?? "",
+    movieTitle: item.movieTitle ?? item.title ?? "",
+    revenue: Number(item.revenue ?? 0),
+    bookings: Number(item.bookings ?? item.bookingCount ?? 0),
+    occupancy: Number(item.occupancy ?? item.occupancyRate ?? 0),
+  };
+}
+
+function normalizeCinemaReport(item: RawCinemaReport) {
+  return {
+    cinemaId: item.cinemaId ?? item.id ?? "",
+    cinemaName: item.cinemaName ?? item.name ?? "",
+    revenue: Number(item.revenue ?? 0),
+    bookings: Number(item.bookings ?? item.bookingCount ?? 0),
+    occupancy: Number(item.occupancy ?? item.occupancyRate ?? 0),
+  };
 }
 
 function downloadCSV(headers: string[], rows: (string | number)[][], filename: string) {
@@ -109,21 +147,9 @@ function AdminReportsPage() {
   const { data: moviesRes } = useAdminReportMovies(params);
   const { data: cinemasRes } = useAdminReportCinemas(params);
 
-  const salesData = toList<{ date: string; revenue: number; bookings: number }>(salesRes?.data ?? salesRes);
-  const moviesData = toList<{
-    movieId: string;
-    movieTitle: string;
-    revenue: number;
-    bookings: number;
-    occupancy: number;
-  }>(moviesRes?.data ?? moviesRes);
-  const cinemasData = toList<{
-    cinemaId: string;
-    cinemaName: string;
-    revenue: number;
-    bookings: number;
-    occupancy: number;
-  }>(cinemasRes?.data ?? cinemasRes);
+  const salesData = unwrapList<{ date: string; revenue: number; bookings: number }>(salesRes?.data ?? salesRes);
+  const moviesData = unwrapList<RawMovieReport>(moviesRes?.data ?? moviesRes).map(normalizeMovieReport);
+  const cinemasData = unwrapList<RawCinemaReport>(cinemasRes?.data ?? cinemasRes).map(normalizeCinemaReport);
 
   const exportSalesCSV = useCallback(() => {
     downloadCSV(

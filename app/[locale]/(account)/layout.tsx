@@ -2,6 +2,8 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { AccountNav } from "@/components/layout/account-nav";
 import { RequireAuth } from "@/lib/auth-guards";
+import { ChatbotWidget } from "@/components/shared/chatbot-widget";
+import { ClientOnly } from "@/components/system/client-only";
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,6 +21,9 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
           </div>
         </main>
         <Footer />
+        <ClientOnly>
+          <ChatbotWidget />
+        </ClientOnly>
       </div>
     </RequireAuth>
   );

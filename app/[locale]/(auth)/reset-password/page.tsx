@@ -33,8 +33,8 @@ export default function ResetPasswordPage() {
     () =>
       z
         .object({
-          password: z.string().min(6),
-          confirmPassword: z.string().min(6),
+          password: z.string().min(6, t("validationPasswordMin6")),
+          confirmPassword: z.string().min(6, t("validationPasswordMin6")),
         })
         .refine((data) => data.password === data.confirmPassword, {
           message: t("passwordsMismatch"),
@@ -56,7 +56,7 @@ export default function ResetPasswordPage() {
     <Card>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">{t("resetPassword")}</CardTitle>
-        <CardDescription>Enter your new password below</CardDescription>
+        <CardDescription>{t("resetSubtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
