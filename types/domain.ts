@@ -32,6 +32,8 @@ export interface User {
   dateOfBirth?: string;
   gender?: string;
   city?: string;
+  isActive?: boolean;
+  emailVerified?: boolean;
   createdAt: string;
   updatedAt: string;
 }

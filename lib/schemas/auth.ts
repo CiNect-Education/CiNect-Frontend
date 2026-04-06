@@ -97,6 +97,8 @@ export const userSchema = z.object({
   dateOfBirth: n(z.string()),
   gender: n(z.string()),
   city: n(z.string()),
+  isActive: n(z.boolean()),
+  emailVerified: n(z.boolean()),
   createdAt: n(z.string()),
   updatedAt: n(z.string()),
 });
