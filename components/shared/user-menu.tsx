@@ -56,7 +56,7 @@ export function UserMenu() {
         <DropdownMenuItem asChild>
           <Link href="/account/orders" className="flex items-center gap-2">
             <ShoppingBag className="h-4 w-4" />
-            {t("orders")}
+            {t("tickets")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

@@ -11,8 +11,7 @@ export function AccountNav() {
 
   const items = [
     { label: t("profile"), href: "/account/profile", icon: User },
-    { label: t("orders"), href: "/account/orders", icon: ShoppingBag },
-    { label: t("tickets") ?? "Tickets", href: "/account/tickets", icon: Ticket },
+    { label: t("tickets"), href: "/account/orders", icon: ShoppingBag },
     { label: t("membership"), href: "/account/membership", icon: Crown },
     { label: t("notifications"), href: "/account/notifications", icon: Bell },
     { label: t("gifts"), href: "/account/gifts", icon: Gift },

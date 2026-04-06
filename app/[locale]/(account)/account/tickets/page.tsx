@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,7 +22,16 @@ function formatShowtimeLabel(iso: string) {
 
 export default function AccountTicketsPage() {
   const t = useTranslations("account");
+  const router = useRouter();
+  const pathname = usePathname();
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
+
+  useEffect(() => {
+    const parts = pathname.split("/");
+    const locale = parts[1] === "vi" || parts[1] === "en" ? parts[1] : null;
+    const target = locale ? `/${locale}/account/orders` : "/account/orders";
+    router.replace(target);
+  }, [pathname, router]);
 
   const { data, isLoading, error, refetch } = useBookings({ limit: 100 });
   const bookingsRaw = data?.data ?? data;
