@@ -11,7 +11,12 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import type { MovieListItem, CinemaListItem } from "@/types/domain";
@@ -134,7 +139,18 @@ export function GlobalSearch() {
                           onSelect={() => handleSelect(`/movies/${movie.slug}`)}
                           className="flex items-center gap-3"
                         >
-                          <Film className="h-4 w-4 shrink-0" />
+                          {movie.posterUrl ? (
+                            <img
+                              src={movie.posterUrl}
+                              alt={movie.title}
+                              className="h-10 w-8 shrink-0 rounded object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="bg-muted flex h-10 w-8 shrink-0 items-center justify-center rounded">
+                              <Film className="h-4 w-4" />
+                            </div>
+                          )}
                           <span>{movie.title}</span>
                         </CommandItem>
                       ))}
@@ -146,7 +162,7 @@ export function GlobalSearch() {
                         <CommandItem
                           key={cinema.id}
                           value={`cinema-${cinema.id}`}
-                          onSelect={() => handleSelect(`/cinemas/${cinema.id}`)}
+                          onSelect={() => handleSelect(`/cinemas/${cinema.slug || cinema.id}`)}
                           className="flex items-center gap-3"
                         >
                           <Building2 className="h-4 w-4 shrink-0" />

@@ -31,19 +31,25 @@ import {
   Users,
   Shield,
   ScrollText,
+  LogOut,
+  Newspaper,
+  Megaphone,
+  ImageIcon,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import type { UserRole } from "@/types/domain";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export function AdminSidebar() {
   const t = useTranslations("admin");
   const tCommon = useTranslations("common");
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const role =
     (user as { role?: UserRole } & { data?: { role?: UserRole } })?.role ??
     (user as { data?: { role?: UserRole } })?.data?.role ??
     "STAFF";
+  const { open } = useSidebar();
 
   const contentItems = useMemo(
     () => [
@@ -62,6 +68,9 @@ export function AdminSidebar() {
         icon: Clock,
         roles: ["ADMIN", "STAFF"] as UserRole[],
       },
+      { label: t("news"), href: "/admin/news", icon: Newspaper, roles: ["ADMIN"] as UserRole[] },
+      { label: t("campaignsAdmin"), href: "/admin/campaigns", icon: Megaphone, roles: ["ADMIN"] as UserRole[] },
+      { label: t("bannersAdmin"), href: "/admin/banners", icon: ImageIcon, roles: ["ADMIN"] as UserRole[] },
     ],
     [t]
   );
@@ -131,24 +140,26 @@ export function AdminSidebar() {
     return pathname === href || pathname.startsWith(href + "/");
   }
 
+  if (!open) return null;
+
   return (
-    <Sidebar>
-      <SidebarHeader className="border-b px-4 py-4">
-        <Link href="/admin" className="flex items-center gap-2 font-bold">
-          <LayoutDashboard className="text-primary h-5 w-5" />
+    <Sidebar collapsible="none" className="sticky top-0 h-svh self-start border-r">
+      <SidebarHeader className="border-b px-5 py-5">
+        <Link href="/admin" className="flex items-center gap-3 text-lg font-bold">
+          <LayoutDashboard className="text-primary h-6 w-6" />
           <span>{t("title")}</span>
         </Link>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="overflow-y-auto px-1 py-1">
         {/* Overview */}
         {role === "ADMIN" && (
-          <SidebarGroup>
+          <SidebarGroup className="px-2 py-2">
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === "/admin"}>
+                <SidebarMenuButton asChild isActive={pathname === "/admin"} size="lg">
                   <Link href="/admin">
-                    <LayoutDashboard className="h-4 w-4" />
+                    <LayoutDashboard className="h-5 w-5" />
                     <span>{t("dashboard")}</span>
                   </Link>
                 </SidebarMenuButton>
@@ -158,15 +169,15 @@ export function AdminSidebar() {
         )}
 
         {/* Content Management */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Content</SidebarGroupLabel>
+        <SidebarGroup className="px-2 py-2">
+          <SidebarGroupLabel className="px-2 text-[11px] tracking-[0.08em] uppercase">Content</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {visibleContentItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={isActive(item.href)}>
+                  <SidebarMenuButton asChild isActive={isActive(item.href)} size="lg">
                     <Link href={item.href}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-5 w-5" />
                       <span>{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -177,15 +188,15 @@ export function AdminSidebar() {
         </SidebarGroup>
 
         {/* System (RBAC) */}
-        <SidebarGroup>
-          <SidebarGroupLabel>System</SidebarGroupLabel>
+        <SidebarGroup className="px-2 py-2">
+          <SidebarGroupLabel className="px-2 text-[11px] tracking-[0.08em] uppercase">System</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {visibleSystemItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={isActive(item.href)}>
+                  <SidebarMenuButton asChild isActive={isActive(item.href)} size="lg">
                     <Link href={item.href}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-5 w-5" />
                       <span>{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -196,15 +207,15 @@ export function AdminSidebar() {
         </SidebarGroup>
 
         {/* Business */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Business</SidebarGroupLabel>
+        <SidebarGroup className="px-2 py-2">
+          <SidebarGroupLabel className="px-2 text-[11px] tracking-[0.08em] uppercase">Business</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {visibleBusinessItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={isActive(item.href)}>
+                  <SidebarMenuButton asChild isActive={isActive(item.href)} size="lg">
                     <Link href={item.href}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-5 w-5" />
                       <span>{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -215,15 +226,15 @@ export function AdminSidebar() {
         </SidebarGroup>
 
         {/* Analytics */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Analytics</SidebarGroupLabel>
+        <SidebarGroup className="px-2 py-2">
+          <SidebarGroupLabel className="px-2 text-[11px] tracking-[0.08em] uppercase">Analytics</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {visibleAnalyticsItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={isActive(item.href)}>
+                  <SidebarMenuButton asChild isActive={isActive(item.href)} size="lg">
                     <Link href={item.href}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-5 w-5" />
                       <span>{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -234,12 +245,22 @@ export function AdminSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t p-4">
+      <SidebarFooter className="border-t px-4 py-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton
+              size="lg"
+              onClick={() => logout()}
+              className="text-destructive hover:text-destructive"
+            >
+              <LogOut className="h-5 w-5" />
+              <span>{tCommon("logout")}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild size="lg">
               <Link href="/" className="text-muted-foreground">
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-5 w-5" />
                 <span>{tCommon("backToSite")}</span>
               </Link>
             </SidebarMenuButton>

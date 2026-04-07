@@ -49,7 +49,7 @@ export function MovieCarousel({ movies, title, viewAllHref }: MovieCarouselProps
                 {/* Status, age rating, formats */}
                 <div className="absolute top-2 left-2 flex flex-wrap gap-1">
                   {movie.status === "NOW_SHOWING" && (
-                    <Badge className="bg-primary text-primary-foreground text-[10px]">
+                    <Badge className="bg-primary text-primary-foreground text-[10px] shadow-sm">
                       Now Showing
                     </Badge>
                   )}
@@ -59,7 +59,7 @@ export function MovieCarousel({ movies, title, viewAllHref }: MovieCarouselProps
                     </Badge>
                   )}
                   {movie.ageRating && (
-                    <Badge variant="outline" className="bg-background/80 text-[10px]">
+                    <Badge className="bg-black/70 text-[10px] text-white shadow-sm backdrop-blur">
                       {movie.ageRating}
                     </Badge>
                   )}
@@ -68,7 +68,10 @@ export function MovieCarousel({ movies, title, viewAllHref }: MovieCarouselProps
                 {movie.formats && movie.formats.length > 0 && (
                   <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-1">
                     {movie.formats.slice(0, 3).map((fmt) => (
-                      <Badge key={fmt} variant="secondary" className="text-[10px]">
+                      <Badge
+                        key={fmt}
+                        className="bg-black/65 text-[10px] text-white shadow-sm backdrop-blur"
+                      >
                         {fmt}
                       </Badge>
                     ))}
@@ -76,14 +79,14 @@ export function MovieCarousel({ movies, title, viewAllHref }: MovieCarouselProps
                 )}
 
                 {movie.rating != null && (
-                  <Badge className="absolute top-2 right-2 bg-black/80 text-[10px]">
+                  <Badge className="absolute top-2 right-2 bg-black/80 text-[10px] text-white shadow-sm">
                     {movie.rating}
                   </Badge>
                 )}
               </div>
               <CardContent className="p-4">
                 <h3 className="mb-2 line-clamp-1 font-semibold text-balance">{movie.title}</h3>
-                <div className="text-muted-foreground flex flex-wrap gap-2 text-sm">
+                <div className="flex flex-wrap gap-2 text-sm text-foreground/75">
                   {movie.genres && movie.genres.length > 0 && (
                     <span className="line-clamp-1">
                       {movie.genres
@@ -96,7 +99,7 @@ export function MovieCarousel({ movies, title, viewAllHref }: MovieCarouselProps
                     </span>
                   )}
                 </div>
-                <div className="text-muted-foreground mt-2 flex items-center gap-3 text-xs">
+                <div className="mt-2 flex items-center gap-3 text-xs text-foreground/70">
                   {movie.duration && (
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />

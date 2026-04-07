@@ -61,3 +61,39 @@ export function useMembershipEvents() {
     }>
   >(["membership-events"], "/membership/events");
 }
+
+export type DailyCheckinStatus = {
+  eligibleToday: boolean;
+  rewardPoints: number;
+  nextRewardPoints?: number;
+  streak: number;
+  nextStreak: number;
+  currentPoints: number;
+  totalPoints: number;
+  lastCheckinAt?: string;
+  nextEligibleAt?: string;
+};
+
+export function useDailyCheckinStatus(enabled = true) {
+  return useApiQuery<DailyCheckinStatus>(["membership", "daily-checkin", "status"], "/membership/daily-checkin/status", undefined, {
+    enabled,
+    retry: false,
+  });
+}
+
+export function useClaimDailyCheckin() {
+  return useApiMutation<
+    {
+      success: boolean;
+      claimedAt: string;
+      rewardPoints: number;
+      streak: number;
+      currentPoints: number;
+      totalPoints: number;
+    },
+    void
+  >("post", "/membership/daily-checkin/claim", {
+    successMessage: "Daily check-in claimed!",
+    invalidateKeys: [["membership", "profile"], ["points-history"], ["membership", "daily-checkin", "status"]],
+  });
+}

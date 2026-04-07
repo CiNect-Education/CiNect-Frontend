@@ -36,16 +36,16 @@ export default function CinemaDetailPage() {
   const tNav = useTranslations("nav");
   const locale = useLocale();
   const timeLocaleTag = locale.startsWith("vi") ? "vi-VN" : "en-US";
-  const cinemaId = params.id as string;
+  const cinemaSlug = params.id as string;
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState("");
 
-  const { data: cinemaRes, isLoading, error, refetch } = useCinema(cinemaId);
-  const { data: showtimesRes } = useCinemaShowtimes(cinemaId, selectedDate);
-
+  const { data: cinemaRes, isLoading, error, refetch } = useCinema(cinemaSlug);
   const cinema = cinemaRes?.data as import("@/types/domain").Cinema | undefined;
+  const { data: showtimesRes } = useCinemaShowtimes(cinema?.id || "", selectedDate);
+
   const showtimes = toList<Showtime>(showtimesRes?.data ?? showtimesRes);
 
   // Group showtimes by movie for nicer display

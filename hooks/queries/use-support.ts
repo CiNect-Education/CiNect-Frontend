@@ -12,3 +12,16 @@ export function useSubmitSupportTicket() {
     successMessage: "Support ticket created successfully.",
   });
 }
+
+export type SupportChatbotInput = {
+  message: string;
+  locale?: string;
+};
+
+export type SupportChatbotOutput = {
+  reply: string;
+};
+
+export function useSupportChatbot() {
+  return useApiMutation<SupportChatbotOutput, SupportChatbotInput>("post", "/support/chatbot");
+}

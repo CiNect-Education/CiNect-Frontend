@@ -22,6 +22,7 @@ import { Clock, Star, Calendar, Film, ChevronLeft, ChevronRight } from "lucide-r
 import type { MovieListItem } from "@/types/domain";
 import type { PaginationMeta } from "@/types/api";
 import Image from "next/image";
+import { ClientOnly } from "@/components/system/client-only";
 
 const SORT_OPTIONS = [
   { value: "releaseDate:desc", labelKey: "sortNewestFirst" as const },
@@ -48,6 +49,8 @@ function MoviesContent() {
   const sort = searchParams.get("sort") || undefined;
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
   const limit = 24;
+  const parsedDurationMin = durationMin ? parseInt(durationMin, 10) : undefined;
+  const parsedDurationMax = durationMax ? parseInt(durationMax, 10) : undefined;
 
   const params: Record<string, string | number | undefined> = {
     ...(q ? { search: q } : {}),
@@ -55,8 +58,8 @@ function MoviesContent() {
     genre,
     language,
     ageRating,
-    durationMin: durationMin ? parseInt(durationMin, 10) : undefined,
-    durationMax: durationMax ? parseInt(durationMax, 10) : undefined,
+    durationMin: Number.isFinite(parsedDurationMin) ? parsedDurationMin : undefined,
+    durationMax: Number.isFinite(parsedDurationMax) ? parsedDurationMax : undefined,
     format,
     sort: sort || "releaseDate:desc",
     page,
@@ -207,21 +210,34 @@ function MovieCard({ movie }: { movie: MovieListItem }) {
           )}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/55 to-transparent" />
           <div className="absolute top-2 left-2 flex flex-wrap gap-1">
-            {movie.status === "NOW_SHOWING" && <Badge className="bg-primary">Now Showing</Badge>}
-            {movie.status === "COMING_SOON" && <Badge className="bg-secondary">Coming Soon</Badge>}
+            {movie.status === "NOW_SHOWING" && (
+              <Badge className="bg-primary text-primary-foreground text-[10px] shadow-sm">
+                Now Showing
+              </Badge>
+            )}
+            {movie.status === "COMING_SOON" && (
+              <Badge className="bg-black/75 text-[10px] text-white shadow-sm">
+                Coming Soon
+              </Badge>
+            )}
             {movie.ageRating && (
-              <Badge variant="outline" className="bg-background/80">
+              <Badge className="bg-black/70 text-[10px] text-white shadow-sm backdrop-blur">
                 {movie.ageRating}
               </Badge>
             )}
           </div>
           {movie.rating && (
-            <Badge className="absolute top-2 right-2 bg-black/80">{movie.rating}</Badge>
+            <Badge className="absolute top-2 right-2 bg-black/80 text-[10px] text-white shadow-sm">
+              {movie.rating}
+            </Badge>
           )}
           {movie.formats?.length ? (
             <div className="absolute right-2 bottom-2 left-2 flex flex-wrap gap-1">
               {movie.formats.slice(0, 3).map((f) => (
-                <Badge key={f} variant="secondary" className="text-xs">
+                <Badge
+                  key={f}
+                  className="bg-black/65 text-[10px] text-white shadow-sm backdrop-blur"
+                >
                   {f}
                 </Badge>
               ))}
@@ -231,9 +247,9 @@ function MovieCard({ movie }: { movie: MovieListItem }) {
         <CardContent className="p-4">
           <h3 className="mb-2 line-clamp-2 font-semibold text-balance">{movie.title}</h3>
           {genres.length > 0 && (
-            <p className="text-muted-foreground mb-2 line-clamp-1 text-xs">{genres.join(", ")}</p>
+            <p className="mb-2 line-clamp-1 text-xs text-foreground/75">{genres.join(", ")}</p>
           )}
-          <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-foreground/70">
             {movie.duration && (
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
@@ -268,7 +284,15 @@ export default function MoviesPage() {
         </div>
       }
     >
-      <MoviesContent />
+      <ClientOnly
+        fallback={
+          <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
+            <div className="bg-muted h-96 animate-pulse rounded-lg" />
+          </div>
+        }
+      >
+        <MoviesContent />
+      </ClientOnly>
     </Suspense>
   );
 }

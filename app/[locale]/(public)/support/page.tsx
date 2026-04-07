@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import {
   Accordion,
@@ -13,11 +15,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contactFormSchema, type ContactFormInput } from "@/lib/schemas/common";
-import { useSubmitContactForm } from "@/hooks/queries/use-support";
+import { useSubmitContactForm, useSupportChatbot } from "@/hooks/queries/use-support";
 
 const FAQ_KEYS = [
   { q: "faqBookingQ" as const, a: "faqBookingA" as const },
@@ -30,7 +33,13 @@ const FAQ_KEYS = [
 export default function SupportPage() {
   const t = useTranslations("support");
   const tNav = useTranslations("nav");
+  const locale = useLocale();
   const submitForm = useSubmitContactForm();
+  const supportBot = useSupportChatbot();
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState<
+    { role: "user" | "assistant"; text: string }[]
+  >([]);
 
   const {
     register,
@@ -45,6 +54,31 @@ export default function SupportPage() {
     submitForm.mutate(data, {
       onSuccess: () => reset(),
     });
+  }
+
+  function onAskBot() {
+    const content = chatInput.trim();
+    if (!content) return;
+    setChatMessages((prev) => [...prev, { role: "user", text: content }]);
+    setChatInput("");
+    supportBot.mutate(
+      { message: content, locale },
+      {
+        onSuccess: (res) => {
+          const reply = res.data?.reply ?? "";
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              text: reply || t("chatbotFallback"),
+            },
+          ]);
+        },
+        onError: () => {
+          setChatMessages((prev) => [...prev, { role: "assistant", text: t("chatbotError") }]);
+        },
+      }
+    );
   }
 
   return (
@@ -65,6 +99,55 @@ export default function SupportPage() {
               </AccordionItem>
             ))}
           </Accordion>
+
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="text-base">{t("chatbotTitle")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-muted-foreground text-sm">{t("chatbotHint")}</p>
+              <ScrollArea className="h-72 rounded-md border p-3">
+                <div className="space-y-3">
+                  {chatMessages.length === 0 ? (
+                    <p className="text-muted-foreground text-sm">{t("chatbotEmpty")}</p>
+                  ) : (
+                    chatMessages.map((m, idx) => (
+                      <div
+                        key={`${m.role}-${idx}`}
+                        className={m.role === "user" ? "text-right" : "text-left"}
+                      >
+                        <div
+                          className={
+                            m.role === "user"
+                              ? "bg-primary text-primary-foreground inline-block max-w-[90%] rounded-lg px-3 py-2 text-sm"
+                              : "bg-muted inline-block max-w-[90%] rounded-lg px-3 py-2 text-sm"
+                          }
+                        >
+                          {m.text}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+              <div className="flex gap-2">
+                <Input
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder={t("chatbotPlaceholder")}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      onAskBot();
+                    }
+                  }}
+                />
+                <Button type="button" onClick={onAskBot} disabled={supportBot.isPending}>
+                  {supportBot.isPending ? t("chatbotThinking") : t("chatbotSend")}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="space-y-6">

@@ -32,15 +32,13 @@ import {
   Check,
   Loader2,
   ChevronDown,
-  SlidersHorizontal,
 } from "lucide-react";
 import { useMovies } from "@/hooks/queries/use-movies";
-import { useCinemas } from "@/hooks/queries/use-cinemas";
+import { useCinemas, useProvincesLegacy, useProvincesNew } from "@/hooks/queries/use-cinemas";
 import {
-  BOOKING_CITIES,
   SELECTED_CITY_STORAGE_KEY,
-  bookingCityLabel,
   localCalendarDate,
+  normalizeBookingCityId,
   persistSelectedBookingCity,
 } from "@/lib/booking-region";
 import { DetectRegionButton } from "@/components/shared/detect-region-button";
@@ -72,11 +70,16 @@ function sameLocalDay(a: Date, b: Date) {
 
 export function QuickBookingWidget() {
   const t = useTranslations("home");
+  const tCommon = useTranslations("common");
   const locale = useLocale();
   const router = useRouter();
 
   const [mounted, setMounted] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [addressMode, setAddressMode] = useState<"new" | "legacy">("new");
+  const [cityQuery, setCityQuery] = useState("");
+  const [cityPickerOpen, setCityPickerOpen] = useState(false);
+  const [cityInputValue, setCityInputValue] = useState("");
   const [cityId, setCityId] = useState("");
   const [dateStr, setDateStr] = useState("");
   const [movieId, setMovieId] = useState(ANY);
@@ -90,7 +93,7 @@ export function QuickBookingWidget() {
   useEffect(() => {
     if (!mounted) return;
     const stored = typeof window !== "undefined" ? localStorage.getItem(SELECTED_CITY_STORAGE_KEY) : "";
-    setCityId(stored || "");
+    setCityId(normalizeBookingCityId(stored || ""));
     setDateStr(localCalendarDate());
   }, [mounted]);
 
@@ -99,6 +102,8 @@ export function QuickBookingWidget() {
     isLoading: moviesLoading,
     isError: moviesError,
   } = useMovies({ status: "NOW_SHOWING", limit: 80 });
+  const { data: provincesRes } = useProvincesNew();
+  const { data: legacyRes } = useProvincesLegacy();
 
   const { data: cinemasRes, isLoading: cinemasLoading } = useCinemas({
     city: cityId || undefined,
@@ -107,6 +112,41 @@ export function QuickBookingWidget() {
 
   const movies = toList<MovieRow>(moviesRes?.data ?? moviesRes);
   const cinemas = toList<{ id: string; name: string }>(cinemasRes?.data ?? cinemasRes);
+  const provincesNew = useMemo(
+    () => toList<{ code: string; nameVi: string; nameEn: string }>(provincesRes?.data),
+    [provincesRes?.data]
+  );
+  const provincesLegacy = useMemo(
+    () =>
+      toList<{
+        code: string;
+        nameVi: string;
+        nameEn: string;
+        provinceNew: { code: string; nameVi: string; nameEn: string };
+      }>(legacyRes?.data),
+    [legacyRes?.data]
+  );
+  const cityOptions = useMemo(() => {
+    if (addressMode === "legacy" && provincesLegacy.length > 0) {
+      return provincesLegacy.map((p) => ({
+        id: p.code,
+        label: locale.startsWith("vi") ? p.nameVi : p.nameEn,
+      }));
+    }
+    return provincesNew.map((p) => ({
+      id: p.code,
+      label: locale.startsWith("vi") ? p.nameVi : p.nameEn,
+    }));
+  }, [addressMode, locale, provincesLegacy, provincesNew]);
+  const filteredCityOptions = useMemo(() => {
+    const q = cityQuery.trim().toLowerCase();
+    if (!q) return cityOptions;
+    return cityOptions.filter((c) => c.label.toLowerCase().includes(q));
+  }, [cityOptions, cityQuery]);
+  const selectedCityLabel = useMemo(
+    () => cityOptions.find((c) => c.id === cityId)?.label ?? "",
+    [cityId, cityOptions]
+  );
 
   const dateChips = useMemo(() => {
     const start = new Date();
@@ -132,12 +172,41 @@ export function QuickBookingWidget() {
   useEffect(() => {
     setCinemaId(ANY);
   }, [cityId]);
+  useEffect(() => {
+    if (cityPickerOpen) return;
+    setCityInputValue(selectedCityLabel);
+  }, [selectedCityLabel]);
+
+  useEffect(() => {
+    if (!cityId) return;
+    if (provincesLegacy.some((p) => p.code === cityId)) {
+      setAddressMode("legacy");
+      return;
+    }
+    if (provincesNew.some((p) => p.code === cityId)) {
+      setAddressMode("new");
+    }
+  }, [cityId, provincesLegacy, provincesNew]);
 
   function handleCityChange(v: string) {
     const next = v === NO_CITY ? "" : v;
-    setCityId(next);
+    const normalized = normalizeBookingCityId(next);
+    setCityId(normalized);
     if (typeof window !== "undefined") {
-      persistSelectedBookingCity(next);
+      persistSelectedBookingCity(normalized);
+    }
+  }
+
+  function handleAddressModeChange(nextMode: "new" | "legacy") {
+    setAddressMode(nextMode);
+    if (!cityId) return;
+    const existsInNext =
+      nextMode === "legacy"
+        ? provincesLegacy.some((p) => p.code === cityId)
+        : provincesNew.some((p) => p.code === cityId);
+    if (!existsInNext) {
+      setCityId("");
+      persistSelectedBookingCity("");
     }
   }
 
@@ -194,35 +263,26 @@ export function QuickBookingWidget() {
                   {t("filtersActive")}
                 </Badge>
               )}
-              {advancedOpen ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9 shrink-0"
-                  onClick={() => setAdvancedOpen(false)}
-                  aria-expanded={true}
-                  aria-label={t("collapseAdvanced")}
-                >
-                  <ChevronDown className="h-4 w-4 rotate-180 transition-transform duration-200" />
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5"
-                  onClick={() => setAdvancedOpen(true)}
-                  aria-expanded={false}
-                  aria-label={t("expandAdvanced")}
-                >
-                  <SlidersHorizontal className="h-4 w-4 shrink-0" />
-                  <span className="max-w-[9rem] truncate text-xs sm:max-w-none sm:text-sm">
-                    {t("expandAdvanced")}
-                  </span>
-                  <ChevronDown className="h-4 w-4 shrink-0 opacity-60" />
-                </Button>
-              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className={cn(
+                  "h-9 w-9 shrink-0 rounded-full border-primary/30 bg-primary/10 transition-all duration-300 ease-out",
+                  "hover:scale-105 hover:bg-primary/20 hover:shadow-sm",
+                  advancedOpen && "ring-primary/30 bg-primary/20 ring-2 ring-offset-2 ring-offset-background"
+                )}
+                onClick={() => setAdvancedOpen((v) => !v)}
+                aria-expanded={advancedOpen}
+                aria-label={advancedOpen ? t("collapseAdvanced") : t("expandAdvanced")}
+              >
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 transition-transform duration-300 ease-out",
+                    advancedOpen && "rotate-180"
+                  )}
+                />
+              </Button>
             </div>
           </div>
 
@@ -317,7 +377,7 @@ export function QuickBookingWidget() {
           )}
 
           <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
-            <CollapsibleContent className="overflow-hidden data-[state=open]:overflow-visible">
+            <CollapsibleContent className="overflow-hidden data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2">
               <div className="border-border space-y-6 overflow-x-clip border-t pt-6">
                 <p className="text-muted-foreground text-sm">{t("quickBookingSubtitle")}</p>
 
@@ -330,30 +390,78 @@ export function QuickBookingWidget() {
                     <DetectRegionButton
                       size="sm"
                       variant="secondary"
-                      onApplied={(id) => setCityId(id)}
+                      onApplied={(id) => handleCityChange(id)}
                     />
                   </div>
-                  <Select value={cityId || NO_CITY} onValueChange={handleCityChange}>
+                  <Select
+                    value={addressMode}
+                    onValueChange={(v) => handleAddressModeChange(v as "new" | "legacy")}
+                  >
                     <SelectTrigger className="h-11 w-full max-w-full rounded-lg border-primary/15 bg-background/80">
-                      <SelectValue placeholder={t("chooseCity")} />
+                      <SelectValue placeholder={tCommon("addressSystem")} />
                     </SelectTrigger>
-                    <SelectContent
-                      position="popper"
-                      sideOffset={6}
-                      align="start"
-                      collisionPadding={12}
-                      className="w-[var(--radix-select-trigger-width)] max-w-[min(var(--radix-select-trigger-width),calc(100vw-1.5rem))]"
-                    >
-                      <SelectItem value={NO_CITY} className="min-w-0 pr-8">
-                        <span className="truncate">{t("allCitiesOption")}</span>
-                      </SelectItem>
-                      {BOOKING_CITIES.map((c) => (
-                        <SelectItem key={c.id} value={c.id} className="min-w-0 pr-8">
-                          <span className="truncate">{bookingCityLabel(c.id, locale)}</span>
-                        </SelectItem>
-                      ))}
+                    <SelectContent>
+                      <SelectItem value="new">{tCommon("addressSystemNew")}</SelectItem>
+                      <SelectItem value="legacy">{tCommon("addressSystemLegacy")}</SelectItem>
                     </SelectContent>
                   </Select>
+                  <div className="relative">
+                    <input
+                      value={cityInputValue}
+                      onFocus={() => {
+                        setCityPickerOpen(true);
+                        setCityQuery(cityInputValue);
+                      }}
+                      onBlur={() => {
+                        window.setTimeout(() => {
+                          setCityPickerOpen(false);
+                          setCityQuery("");
+                          setCityInputValue(selectedCityLabel);
+                        }, 120);
+                      }}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setCityInputValue(v);
+                        setCityQuery(v);
+                        setCityPickerOpen(true);
+                      }}
+                      placeholder={t("chooseCity")}
+                      className="h-11 w-full rounded-lg border border-primary/15 bg-background/80 px-3 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    />
+                    {cityPickerOpen && (
+                      <div className="bg-popover absolute top-full z-50 mt-1 max-h-72 w-full overflow-auto rounded-md border p-1 shadow-md">
+                        <button
+                          type="button"
+                          className="hover:bg-accent hover:text-accent-foreground w-full rounded-sm px-2 py-1.5 text-left text-sm"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            handleCityChange(NO_CITY);
+                            setCityInputValue("");
+                            setCityQuery("");
+                            setCityPickerOpen(false);
+                          }}
+                        >
+                          {t("allCitiesOption")}
+                        </button>
+                        {filteredCityOptions.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            className="hover:bg-accent hover:text-accent-foreground w-full rounded-sm px-2 py-1.5 text-left text-sm"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              handleCityChange(c.id);
+                              setCityInputValue(c.label);
+                              setCityQuery("");
+                              setCityPickerOpen(false);
+                            }}
+                          >
+                            {c.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <p className="text-muted-foreground text-xs">{t("showtimesCityHint")}</p>
                 </div>
 

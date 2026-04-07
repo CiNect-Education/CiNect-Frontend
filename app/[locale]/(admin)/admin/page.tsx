@@ -24,6 +24,12 @@ import {
   useAdminOccupancy,
   useAdminRecentBookings,
 } from "@/hooks/queries/use-admin";
+import {
+  unwrapList,
+  unwrapKpiPayload,
+  normalizeDashboardBooking,
+  normalizeOccupancyRatioForChart,
+} from "@/lib/admin-data";
 import { format } from "date-fns";
 
 export default function AdminDashboardPage() {
@@ -36,15 +42,20 @@ export default function AdminDashboardPage() {
   const { data: occupancyRes, isLoading: occupancyLoading } = useAdminOccupancy(chartRange);
   const { data: bookingsRes, isLoading: bookingsLoading } = useAdminRecentBookings(10);
 
-  const kpis = kpisRes?.data;
-  const revenueData = revenueRes?.data ?? [];
-  const occupancyData = occupancyRes?.data ?? [];
-  const recentBookings = bookingsRes?.data ?? [];
+  const kpis = unwrapKpiPayload(kpisRes?.data ?? kpisRes);
+  const revenueData = unwrapList<{ date: string; revenue: number }>(revenueRes?.data ?? revenueRes);
+  const occupancyData = unwrapList<{ date: string; occupancy: number }>(occupancyRes?.data ?? occupancyRes).map(
+    (row) => ({
+      ...row,
+      occupancy: normalizeOccupancyRatioForChart(Number(row.occupancy ?? 0)),
+    })
+  );
+  const recentBookings = unwrapList<unknown>(bookingsRes?.data ?? bookingsRes).map(normalizeDashboardBooking);
 
   const stats = [
     {
       label: t("totalRevenue"),
-      value: kpisLoading ? "--" : (kpis?.totalRevenue ?? 0).toLocaleString(),
+      value: kpisLoading ? "--" : (kpis?.totalRevenue ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 }),
       icon: DollarSign,
     },
     {
@@ -64,7 +75,9 @@ export default function AdminDashboardPage() {
     },
     {
       label: "Occupancy",
-      value: kpisLoading ? "--" : `${((kpis?.occupancyRate ?? 0) * 100).toFixed(1)}%`,
+      value: kpisLoading
+        ? "--"
+        : `${(kpis != null && kpis.occupancyRate <= 1 ? kpis.occupancyRate * 100 : (kpis?.occupancyRate ?? 0)).toFixed(1)}%`,
       icon: TrendingUp,
     },
   ];

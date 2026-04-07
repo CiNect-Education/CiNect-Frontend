@@ -31,14 +31,39 @@ import {
 } from "@/hooks/queries/use-admin";
 import type { Seat, SeatType } from "@/types/domain";
 import { cn } from "@/lib/utils";
+import { unwrapList } from "@/lib/admin-data";
+import { useAuth } from "@/providers/auth-provider";
+import { ApiErrorState } from "@/components/system/api-error-state";
 
 type SeatCellType = SeatType | "WHEELCHAIR" | "AISLE";
+const ALL_CINEMAS_VALUE = "__ALL_CINEMAS__";
+const NO_ROOM_VALUE = "__NO_ROOM__";
 
 interface GridCell {
   type: SeatCellType;
   seatId?: string;
   row: string;
   number: number;
+}
+
+function isSameGrid(a: GridCell[][], b: GridCell[][]): boolean {
+  if (a.length !== b.length) return false;
+  for (let r = 0; r < a.length; r++) {
+    if (a[r].length !== b[r].length) return false;
+    for (let c = 0; c < a[r].length; c++) {
+      const x = a[r][c];
+      const y = b[r][c];
+      if (
+        x.type !== y.type ||
+        x.seatId !== y.seatId ||
+        x.row !== y.row ||
+        x.number !== y.number
+      ) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 const SEAT_TYPE_STYLES: Record<
@@ -114,6 +139,7 @@ function gridToSeats(grid: GridCell[][], roomId: string): Partial<Seat>[] {
 export default function AdminSeatsPage() {
   const t = useTranslations("admin");
   const tb = useTranslations("booking");
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [cinemaFilter, setCinemaFilter] = useState<string>("");
   const [roomId, setRoomId] = useState<string>("");
   const [previewMode, setPreviewMode] = useState(false);
@@ -121,15 +147,38 @@ export default function AdminSeatsPage() {
   const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set());
   const dragStartRef = useRef<{ r: number; c: number } | null>(null);
 
-  const { data: roomsRes } = useAdminRooms(cinemaFilter ? { cinemaId: cinemaFilter } : undefined);
-  const { data: cinemasRes } = useAdminCinemas();
-  const { data: seatsRes } = useAdminRoomSeats(roomId);
+  const {
+    data: roomsRes,
+    error: roomsError,
+    refetch: refetchRooms,
+  } = useAdminRooms(cinemaFilter ? { cinemaId: cinemaFilter } : undefined, {
+    enabled: isAuthenticated && !authLoading,
+  });
+  const {
+    data: cinemasRes,
+    error: cinemasError,
+    refetch: refetchCinemas,
+  } = useAdminCinemas(undefined, { enabled: isAuthenticated && !authLoading });
+  const {
+    data: seatsRes,
+    error: seatsError,
+    refetch: refetchSeats,
+  } = useAdminRoomSeats(roomId, {
+    enabled: !!roomId && isAuthenticated && !authLoading,
+  });
   const updateSeats = useUpdateRoomSeats();
   const importSeats = useImportRoomSeats();
 
-  const rooms = roomsRes?.data ?? [];
-  const cinemas = cinemasRes?.data ?? [];
-  const seatsRaw = seatsRes?.data;
+  const rooms = unwrapList<{
+    id: string;
+    name: string;
+    rows: number;
+    columns: number;
+    cinemaId?: string;
+    cinemaName?: string;
+  }>(roomsRes?.data ?? roomsRes);
+  const cinemas = unwrapList<{ id: string; name: string }>(cinemasRes?.data ?? cinemasRes);
+  const seatsRaw = unwrapList<Seat>(seatsRes?.data ?? seatsRes);
   const seats = useMemo(() => seatsRaw ?? [], [seatsRaw]);
   const selectedRoom = rooms.find((r) => r.id === roomId);
 
@@ -140,9 +189,10 @@ export default function AdminSeatsPage() {
 
   useEffect(() => {
     if (roomId && rows > 0 && columns > 0) {
-      setGrid(buildGridFromSeats(seats, rows, columns));
+      const next = buildGridFromSeats(seats, rows, columns);
+      setGrid((prev) => (isSameGrid(prev, next) ? prev : next));
     } else {
-      setGrid([]);
+      setGrid((prev) => (prev.length === 0 ? prev : []));
     }
   }, [roomId, rows, columns, seats]);
 
@@ -282,8 +332,29 @@ export default function AdminSeatsPage() {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file || !roomId) return;
       const text = await file.text();
-      const layout = JSON.parse(text);
-      await importSeats.mutateAsync({ roomId, layout });
+      const layout = JSON.parse(text) as {
+        cells?: Array<Array<{ type?: string; row?: string; number?: number }>>;
+        rows?: number;
+        columns?: number;
+      };
+      const seats =
+        Array.isArray(layout.cells)
+          ? layout.cells.flatMap((row, r) =>
+              (Array.isArray(row) ? row : []).flatMap((cell, c) => {
+                const type = String(cell?.type ?? "AISLE");
+                if (type === "AISLE") return [];
+                return [
+                  {
+                    row: String(cell?.row ?? String.fromCharCode(65 + r)),
+                    number: Number(cell?.number ?? c + 1),
+                    type: type === "WHEELCHAIR" ? "DISABLED" : type,
+                    isAisle: false,
+                  },
+                ];
+              })
+            )
+          : [];
+      await importSeats.mutateAsync({ roomId, layout: { seats } });
     };
     input.click();
   };
@@ -294,6 +365,17 @@ export default function AdminSeatsPage() {
       description={t("descSeats")}
       breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("seats") }]}
     >
+      {(cinemasError || roomsError || seatsError) ? (
+        <ApiErrorState
+          error={(seatsError ?? roomsError ?? cinemasError) as Error}
+          onRetry={() => {
+            void refetchCinemas();
+            void refetchRooms();
+            void refetchSeats();
+          }}
+          className="py-10"
+        />
+      ) : null}
       <Card className="cinect-glass mb-6 border">
         <CardHeader>
           <CardTitle className="text-lg">{t("seatMapEditorTitle")}</CardTitle>
@@ -302,9 +384,9 @@ export default function AdminSeatsPage() {
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-3">
             <Select
-              value={cinemaFilter || "all"}
+              value={cinemaFilter || ALL_CINEMAS_VALUE}
               onValueChange={(v) => {
-                setCinemaFilter(v === "all" ? "" : v);
+                setCinemaFilter(v === ALL_CINEMAS_VALUE ? "" : v);
                 setRoomId("");
               }}
             >
@@ -312,7 +394,7 @@ export default function AdminSeatsPage() {
                 <SelectValue placeholder={t("cinemaFilterPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t("allCinemasFilter")}</SelectItem>
+                <SelectItem value={ALL_CINEMAS_VALUE}>{t("allCinemasFilter")}</SelectItem>
                 {cinemas.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.name}
@@ -320,13 +402,25 @@ export default function AdminSeatsPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={roomId} onValueChange={setRoomId} disabled={!cinemaFilter}>
+            <Select
+              value={roomId || NO_ROOM_VALUE}
+              onValueChange={(v) => {
+                const nextRoomId = v === NO_ROOM_VALUE ? "" : v;
+                setRoomId(nextRoomId);
+                if (!cinemaFilter && nextRoomId) {
+                  const r = rooms.find((x) => x.id === nextRoomId);
+                  if (r?.cinemaId) setCinemaFilter(r.cinemaId);
+                }
+              }}
+            >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder={t("selectRoom")} />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value={NO_ROOM_VALUE}>{t("selectRoom")}</SelectItem>
                 {rooms.map((r) => (
                   <SelectItem key={r.id} value={r.id}>
+                    {r.cinemaName ? `${r.cinemaName} — ` : ""}
                     {r.name}
                   </SelectItem>
                 ))}
@@ -440,8 +534,14 @@ export default function AdminSeatsPage() {
           )}
 
           {roomId && (!selectedRoom || grid.length === 0) && (
-            <div className="text-muted-foreground flex h-48 items-center justify-center rounded-lg border border-dashed">
-              {t("seatsNoLayout")}
+            <div className="text-muted-foreground flex h-48 flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-4 text-center">
+              <div>{t("seatsNoLayout")}</div>
+              {selectedRoom && (rows <= 0 || columns <= 0) ? (
+                <div className="text-xs">
+                  Room này đang thiếu kích thước (rows/columns). Hãy vào Admin → Rooms và cập nhật rows/columns &gt; 0
+                  rồi quay lại.
+                </div>
+              ) : null}
             </div>
           )}
 

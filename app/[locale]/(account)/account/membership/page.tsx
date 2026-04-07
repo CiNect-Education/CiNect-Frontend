@@ -48,8 +48,10 @@ export default function AccountMembershipPage() {
   void tiersRes;
   const pointsHistory = (pointsRes?.data ?? []) as Array<{
     id: string;
+    type?: string;
     description: string;
     points: number;
+    balance?: number;
     createdAt: string;
   }>;
   const coupons = (couponsRes?.data ?? []) as import("@/types/domain").Coupon[];
@@ -320,16 +322,28 @@ export default function AccountMembershipPage() {
                     className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
                   >
                     <div>
-                      <div className="font-medium">{item.description}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium">{item.description}</div>
+                        {item.type ? (
+                          <Badge variant="outline" className="text-[10px] uppercase">
+                            {item.type}
+                          </Badge>
+                        ) : null}
+                      </div>
                       <div className="text-muted-foreground text-sm">
                         {format(new Date(item.createdAt), "PPp")}
                       </div>
                     </div>
-                    <div
-                      className={item.points > 0 ? "text-primary font-bold" : "text-destructive font-bold"}
-                    >
-                      {item.points > 0 ? "+" : ""}
-                      {item.points.toLocaleString()}
+                    <div className="text-right">
+                      <div
+                        className={item.points > 0 ? "text-primary font-bold" : "text-destructive font-bold"}
+                      >
+                        {item.points > 0 ? "+" : ""}
+                        {item.points.toLocaleString()}
+                      </div>
+                      <div className="text-muted-foreground text-xs">
+                        {t("availablePointsBalance")}: {(item.balance ?? 0).toLocaleString()}
+                      </div>
                     </div>
                   </div>
                 ))}

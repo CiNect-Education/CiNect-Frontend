@@ -29,11 +29,61 @@ interface AuditLogEntry {
   timestamp: string;
 }
 
-function toList<T>(v: unknown): T[] {
-  if (Array.isArray(v)) return v as T[];
-  if (v && typeof v === "object" && "data" in v && Array.isArray((v as { data: unknown }).data))
-    return (v as { data: T[] }).data;
-  return [];
+type RawAudit = {
+  id?: string;
+  userId?: string;
+  userName?: string;
+  userEmail?: string;
+  action?: string;
+  entity?: string;
+  entityType?: string;
+  entityId?: string;
+  details?: string;
+  newValues?: unknown;
+  timestamp?: string;
+  createdAt?: string;
+};
+
+function normalizeAuditLog(item: RawAudit): AuditLogEntry {
+  const details =
+    item.details ??
+    (item.newValues && typeof item.newValues === "object"
+      ? JSON.stringify(item.newValues)
+      : item.newValues != null
+        ? String(item.newValues)
+        : "");
+
+  return {
+    id: String(item.id ?? ""),
+    userId: String(item.userId ?? ""),
+    userName: String(item.userName ?? item.userEmail ?? item.userId ?? ""),
+    action: String(item.action ?? ""),
+    entity: String(item.entity ?? item.entityType ?? ""),
+    entityId: String(item.entityId ?? ""),
+    details,
+    timestamp: String(item.timestamp ?? item.createdAt ?? ""),
+  };
+}
+
+function extractAuditPayload(v: unknown): {
+  items: AuditLogEntry[];
+  meta?: { total?: number; totalPages?: number };
+} {
+  if (!v || typeof v !== "object") return { items: [] };
+  const obj = v as { data?: unknown; meta?: { total?: number; totalPages?: number } };
+  if (Array.isArray(obj.data)) {
+    return { items: obj.data.map((row) => normalizeAuditLog(row as RawAudit)), meta: obj.meta };
+  }
+  if (obj.data && typeof obj.data === "object") {
+    const nested = obj.data as { data?: unknown; meta?: { total?: number; totalPages?: number } };
+    if (Array.isArray(nested.data)) {
+      return {
+        items: nested.data.map((row) => normalizeAuditLog(row as RawAudit)),
+        meta: nested.meta ?? obj.meta,
+      };
+    }
+  }
+  return { items: [] };
 }
 
 function exportToCsv(logs: AuditLogEntry[], headers: string[]) {
@@ -74,16 +124,16 @@ export default function AdminAuditLogsPage() {
       from: dateFrom || undefined,
       to: dateTo || undefined,
       action: actionFilter === ALL ? undefined : actionFilter,
-      page: page + 1,
+      page,
       limit,
     }),
     [search, dateFrom, dateTo, actionFilter, page]
   );
 
   const { data: logsRes, isLoading: logsLoading } = useAdminAuditLogs(params);
-  const logs = toList<AuditLogEntry>(logsRes?.data ?? logsRes);
-  const meta = (logsRes?.data as { meta?: { total?: number; totalPages?: number } } | undefined)
-    ?.meta;
+  const payload = extractAuditPayload(logsRes);
+  const logs = payload.items;
+  const meta = payload.meta;
   const totalPages = meta?.totalPages ?? 1;
 
   const columns: ColumnDef<AuditLogEntry>[] = useMemo(

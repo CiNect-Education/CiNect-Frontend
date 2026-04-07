@@ -50,6 +50,7 @@ import {
   useUpdateMovie,
   useDeleteMovie,
 } from "@/hooks/queries/use-admin";
+import { unwrapList } from "@/lib/admin-data";
 
 type MovieFormValues = {
   title: string;
@@ -89,7 +90,7 @@ export default function AdminMoviesPage() {
   );
 
   const { data: moviesRes, isLoading: moviesLoading } = useAdminMovies();
-  const movies = moviesRes?.data ?? [];
+  const movies = unwrapList<Movie>(moviesRes?.data ?? moviesRes);
   const createMutation = useCreateMovie();
   const updateMutation = useUpdateMovie();
   const deleteMutation = useDeleteMovie();
@@ -155,7 +156,7 @@ export default function AdminMoviesPage() {
       status: values.status,
       ageRating: values.ageRating,
       language: values.language,
-      director: values.director,
+      director: values.director?.trim() || "—",
       castMembers: [] as string[],
       genreIds: [] as string[],
     };

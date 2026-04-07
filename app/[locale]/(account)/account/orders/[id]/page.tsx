@@ -26,10 +26,10 @@ export default function OrderDetailPage() {
   return (
     <div>
       <PageHeader
-        title={`Order #${orderId}`}
+        title={`${t("ticketDetail")} #${orderId}`}
         breadcrumbs={[
           { label: t("title"), href: "/account/profile" },
-          { label: t("orders"), href: "/account/orders" },
+          { label: t("tickets"), href: "/account/orders" },
           { label: `#${orderId}` },
         ]}
       />
@@ -48,12 +48,12 @@ export default function OrderDetailPage() {
         <Card className="cinect-glass border">
           <CardContent className="py-10 text-center">
             <Ticket className="text-muted-foreground mx-auto mb-3 h-10 w-10" />
-            <p className="text-sm font-semibold">Order not found</p>
-            <p className="text-muted-foreground mt-1 text-sm">This order may have been removed.</p>
+            <p className="text-sm font-semibold">{t("ticketNotFound")}</p>
+            <p className="text-muted-foreground mt-1 text-sm">{t("ticketRemovedHint")}</p>
             <Button className="mt-4" variant="outline" asChild>
               <Link href="/account/orders">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to orders
+                {t("backToTickets")}
               </Link>
             </Button>
           </CardContent>
@@ -63,7 +63,7 @@ export default function OrderDetailPage() {
           <Card className="cinect-glass border lg:col-span-2">
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <CardTitle className="text-lg">Order Details</CardTitle>
+                <CardTitle className="text-lg">{t("ticketDetail")}</CardTitle>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">{booking.status}</Badge>
                   <Badge variant="secondary">{(booking.finalAmount ?? 0).toLocaleString()}đ</Badge>

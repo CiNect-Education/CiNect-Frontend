@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
@@ -30,49 +30,17 @@ import {
 } from "@/components/ui/form";
 
 const FULL_NAME_REGEX = /^[\p{L}\s]+$/u;
-const GMAIL_EMAIL_REGEX = /^[A-Za-z0-9]+@gmail\.com$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PHONE_REGEX = /^0\d{9}$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
-const registerSchema = z
-  .object({
-    fullName: z
-      .string()
-      .trim()
-      .min(2, "Họ tên phải có ít nhất 2 ký tự")
-      .max(50, "Họ tên không được vượt quá 50 ký tự")
-      .regex(FULL_NAME_REGEX, "Họ tên chỉ được chứa chữ cái và khoảng trắng"),
-    email: z
-      .string()
-      .trim()
-      .min(1, "Email là bắt buộc")
-      .regex(GMAIL_EMAIL_REGEX, "Email phải đúng định dạng ten@gmail.com và không chứa ký tự đặc biệt"),
-    phone: z
-      .string()
-      .trim()
-      .min(1, "Số điện thoại là bắt buộc")
-      .regex(PHONE_REGEX, "Số điện thoại không hợp lệ, phải bắt đầu bằng 0 và có đúng 10 chữ số"),
-    password: z
-      .string()
-      .min(1, "Mật khẩu là bắt buộc")
-      .regex(
-        PASSWORD_REGEX,
-        "Mật khẩu phải có ít nhất 8 ký tự gồm chữ thường, chữ hoa, số và ký tự đặc biệt"
-      ),
-    confirmPassword: z
-      .string()
-      .min(1, "Xác nhận mật khẩu là bắt buộc")
-      .regex(
-        PASSWORD_REGEX,
-        "Xác nhận mật khẩu phải có ít nhất 8 ký tự gồm chữ thường, chữ hoa, số và ký tự đặc biệt"
-      ),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Xác nhận mật khẩu phải trùng với mật khẩu",
-    path: ["confirmPassword"],
-  });
-
-type RegisterFormValues = z.infer<typeof registerSchema>;
+type RegisterFormValues = {
+  fullName: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirmPassword: string;
+};
 
 export default function RegisterPage() {
   const t = useTranslations("auth");
@@ -81,6 +49,41 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const registerSchema = useMemo(
+    () =>
+      z
+        .object({
+          fullName: z
+            .string()
+            .trim()
+            .min(2, t("validationFullNameMin"))
+            .max(50, t("validationFullNameMax"))
+            .regex(FULL_NAME_REGEX, t("validationFullNameLettersOnly")),
+          email: z
+            .string()
+            .trim()
+            .min(1, t("validationRequiredEmail"))
+            .regex(EMAIL_REGEX, t("validationInvalidEmail")),
+          phone: z
+            .string()
+            .trim()
+            .min(1, t("validationRequiredPhone"))
+            .regex(PHONE_REGEX, t("validationInvalidPhone")),
+          password: z
+            .string()
+            .min(1, t("validationRequiredPassword"))
+            .regex(PASSWORD_REGEX, t("validationInvalidPassword")),
+          confirmPassword: z
+            .string()
+            .min(1, t("validationRequiredConfirmPassword"))
+            .regex(PASSWORD_REGEX, t("validationInvalidConfirmPassword")),
+        })
+        .refine((data) => data.password === data.confirmPassword, {
+          message: t("passwordsMismatch"),
+          path: ["confirmPassword"],
+        }),
+    [t]
+  );
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -96,7 +99,7 @@ export default function RegisterPage() {
   });
 
   function onInvalidSubmit() {
-    toast.error("Vui lòng kiểm tra lại thông tin đăng ký");
+    toast.error(t("validationCheckRegisterForm"));
   }
 
   async function onSubmit(data: RegisterFormValues) {
@@ -109,7 +112,7 @@ export default function RegisterPage() {
         password: data.password,
         confirmPassword: data.confirmPassword,
       });
-      router.push("/account/profile");
+      router.push("/login");
     } catch {
       // Error toast already shown in AuthProvider
     } finally {

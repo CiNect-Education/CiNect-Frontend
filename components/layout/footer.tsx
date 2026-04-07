@@ -20,7 +20,7 @@ export function Footer() {
               <span>CiNect</span>
             </Link>
             <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
-              Trai nghiem dien anh dinh cao. Dat ve truc tuyen, nhanh chong va tien loi.
+              {t("brandTagline")}
             </p>
           </div>
 
@@ -40,7 +40,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/news" className="hover:text-foreground transition-colors">
-                  Blog
+                  {t("blog")}
                 </Link>
               </li>
             </ul>
@@ -82,7 +82,7 @@ export function Footer() {
 
           {/* Social */}
           <div>
-            <h4 className="mb-3 text-sm font-semibold">Follow Us</h4>
+            <h4 className="mb-3 text-sm font-semibold">{t("followUs")}</h4>
             <ul className="text-muted-foreground space-y-2 text-sm">
               <li>
                 <a

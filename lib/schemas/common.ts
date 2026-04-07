@@ -42,6 +42,20 @@ export const couponSchema = z.object({
   userId: nullish(z.string()),
 });
 
+function normalizeNewsStringList(val: unknown): string[] | undefined {
+  if (val === null || val === undefined) return undefined;
+  if (Array.isArray(val)) return val.map((x) => String(x));
+  if (typeof val === "string") {
+    try {
+      const p = JSON.parse(val) as unknown;
+      return Array.isArray(p) ? p.map((x) => String(x)) : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+  return undefined;
+}
+
 export const newsArticleSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -51,8 +65,8 @@ export const newsArticleSchema = z.object({
   category: z.enum(["REVIEWS", "TRAILERS", "PROMOTIONS", "GUIDES", "GENERAL"]),
   imageUrl: nullish(z.string()),
   author: z.string(),
-  tags: nullish(z.array(z.string())),
-  relatedArticleIds: nullish(z.array(z.string())),
+  tags: z.preprocess((v) => normalizeNewsStringList(v), z.array(z.string()).optional()),
+  relatedArticleIds: z.preprocess((v) => normalizeNewsStringList(v), z.array(z.string()).optional()),
   publishedAt: z.string(),
   createdAt: z.string(),
 });
@@ -88,6 +102,8 @@ const membershipProfileObjectSchema = z.object({
   tier: membershipTierSchema,
   currentPoints: z.coerce.number(),
   totalPoints: z.coerce.number(),
+  dailyCheckinStreak: nullish(z.coerce.number()),
+  lastDailyCheckinAt: nullish(z.coerce.string()),
   nextTier: nullish(membershipTierSchema),
   pointsToNextTier: nullish(z.coerce.number()),
   memberSince: z.coerce.string(),
@@ -120,6 +136,8 @@ function preprocessMembershipProfileData(raw: unknown): unknown {
       },
       currentPoints: o.currentPoints,
       totalPoints: o.totalPoints,
+      dailyCheckinStreak: o.dailyCheckinStreak,
+      lastDailyCheckinAt: o.lastDailyCheckinAt,
       nextTier: o.nextTier,
       pointsToNextTier: o.pointsToNextTier,
       memberSince: o.memberSince,

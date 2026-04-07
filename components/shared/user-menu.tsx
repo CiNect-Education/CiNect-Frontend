@@ -16,6 +16,7 @@ import { User, ShoppingBag, Crown, Bell, LogOut, Shield } from "lucide-react";
 
 export function UserMenu() {
   const t = useTranslations("nav");
+  const tAccount = useTranslations("account");
   const { isAuthenticated, user, logout } = useAuth();
 
   if (!isAuthenticated) {
@@ -56,7 +57,7 @@ export function UserMenu() {
         <DropdownMenuItem asChild>
           <Link href="/account/orders" className="flex items-center gap-2">
             <ShoppingBag className="h-4 w-4" />
-            {t("orders")}
+            {tAccount("tickets")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

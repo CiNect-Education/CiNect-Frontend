@@ -3,7 +3,7 @@ import { apiClient, ApiError, type RequestOptions } from "@/lib/api-client";
 import type { ApiEnvelope, QueryParams } from "@/types/api";
 import type { ZodType, ZodTypeDef } from "zod";
 
-interface UseApiQueryOptions<T> extends Omit<
+export interface UseApiQueryOptions<T> extends Omit<
   UseQueryOptions<ApiEnvelope<T>, ApiError>,
   "queryKey" | "queryFn"
 > {

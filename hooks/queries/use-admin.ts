@@ -1,5 +1,8 @@
-import { useApiQuery } from "@/hooks/use-api-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useApiQuery, type UseApiQueryOptions } from "@/hooks/use-api-query";
 import { useApiMutation } from "@/hooks/use-api-mutation";
+import { apiClient, ApiError } from "@/lib/api-client";
+import { toast } from "sonner";
 import type {
   Movie,
   Cinema,
@@ -10,8 +13,24 @@ import type {
   PricingRule,
   Promotion,
   User,
+  NewsArticle,
 } from "@/types/domain";
 import type { QueryParams } from "@/types/api";
+
+/** Nest paginates many admin list endpoints; Spring ignores extra params. Ensures full lists for dropdowns. */
+const ADMIN_LIST_PAGE = 1;
+const ADMIN_LIST_LIMIT = 500;
+
+function withAdminListDefaults(params?: QueryParams): QueryParams | undefined {
+  if (params === undefined) {
+    return { page: ADMIN_LIST_PAGE, limit: ADMIN_LIST_LIMIT };
+  }
+  return {
+    ...params,
+    page: params.page ?? ADMIN_LIST_PAGE,
+    limit: params.limit ?? ADMIN_LIST_LIMIT,
+  };
+}
 
 // ─── KPIs & Dashboard ────────────────────────────────────────────
 export function useAdminKPIs(range = "7d") {
@@ -83,11 +102,14 @@ export function useDeleteMovie() {
 }
 
 // ─── Cinemas CRUD ────────────────────────────────────────────────
-export function useAdminCinemas(params?: QueryParams) {
+export function useAdminCinemas(params?: QueryParams, options?: UseApiQueryOptions<Cinema[]>) {
+  // Important: Spring returns FULL admin list when page/limit are omitted.
+  // Nest already returns full list for /admin/cinemas.
   return useApiQuery<Cinema[]>(
     ["admin", "cinemas", JSON.stringify(params ?? {})],
     "/admin/cinemas",
-    params
+    params,
+    options
   );
 }
 export function useCreateCinema() {
@@ -114,11 +136,13 @@ export function useDeleteCinema() {
 }
 
 // ─── Rooms CRUD ──────────────────────────────────────────────────
-export function useAdminRooms(params?: QueryParams) {
+export function useAdminRooms(params?: QueryParams, options?: UseApiQueryOptions<Room[]>) {
+  const q = withAdminListDefaults(params);
   return useApiQuery<Room[]>(
-    ["admin", "rooms", JSON.stringify(params ?? {})],
+    ["admin", "rooms", JSON.stringify(q ?? {})],
     "/admin/rooms",
-    params
+    q,
+    options
   );
 }
 export function useCreateRoom() {
@@ -145,12 +169,12 @@ export function useDeleteRoom() {
 }
 
 // ─── Seats ───────────────────────────────────────────────────────
-export function useAdminRoomSeats(roomId?: string) {
+export function useAdminRoomSeats(roomId?: string, options?: UseApiQueryOptions<Seat[]>) {
   return useApiQuery<Seat[]>(
     ["admin", "rooms", roomId ?? "", "seats"],
     `/admin/rooms/${roomId ?? ""}/seats`,
     undefined,
-    { enabled: !!roomId }
+    { enabled: !!roomId, ...(options ?? {}) }
   );
 }
 export function useUpdateRoomSeats() {
@@ -175,11 +199,13 @@ export function useImportRoomSeats() {
 }
 
 // ─── Showtimes ───────────────────────────────────────────────────
-export function useAdminShowtimes(params?: QueryParams) {
+export function useAdminShowtimes(params?: QueryParams, options?: UseApiQueryOptions<Showtime[]>) {
+  const q = withAdminListDefaults(params);
   return useApiQuery<Showtime[]>(
-    ["admin", "showtimes", JSON.stringify(params ?? {})],
+    ["admin", "showtimes", JSON.stringify(q ?? {})],
     "/admin/showtimes",
-    params
+    q,
+    options
   );
 }
 export function useCreateShowtime() {
@@ -285,6 +311,133 @@ export function useDeletePromotion() {
   return useApiMutation<void, { id: string }>("delete", (v) => `/admin/promotions/${v.id}`, {
     successMessage: "Promotion deleted",
     invalidateKeys: [["admin", "promotions"]],
+  });
+}
+
+// ─── News (ADMIN only) ───────────────────────────────────────────
+export function useAdminNews(params?: QueryParams, options?: UseApiQueryOptions<NewsArticle[]>) {
+  return useApiQuery<NewsArticle[]>(
+    ["admin", "news", JSON.stringify(params ?? {})],
+    "/admin/news",
+    params,
+    options
+  );
+}
+export function useCreateAdminNews() {
+  return useApiMutation<unknown, Record<string, unknown>>("post", "/admin/news", {
+    successMessage: "Article created",
+    invalidateKeys: [["admin", "news"], ["news"]],
+  });
+}
+export function useUpdateAdminNews() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: Record<string, unknown> & { id: string }) => {
+      const { id, ...body } = v;
+      return apiClient.put<unknown>(`/admin/news/${id}`, body);
+    },
+    onSuccess: () => {
+      toast.success("Article updated");
+      qc.invalidateQueries({ queryKey: ["admin", "news"] });
+      qc.invalidateQueries({ queryKey: ["news"] });
+    },
+    onError: (e: ApiError) => toast.error(e.toastMessage),
+  });
+}
+export function useDeleteAdminNews() {
+  return useApiMutation<void, { id: string }>("delete", (v) => `/admin/news/${v.id}`, {
+    successMessage: "Article deleted",
+    invalidateKeys: [["admin", "news"], ["news"]],
+  });
+}
+
+// ─── Campaigns (ADMIN only) ─────────────────────────────────────
+export type AdminCampaign = {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string;
+  content?: string;
+  imageUrl?: string;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+};
+
+export function useAdminCampaigns(options?: UseApiQueryOptions<AdminCampaign[]>) {
+  return useApiQuery<AdminCampaign[]>(["admin", "campaigns"], "/admin/campaigns", undefined, options);
+}
+export function useCreateAdminCampaign() {
+  return useApiMutation<unknown, Record<string, unknown>>("post", "/admin/campaigns", {
+    successMessage: "Campaign created",
+    invalidateKeys: [["admin", "campaigns"], ["campaigns"]],
+  });
+}
+export function useUpdateAdminCampaign() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: Record<string, unknown> & { id: string }) => {
+      const { id, ...body } = v;
+      return apiClient.put<unknown>(`/admin/campaigns/${id}`, body);
+    },
+    onSuccess: () => {
+      toast.success("Campaign updated");
+      qc.invalidateQueries({ queryKey: ["admin", "campaigns"] });
+      qc.invalidateQueries({ queryKey: ["campaigns"] });
+    },
+    onError: (e: ApiError) => toast.error(e.toastMessage),
+  });
+}
+export function useDeleteAdminCampaign() {
+  return useApiMutation<void, { id: string }>("delete", (v) => `/admin/campaigns/${v.id}`, {
+    successMessage: "Campaign deactivated",
+    invalidateKeys: [["admin", "campaigns"], ["campaigns"]],
+  });
+}
+
+// ─── Banners (ADMIN only) ───────────────────────────────────────
+export type AdminBanner = {
+  id: string;
+  title?: string;
+  imageUrl: string;
+  linkUrl?: string;
+  position: string;
+  sortOrder: number;
+  isActive: boolean;
+  campaignId?: string;
+  startDate?: string;
+  endDate?: string;
+  createdAt?: string;
+};
+
+export function useAdminBanners(options?: UseApiQueryOptions<AdminBanner[]>) {
+  return useApiQuery<AdminBanner[]>(["admin", "banners"], "/admin/banners", undefined, options);
+}
+export function useCreateAdminBanner() {
+  return useApiMutation<unknown, Record<string, unknown>>("post", "/admin/banners", {
+    successMessage: "Banner created",
+    invalidateKeys: [["admin", "banners"], ["banners"]],
+  });
+}
+export function useUpdateAdminBanner() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: Record<string, unknown> & { id: string }) => {
+      const { id, ...body } = v;
+      return apiClient.put<unknown>(`/admin/banners/${id}`, body);
+    },
+    onSuccess: () => {
+      toast.success("Banner updated");
+      qc.invalidateQueries({ queryKey: ["admin", "banners"] });
+      qc.invalidateQueries({ queryKey: ["banners"] });
+    },
+    onError: (e: ApiError) => toast.error(e.toastMessage),
+  });
+}
+export function useDeleteAdminBanner() {
+  return useApiMutation<void, { id: string }>("delete", (v) => `/admin/banners/${v.id}`, {
+    successMessage: "Banner deleted",
+    invalidateKeys: [["admin", "banners"], ["banners"]],
   });
 }
 

@@ -52,6 +52,17 @@ import {
   useUpdatePromotion,
   useDeletePromotion,
 } from "@/hooks/queries/use-admin";
+import { unwrapList } from "@/lib/admin-data";
+
+/** Spring binds `Instant`; plain `YYYY-MM-DD` may fail. Nest accepts both. */
+function promotionDatesToIso(start: string, end: string) {
+  const s = start.trim();
+  const e = end.trim();
+  return {
+    startDate: new Date(`${s}T00:00:00.000Z`).toISOString(),
+    endDate: new Date(`${e}T23:59:59.999Z`).toISOString(),
+  };
+}
 
 type PromotionFormValues = {
   title: string;
@@ -92,7 +103,7 @@ export default function AdminPromotionsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Promotion | null>(null);
 
   const { data: promotionsRes, isLoading: promotionsLoading } = useAdminPromotions();
-  const promotions = promotionsRes?.data ?? [];
+  const promotions = unwrapList<Promotion>(promotionsRes?.data ?? promotionsRes);
   const createMutation = useCreatePromotion();
   const updateMutation = useUpdatePromotion();
   const deleteMutation = useDeletePromotion();
@@ -157,16 +168,27 @@ export default function AdminPromotionsPage() {
   );
 
   async function onSubmit(values: PromotionFormValues) {
-    const payload = {
-      ...values,
+    const { startDate, endDate } = promotionDatesToIso(values.startDate, values.endDate);
+    const common = {
+      title: values.title,
+      description: values.description,
+      code: values.code,
+      discountType: values.discountType,
+      discountValue: values.discountValue,
       minPurchase: values.minPurchase || undefined,
       maxDiscount: values.maxDiscount || undefined,
       usageLimit: values.usageLimit || undefined,
+      startDate,
+      endDate,
     };
     if (editingPromotion) {
-      await updateMutation.mutateAsync({ ...payload, id: editingPromotion.id });
+      await updateMutation.mutateAsync({
+        ...common,
+        id: editingPromotion.id,
+        status: values.status,
+      });
     } else {
-      await createMutation.mutateAsync(payload);
+      await createMutation.mutateAsync(common);
     }
     setDialogOpen(false);
   }
