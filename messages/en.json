@@ -112,6 +112,7 @@
     "somethingWrong": "Something went wrong",
     "maintenanceDefault": "System is under maintenance.",
     "toggleSidebar": "Toggle sidebar",
+    "logout": "Logout",
     "breadcrumbNav": "Breadcrumb",
     "saving": "Saving…",
     "dataTablePageOf": "Page {current} of {total}",

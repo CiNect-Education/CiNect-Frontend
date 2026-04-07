@@ -76,7 +76,7 @@ export function ChatbotWidget() {
           <Button
             size="icon"
             className={cn(
-              "pointer-events-auto relative h-14 w-14 overflow-hidden rounded-full border-0 p-0 shadow-xl",
+              "pointer-events-auto relative h-16 w-16 overflow-hidden rounded-full border-0 p-0 shadow-xl",
               "bg-gradient-to-br from-cyan-400 via-sky-500 to-violet-600",
               "ring-cyan-200/40 dark:ring-violet-300/20 ring-4",
               "transition-all duration-300 ease-out hover:scale-105 hover:shadow-2xl",
@@ -86,9 +86,9 @@ export function ChatbotWidget() {
           >
             <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_45%)]" />
             {open ? (
-              <X className="relative z-10 h-6 w-6 text-white" />
+              <X className="relative z-10 !h-6 !w-6 text-white" />
             ) : (
-              <MascotChatIcon className="relative z-10 h-11 w-11" />
+              <MascotChatIcon className="relative z-10 !h-12 !w-12" />
             )}
           </Button>
         </PopoverTrigger>

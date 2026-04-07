@@ -10,7 +10,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <RequireAuthAndRole roles={["ADMIN", "STAFF"]}>
       <SidebarProvider
-        className="w-full overflow-x-hidden"
+        className="h-svh w-full overflow-hidden"
         style={
           {
             "--sidebar-width": "17rem",
@@ -19,8 +19,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
       >
         <AdminSidebar />
-        <SidebarInset className="min-w-0 w-full">
-          <header className="flex h-14 items-center gap-2 border-b px-4">
+        <SidebarInset className="min-w-0 h-svh w-full overflow-y-auto">
+          <header className="bg-background sticky top-0 z-20 flex h-14 items-center gap-2 border-b px-4">
             <SidebarTrigger />
             <Separator orientation="vertical" className="h-6" />
             <div className="flex-1" />
