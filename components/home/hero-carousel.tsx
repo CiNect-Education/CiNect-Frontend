@@ -65,7 +65,7 @@ export function HeroCarousel({ movies }: HeroCarouselProps) {
                   ) : null}
                   <div className="flex flex-wrap gap-3">
                     <Button size="lg" asChild>
-                      <Link href={`/movies/${movie.id}`}>
+                      <Link href={`/movies/${movie.slug}`}>
                         <Play className="mr-2 h-4 w-4" />
                         Learn More
                       </Link>

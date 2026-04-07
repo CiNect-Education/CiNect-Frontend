@@ -141,7 +141,7 @@ export default function CampaignPage() {
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
               {campaign.movies.map((movie) => (
-                <Link key={movie.id} href={`/movies/${movie.id}`}>
+                <Link key={movie.id} href={`/movies/${movie.slug}`}>
                   <div className="hover:border-primary/50 overflow-hidden rounded-lg border transition">
                     <div className="bg-muted aspect-[2/3]">
                       {movie.posterUrl ? (

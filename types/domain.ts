@@ -119,6 +119,8 @@ export interface CinemaListItem {
   imageUrl?: string;
   amenities: string[];
   roomCount: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface Room {

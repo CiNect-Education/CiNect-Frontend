@@ -51,17 +51,18 @@ export default function MovieDetailPage() {
   const tAuth = useTranslations("auth");
   const tShow = useTranslations("showtimeDisplay");
   const locale = useLocale();
-  const movieId = params.id as string;
+  const movieSlug = params.id as string;
   const { isAuthenticated } = useAuth();
 
   // ─── Data fetching ────────────────────────────────────────────
-  const { data: movieRes, isLoading, error, refetch } = useMovie(movieId);
+  const { data: movieRes, isLoading, error, refetch } = useMovie(movieSlug);
   const movie = movieRes?.data;
+  const resolvedMovieId = movie?.id ?? "";
 
   // Showtimes
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedCity, setSelectedCity] = useState<string>("__ALL__");
-  const { data: showtimesRes } = useMovieShowtimes(movieId, {
+  const { data: showtimesRes } = useMovieShowtimes(resolvedMovieId, {
     city: selectedCity === "__ALL__" ? undefined : selectedCity,
     date: selectedDate,
   });
@@ -76,7 +77,7 @@ export default function MovieDetailPage() {
   const [reviewPage, setReviewPage] = useState(1);
   const [reviewSort, setReviewSort] = useState<"newest" | "highest">("newest");
   const [likedReviews, setLikedReviews] = useState<Record<string, boolean>>({});
-  const { data: reviewsRes, isLoading: reviewsLoading } = useMovieReviews(movieId, {
+  const { data: reviewsRes, isLoading: reviewsLoading } = useMovieReviews(resolvedMovieId, {
     page: reviewPage,
     limit: 10,
   });
@@ -92,7 +93,7 @@ export default function MovieDetailPage() {
   // Create review
   const [reviewRating, setReviewRating] = useState(8);
   const [reviewContent, setReviewContent] = useState("");
-  const createReview = useCreateReview(movieId);
+  const createReview = useCreateReview(resolvedMovieId);
 
   // SEO - set document title
   useEffect(() => {
@@ -134,7 +135,7 @@ export default function MovieDetailPage() {
     ((relatedMoviesRes?.data ?? relatedMoviesRes) as Array<
       { id: string; title: string; posterUrl?: string; status?: string }
     > | undefined) ?? [];
-  const recommendedMovies = relatedItems.filter((m) => m.id !== movieId).slice(0, 4);
+  const recommendedMovies = relatedItems.filter((m) => m.id !== resolvedMovieId).slice(0, 4);
 
   const handleSubmitReview = () => {
     if (!reviewContent.trim()) return;
@@ -375,7 +376,7 @@ export default function MovieDetailPage() {
                   <h2 className="mb-3 text-xl font-semibold">{t("youMayAlsoLike")}</h2>
                   <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
                     {recommendedMovies.map((rm) => (
-                      <Link key={rm.id} href={`/movies/${rm.id}`}>
+                      <Link key={rm.id} href={`/movies/${rm.slug}`}>
                         <div className="hover:border-primary/60 group overflow-hidden rounded-lg border transition">
                           <div className="bg-muted relative aspect-[2/3]">
                             {rm.posterUrl ? (

@@ -28,7 +28,7 @@ export function MovieCarousel({ movies, title, viewAllHref }: MovieCarouselProps
 
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {movies.map((movie) => (
-          <Link key={movie.id} href={`/movies/${movie.id}`}>
+          <Link key={movie.id} href={`/movies/${movie.slug}`}>
             <Card className="group hover:shadow-primary/20 overflow-hidden transition-all hover:shadow-lg">
               <div className="bg-muted relative aspect-[2/3] overflow-hidden">
                 {movie.posterUrl ? (

@@ -41,7 +41,7 @@ export function ComingSoonCarousel({ movies, title, viewAllHref }: ComingSoonCar
               key={movie.id}
               className="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5"
             >
-              <Link href={`/movies/${movie.id}`}>
+              <Link href={`/movies/${movie.slug}`}>
                 <Card className="group hover:shadow-primary/20 overflow-hidden transition-all hover:shadow-lg">
                   <div className="bg-muted relative aspect-[2/3] overflow-hidden">
                     {movie.posterUrl ? (
