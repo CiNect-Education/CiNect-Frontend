@@ -16,6 +16,7 @@ import { CalendarCheck2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/providers/auth-provider";
 import { useClaimDailyCheckin, useDailyCheckinStatus } from "@/hooks/queries/use-membership";
+import type { UserRole } from "@/types/domain";
 
 function todayKey() {
   const d = new Date();
@@ -24,10 +25,15 @@ function todayKey() {
 
 export function DailyCheckinPopup() {
   const t = useTranslations("account");
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const role =
+    (user as { role?: UserRole } & { data?: { role?: UserRole } })?.role ??
+    (user as { data?: { role?: UserRole } })?.data?.role ??
+    null;
+  const isEndUser = role === "USER";
   const [open, setOpen] = useState(false);
   const [manuallyClosed, setManuallyClosed] = useState(false);
-  const statusQuery = useDailyCheckinStatus(isAuthenticated && !isLoading);
+  const statusQuery = useDailyCheckinStatus(isAuthenticated && !isLoading && isEndUser);
   const claimMutation = useClaimDailyCheckin();
   const status = statusQuery.data?.data;
   const canClaim = status?.eligibleToday === true;
@@ -35,11 +41,11 @@ export function DailyCheckinPopup() {
   const storageKey = useMemo(() => `daily-checkin-popup-seen:${todayKey()}`, []);
 
   useEffect(() => {
-    if (!isAuthenticated || !status || manuallyClosed) return;
+    if (!isAuthenticated || !isEndUser || !status || manuallyClosed) return;
     if (!canClaim) return;
     if (typeof window !== "undefined" && window.localStorage.getItem(storageKey) === "1") return;
     setOpen(true);
-  }, [isAuthenticated, status, manuallyClosed, storageKey]);
+  }, [isAuthenticated, isEndUser, status, manuallyClosed, storageKey, canClaim]);
 
   const closePopup = () => {
     setOpen(false);
@@ -63,7 +69,7 @@ export function DailyCheckinPopup() {
     });
   };
 
-  if (!isAuthenticated || !canClaim) return null;
+  if (!isAuthenticated || !isEndUser || !canClaim) return null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

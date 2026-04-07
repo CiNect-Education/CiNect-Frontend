@@ -31,6 +31,7 @@ import {
   Users,
   Shield,
   ScrollText,
+  LogOut,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import type { UserRole } from "@/types/domain";
@@ -40,7 +41,7 @@ export function AdminSidebar() {
   const t = useTranslations("admin");
   const tCommon = useTranslations("common");
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const role =
     (user as { role?: UserRole } & { data?: { role?: UserRole } })?.role ??
     (user as { data?: { role?: UserRole } })?.data?.role ??
@@ -240,6 +241,16 @@ export function AdminSidebar() {
 
       <SidebarFooter className="border-t px-4 py-4">
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              onClick={() => logout()}
+              className="text-destructive hover:text-destructive"
+            >
+              <LogOut className="h-5 w-5" />
+              <span>{tCommon("logout")}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild size="lg">
               <Link href="/" className="text-muted-foreground">
