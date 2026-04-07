@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
-import type { Seat, Booking, SnackItem, Promotion } from "@/types/domain";
+import { normalizeHoldDetails } from "@/lib/normalize-hold-details";
+import type { ApiEnvelope } from "@/types/api";
+import type { Seat, Booking, SnackItem, Promotion, HoldDetails } from "@/types/domain";
 import { toast } from "sonner";
 
 // Get showtime seats
@@ -44,26 +46,19 @@ export function useReleaseHold() {
   });
 }
 
-// Get hold details (for checkout)
-export interface HoldDetails {
-  holdId: string;
-  showtimeId: string;
-  expiresAt: string;
-  seats: Array<{ id: string; row: string; number: number; type: string; price?: number }>;
-  showtime?: {
-    movieTitle?: string;
-    cinemaName?: string;
-    roomName?: string;
-    startTime?: string;
-    format?: string;
-    cinemaId?: string;
-  };
-}
+export type { HoldDetails };
 
 export function useHold(holdId?: string) {
   return useQuery({
     queryKey: ["holds", holdId],
-    queryFn: () => apiClient.get<HoldDetails>(`/holds/${holdId}`),
+    queryFn: async ({ signal }) => {
+      const res = await apiClient.get<unknown>(`/holds/${holdId}`, undefined, { signal });
+      const normalized = normalizeHoldDetails(res.data);
+      return {
+        ...res,
+        data: normalized ?? undefined,
+      } as ApiEnvelope<HoldDetails>;
+    },
     enabled: !!holdId,
   });
 }
@@ -72,7 +67,10 @@ export function useHold(holdId?: string) {
 export function useSnacks(cinemaId?: string) {
   return useQuery({
     queryKey: ["snacks", cinemaId],
-    queryFn: () => apiClient.get<SnackItem[]>("/snacks", cinemaId ? { cinemaId } : undefined),
+    queryFn: () => 
+      cinemaId 
+        ? apiClient.get<SnackItem[]>(`/snacks/cinema/${cinemaId}`) 
+        : apiClient.get<SnackItem[]>("/snacks"),
   });
 }
 
@@ -84,6 +82,8 @@ interface CreateBookingPayload {
   snacks?: Array<{ snackId: string; quantity: number }>;
   usePoints?: number;
   giftCardCode?: string;
+  seatIds?: string[];
+  paymentMethod?: string;
 }
 
 export function useCreateBooking() {
@@ -93,9 +93,11 @@ export function useCreateBooking() {
         showtimeId: data.showtimeId,
         holdId: data.holdId,
         promotionCode: data.promoCode,
-        pointsToUse: data.usePoints,
+        pointsUsed: data.usePoints,
         giftCardCode: data.giftCardCode,
         snacks: data.snacks,
+        ...(data.seatIds ? { seatIds: data.seatIds } : {}),
+        ...(data.paymentMethod ? { paymentMethod: data.paymentMethod } : {}),
       }),
     onError: (error: unknown) => {
       const message = error instanceof Error ? error.message : "Failed to create booking";

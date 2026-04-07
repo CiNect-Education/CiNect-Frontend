@@ -1,7 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+<<<<<<< HEAD
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+=======
+import { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+>>>>>>> b4bbca5f3c38cab048cae128cb850c64522db3d2
 import { useSearchParams, useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { PageHeader } from "@/components/shared/page-header";
@@ -9,18 +14,25 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
-import { useCinemas } from "@/hooks/queries/use-cinemas";
+import { useCinemas, useProvincesLegacy, useProvincesNew } from "@/hooks/queries/use-cinemas";
 import { Building2, MapPin, Film } from "lucide-react";
 import type { CinemaListItem } from "@/types/domain";
 import Image from "next/image";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import {
+<<<<<<< HEAD
+  buildGoogleMapsDirectionsUrl,
+  buildGoogleMapsPlaceUrl,
+  formatDistanceKm,
+  getCurrentPositionCoords,
+  haversineKm,
+} from "@/lib/maps";
+=======
+  BookingAddressModeSegment,
+  BookingCityField,
+} from "@/components/shared/booking-city-field";
+import { bookingCityLabel, normalizeBookingCityId } from "@/lib/booking-region";
+>>>>>>> b4bbca5f3c38cab048cae128cb850c64522db3d2
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -30,14 +42,23 @@ function toList<T>(v: unknown): T[] {
   return Array.isArray(arr) ? arr : [];
 }
 
-const ALL_CITIES = "__ALL__";
-
 export default function CinemasPage() {
   const t = useTranslations("cinemas");
+  const tNav = useTranslations("nav");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [addressMode, setAddressMode] = useState<"new" | "legacy">("new");
 
+<<<<<<< HEAD
   const city = searchParams.get("city") || "";
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string>("");
+=======
+  const city = normalizeBookingCityId(searchParams.get("city") || "");
+>>>>>>> b4bbca5f3c38cab048cae128cb850c64522db3d2
   const amenities = useMemo(
     () => searchParams.get("amenities")?.split(",").filter(Boolean) || [],
     [searchParams]
@@ -48,12 +69,13 @@ export default function CinemasPage() {
   if (amenities.length) params.amenities = amenities.join(",");
 
   const { data, isLoading, error, refetch } = useCinemas(params);
+  const { data: provincesRes } = useProvincesNew();
+  const { data: legacyRes } = useProvincesLegacy();
   const rawCinemas = toList<CinemaListItem>(data?.data ?? data);
 
-  // Client-side filter so city + amenities always apply (backend supports city; amenities filtered here)
+  // Backend handles city filtering; apply amenities on client.
   const cinemas = useMemo(() => {
     let list = rawCinemas;
-    if (city) list = list.filter((c) => (c.city ?? "").toLowerCase() === city.toLowerCase());
     if (amenities.length)
       list = list.filter((c) =>
         amenities.every((a) => (c.amenities ?? []).includes(a))
@@ -66,16 +88,62 @@ export default function CinemasPage() {
     [rawCinemas]
   );
 
+  const provincesNew = useMemo(
+    () => toList<{ code: string; nameVi: string; nameEn: string }>(provincesRes?.data),
+    [provincesRes?.data]
+  );
+  const provincesLegacy = useMemo(
+    () =>
+      toList<{
+        code: string;
+        nameVi: string;
+        nameEn: string;
+        provinceNew: { code: string; nameVi: string; nameEn: string };
+      }>(legacyRes?.data),
+    [legacyRes?.data]
+  );
   const cityOptions = useMemo(() => {
-    const fromData = [...new Set(rawCinemas.map((c) => c.city).filter(Boolean))];
-    return fromData.length > 0 ? fromData : ["Ho Chi Minh", "Hanoi", "Da Nang"];
-  }, [rawCinemas]);
+    if (addressMode === "legacy" && provincesLegacy.length > 0) {
+      return provincesLegacy.map((p) => ({
+        id: p.code,
+        label: locale.startsWith("vi") ? p.nameVi : p.nameEn,
+      }));
+    }
+    return provincesNew.map((p) => ({
+      id: p.code,
+      label: locale.startsWith("vi") ? p.nameVi : p.nameEn,
+    }));
+  }, [addressMode, locale, provincesLegacy, provincesNew]);
+  const cityLabel = useMemo(() => {
+    if (!city) return "";
+    return cityOptions.find((c) => c.id === city)?.label ?? bookingCityLabel(city, locale);
+  }, [city, cityOptions, locale]);
+  useEffect(() => {
+    if (!city) return;
+    if (provincesLegacy.some((p) => p.code === city)) {
+      setAddressMode("legacy");
+      return;
+    }
+    if (provincesNew.some((p) => p.code === city)) {
+      setAddressMode("new");
+    }
+  }, [city, provincesLegacy, provincesNew]);
 
   function setCity(c: string) {
+    const normalized = normalizeBookingCityId(c);
     const p = new URLSearchParams(searchParams.toString());
-    if (c) p.set("city", c);
+    if (normalized) p.set("city", normalized);
     else p.delete("city");
     router.push(`?${p.toString()}`);
+  }
+  function handleAddressModeChange(nextMode: "new" | "legacy") {
+    setAddressMode(nextMode);
+    if (!city) return;
+    const existsInNext =
+      nextMode === "legacy"
+        ? provincesLegacy.some((p) => p.code === city)
+        : provincesNew.some((p) => p.code === city);
+    if (!existsInNext) setCity("");
   }
 
   function toggleAmenity(a: string) {
@@ -86,47 +154,98 @@ export default function CinemasPage() {
     router.push(`?${p.toString()}`);
   }
 
+  async function detectMyLocation() {
+    setLocationError("");
+    setIsLocating(true);
+    try {
+      const coords = await getCurrentPositionCoords();
+      setUserCoords(coords);
+    } catch {
+      setLocationError(t("locationUnavailable"));
+    } finally {
+      setIsLocating(false);
+    }
+  }
+
+  function openPlaceMap(
+    e: React.MouseEvent,
+    cinema: Pick<CinemaListItem, "latitude" | "longitude" | "address" | "city">
+  ) {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = buildGoogleMapsPlaceUrl({
+      lat: cinema.latitude,
+      lng: cinema.longitude,
+      address: cinema.address,
+      city: cinema.city,
+    });
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  function openDirections(
+    e: React.MouseEvent,
+    cinema: Pick<CinemaListItem, "latitude" | "longitude" | "address" | "city">
+  ) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!userCoords) return;
+    const url = buildGoogleMapsDirectionsUrl({
+      origin: userCoords,
+      destination: {
+        lat: cinema.latitude,
+        lng: cinema.longitude,
+        address: cinema.address,
+        city: cinema.city,
+      },
+    });
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
       <PageHeader
-        title={t("title") || "Cinemas"}
-        description={t("description") || "Find a cinema near you"}
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: t("title") || "Cinemas" }]}
+        title={t("title")}
+        description={t("description")}
+        breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("title") }]}
       />
 
       {/* Filters */}
       <div className="cinect-glass mb-6 rounded-xl border p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-2">
-            <MapPin className="text-muted-foreground h-4 w-4" />
-            <Select
-              value={city ? city : ALL_CITIES}
-              onValueChange={(v) => setCity(v === ALL_CITIES ? "" : v)}
-            >
-              <SelectTrigger className="w-[220px]">
-                <SelectValue placeholder="All cities" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_CITIES}>All cities</SelectItem>
-                {cityOptions.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5 max-w-full">
+            <MapPin className="text-muted-foreground hidden h-4 w-4 shrink-0 sm:block" />
+            <BookingAddressModeSegment mode={addressMode} onChange={handleAddressModeChange} />
+            <BookingCityField
+              cityOptions={cityOptions}
+              value={city}
+              displayLabel={cityLabel}
+              onChange={setCity}
+              compact
+            />
           </div>
 
           <div className="text-muted-foreground text-sm">
-            {cinemas.length} cinema{cinemas.length !== 1 ? "s" : ""} found
+            {tCommon("cinemasFound", { count: cinemas.length })}
           </div>
+        </div>
+
+        <div className="mt-3 flex items-center gap-2">
+          <Badge
+            variant="outline"
+            className="cursor-pointer"
+            onClick={detectMyLocation}
+            aria-disabled={isLocating}
+          >
+            {isLocating ? t("locating") : t("useMyLocation")}
+          </Badge>
+          {locationError ? <span className="text-destructive text-xs">{locationError}</span> : null}
         </div>
 
         {allAmenities.length > 0 && (
           <>
             <Separator className="my-4" />
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-muted-foreground text-sm">Amenities:</span>
+              <span className="text-muted-foreground text-sm">{tCommon("amenitiesLabel")}</span>
               {allAmenities.map((a) => (
                 <Badge
                   key={a}
@@ -160,13 +279,13 @@ export default function CinemasPage() {
       ) : cinemas.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
           <Building2 className="text-muted-foreground mb-3 h-12 w-12" />
-          <h3 className="mb-2 text-lg font-semibold">{t("emptyState") || "No cinemas found"}</h3>
-          <p className="text-muted-foreground text-sm">Try adjusting your filters</p>
+          <h3 className="mb-2 text-lg font-semibold">{t("emptyState")}</h3>
+          <p className="text-muted-foreground text-sm">{tCommon("tryAdjustFilters")}</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {cinemas.map((cinema) => (
-            <Link key={cinema.id} href={`/cinemas/${cinema.id}`}>
+            <Link key={cinema.id} href={`/cinemas/${cinema.slug || cinema.id}`}>
               <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
                 <div className="bg-muted aspect-video overflow-hidden">
                   {cinema.imageUrl ? (
@@ -193,6 +312,18 @@ export default function CinemasPage() {
                     <span className="line-clamp-1">{cinema.address}</span>
                   </div>
                   <p className="text-muted-foreground mb-3 text-xs">{cinema.city}</p>
+                  {userCoords && cinema.latitude != null && cinema.longitude != null ? (
+                    <p className="text-primary mb-3 text-xs font-medium">
+                      {t("distanceFromYou", {
+                        distance: formatDistanceKm(
+                          haversineKm(userCoords, {
+                            lat: cinema.latitude,
+                            lng: cinema.longitude,
+                          })
+                        ),
+                      })}
+                    </p>
+                  ) : null}
                   {cinema.amenities?.length ? (
                     <div className="flex flex-wrap gap-1">
                       {cinema.amenities.slice(0, 4).map((a) => (
@@ -202,6 +333,24 @@ export default function CinemasPage() {
                       ))}
                     </div>
                   ) : null}
+                  <div className="mt-3 flex items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className="cursor-pointer"
+                      onClick={(e) => openPlaceMap(e, cinema)}
+                    >
+                      {t("openInMaps")}
+                    </Badge>
+                    {userCoords ? (
+                      <Badge
+                        variant="secondary"
+                        className="cursor-pointer"
+                        onClick={(e) => openDirections(e, cinema)}
+                      >
+                        {t("directionsFromMe")}
+                      </Badge>
+                    ) : null}
+                  </div>
                 </CardContent>
               </Card>
             </Link>

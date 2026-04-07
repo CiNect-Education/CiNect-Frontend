@@ -116,6 +116,7 @@ export function useUpdateProfile() {
   return useApiMutation<User, UpdateProfileInput>("put", "/auth/profile", {
     schema: userSchema,
     successMessage: "Profile updated",
+    invalidateKeys: [["membership", "profile"]],
     onSuccess: (res) => {
       const user = res.data;
       queryClient.setQueryData(["auth", "me"], {

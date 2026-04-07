@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -39,21 +39,30 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
+import { enUS } from "date-fns/locale";
+import { vi as viDateLocale } from "date-fns/locale";
+import { localizeAudioLabel } from "@/lib/showtime-display";
 
 export default function MovieDetailPage() {
   const params = useParams();
   const t = useTranslations("movies");
-  const movieId = params.id as string;
+  const tHome = useTranslations("home");
+  const tCommon = useTranslations("common");
+  const tAuth = useTranslations("auth");
+  const tShow = useTranslations("showtimeDisplay");
+  const locale = useLocale();
+  const movieSlug = params.id as string;
   const { isAuthenticated } = useAuth();
 
   // ─── Data fetching ────────────────────────────────────────────
-  const { data: movieRes, isLoading, error, refetch } = useMovie(movieId);
+  const { data: movieRes, isLoading, error, refetch } = useMovie(movieSlug);
   const movie = movieRes?.data;
+  const resolvedMovieId = movie?.id ?? "";
 
   // Showtimes
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedCity, setSelectedCity] = useState<string>("__ALL__");
-  const { data: showtimesRes } = useMovieShowtimes(movieId, {
+  const { data: showtimesRes } = useMovieShowtimes(resolvedMovieId, {
     city: selectedCity === "__ALL__" ? undefined : selectedCity,
     date: selectedDate,
   });
@@ -68,7 +77,7 @@ export default function MovieDetailPage() {
   const [reviewPage, setReviewPage] = useState(1);
   const [reviewSort, setReviewSort] = useState<"newest" | "highest">("newest");
   const [likedReviews, setLikedReviews] = useState<Record<string, boolean>>({});
-  const { data: reviewsRes, isLoading: reviewsLoading } = useMovieReviews(movieId, {
+  const { data: reviewsRes, isLoading: reviewsLoading } = useMovieReviews(resolvedMovieId, {
     page: reviewPage,
     limit: 10,
   });
@@ -84,7 +93,7 @@ export default function MovieDetailPage() {
   // Create review
   const [reviewRating, setReviewRating] = useState(8);
   const [reviewContent, setReviewContent] = useState("");
-  const createReview = useCreateReview(movieId);
+  const createReview = useCreateReview(resolvedMovieId);
 
   // SEO - set document title
   useEffect(() => {
@@ -93,10 +102,15 @@ export default function MovieDetailPage() {
     }
   }, [movie]);
 
+  const dateFnsLocale = locale.startsWith("vi") ? viDateLocale : enUS;
+
   // Date navigation
   const dates = Array.from({ length: 7 }, (_, i) => {
     const d = addDays(new Date(), i);
-    return { value: format(d, "yyyy-MM-dd"), label: format(d, "EEE, MMM d") };
+    return {
+      value: format(d, "yyyy-MM-dd"),
+      label: format(d, "EEE, MMM d", { locale: dateFnsLocale }),
+    };
   });
 
   // Group showtimes by cinema
@@ -121,7 +135,7 @@ export default function MovieDetailPage() {
     ((relatedMoviesRes?.data ?? relatedMoviesRes) as Array<
       { id: string; title: string; posterUrl?: string; status?: string }
     > | undefined) ?? [];
-  const recommendedMovies = relatedItems.filter((m) => m.id !== movieId).slice(0, 4);
+  const recommendedMovies = relatedItems.filter((m) => m.id !== resolvedMovieId).slice(0, 4);
 
   const handleSubmitReview = () => {
     if (!reviewContent.trim()) return;
@@ -164,7 +178,7 @@ export default function MovieDetailPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
         <div className="rounded-lg border border-dashed p-12 text-center">
           <Film className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
-          <p className="text-muted-foreground">Movie not found</p>
+          <p className="text-muted-foreground">{t("movieNotFound")}</p>
         </div>
       </div>
     );
@@ -235,7 +249,7 @@ export default function MovieDetailPage() {
                   ))}
                   <span className="text-muted-foreground flex items-center gap-1 text-sm">
                     <Clock className="h-4 w-4" />
-                    {movie.duration}m
+                    {t("durationMinutes", { minutes: movie.duration ?? 0 })}
                   </span>
                   <span className="text-muted-foreground flex items-center gap-1 text-sm">
                     <Calendar className="h-4 w-4" />
@@ -287,7 +301,7 @@ export default function MovieDetailPage() {
             {movie.description && (
               <Card>
                 <CardContent className="p-6">
-                  <h2 className="mb-3 text-xl font-semibold">Synopsis</h2>
+                  <h2 className="mb-3 text-xl font-semibold">{t("synopsis")}</h2>
                   <p className="text-muted-foreground leading-relaxed">{movie.description}</p>
                 </CardContent>
               </Card>
@@ -304,8 +318,12 @@ export default function MovieDetailPage() {
                 <CardContent className="p-6">
                   <h3 className="mb-2 font-semibold">{t("language")}</h3>
                   <p className="text-muted-foreground">
-                    {movie.language}
-                    {movie.subtitles ? ` (Sub: ${movie.subtitles})` : ""}
+                    {localizeAudioLabel(movie.language, (k) => tShow(k))}
+                    {movie.subtitles
+                      ? ` · ${t("subtitlesLine", {
+                          subs: localizeAudioLabel(movie.subtitles, (k) => tShow(k)),
+                        })}`
+                      : ""}
                   </p>
                 </CardContent>
               </Card>
@@ -333,13 +351,13 @@ export default function MovieDetailPage() {
             {movie.galleryUrls && movie.galleryUrls.length > 0 && (
               <Card>
                 <CardContent className="p-6">
-                  <h2 className="mb-3 text-xl font-semibold">Gallery</h2>
+                  <h2 className="mb-3 text-xl font-semibold">{t("gallery")}</h2>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                     {movie.galleryUrls.map((url, i) => (
                       <div key={i} className="relative aspect-video overflow-hidden rounded-lg">
                         <Image
                           src={url}
-                          alt={`Gallery ${i + 1}`}
+                          alt={t("galleryImageAlt", { index: i + 1 })}
                           fill
                           sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
                           className="object-cover"
@@ -355,10 +373,10 @@ export default function MovieDetailPage() {
             {recommendedMovies.length > 0 && (
               <Card>
                 <CardContent className="p-6">
-                  <h2 className="mb-3 text-xl font-semibold">You may also like</h2>
+                  <h2 className="mb-3 text-xl font-semibold">{t("youMayAlsoLike")}</h2>
                   <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
                     {recommendedMovies.map((rm) => (
-                      <Link key={rm.id} href={`/movies/${rm.id}`}>
+                      <Link key={rm.id} href={`/movies/${rm.slug}`}>
                         <div className="hover:border-primary/60 group overflow-hidden rounded-lg border transition">
                           <div className="bg-muted relative aspect-[2/3]">
                             {rm.posterUrl ? (
@@ -416,7 +434,7 @@ export default function MovieDetailPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground text-center">No cast information available</p>
+                  <p className="text-muted-foreground text-center">{t("noCastInfo")}</p>
                 )}
               </CardContent>
             </Card>
@@ -430,13 +448,13 @@ export default function MovieDetailPage() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   {cinemaItems.length > 0 ? (
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-muted-foreground text-sm">City</span>
+                      <span className="text-muted-foreground text-sm">{t("showtimesCityLabel")}</span>
                       <Select value={selectedCity} onValueChange={setSelectedCity}>
                         <SelectTrigger className="w-[220px]">
-                          <SelectValue placeholder="All cities" />
+                          <SelectValue placeholder={tCommon("allCities")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="__ALL__">All cities</SelectItem>
+                          <SelectItem value="__ALL__">{tCommon("allCities")}</SelectItem>
                           {Array.from(
                             new Set(
                               showtimes
@@ -457,11 +475,11 @@ export default function MovieDetailPage() {
                       </Select>
                     </div>
                   ) : (
-                    <div className="text-muted-foreground text-sm">Browse showtimes for this movie</div>
+                    <div className="text-muted-foreground text-sm">{t("browseShowtimesForMovie")}</div>
                   )}
 
                   <div className="text-muted-foreground text-sm">
-                    {Object.keys(showtimesByCinema).length} cinema{Object.keys(showtimesByCinema).length !== 1 ? "s" : ""}
+                    {t("cinemasCountShort", { count: Object.keys(showtimesByCinema).length })}
                   </div>
                 </div>
 
@@ -474,7 +492,11 @@ export default function MovieDetailPage() {
                       onClick={() => setSelectedDate(d.value)}
                       className="shrink-0"
                     >
-                      {index === 0 ? "Today" : index === 1 ? "Tomorrow" : d.label}
+                      {index === 0
+                        ? tHome("today")
+                        : index === 1
+                          ? tHome("tomorrow")
+                          : d.label}
                     </Button>
                   ))}
                 </div>
@@ -493,7 +515,7 @@ export default function MovieDetailPage() {
                           <div>
                             <div className="text-base font-semibold">{cinemaName}</div>
                             <div className="text-muted-foreground text-xs">
-                              {sts.length} showtime{sts.length !== 1 ? "s" : ""}
+                              {t("showtimeCount", { count: sts.length })}
                             </div>
                           </div>
                         </div>
@@ -516,7 +538,7 @@ export default function MovieDetailPage() {
                                   variant="outline"
                                   className="ml-1 text-primary border-primary/30 text-[10px]"
                                 >
-                                  Member
+                                  {t("memberBadgeShort")}
                                 </Badge>
                               )}
                             </Link>
@@ -531,7 +553,7 @@ export default function MovieDetailPage() {
               <Card className="cinect-glass border">
                 <CardContent className="py-12 text-center">
                   <Ticket className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
-                  <p className="text-muted-foreground">No showtimes available for this date</p>
+                  <p className="text-muted-foreground">{t("noShowtimesForDate")}</p>
                 </CardContent>
               </Card>
             )}
@@ -569,7 +591,7 @@ export default function MovieDetailPage() {
                     <Textarea
                       value={reviewContent}
                       onChange={(e) => setReviewContent(e.target.value)}
-                      placeholder="Share your thoughts about this movie..."
+                      placeholder={t("reviewBodyPlaceholder")}
                       rows={4}
                     />
                     <Button
@@ -577,7 +599,7 @@ export default function MovieDetailPage() {
                       disabled={createReview.isPending || !reviewContent.trim()}
                     >
                       <Send className="mr-2 h-4 w-4" />
-                      {createReview.isPending ? "Submitting..." : t("writeReview")}
+                      {createReview.isPending ? t("submittingReview") : t("writeReview")}
                     </Button>
                   </div>
                 </CardContent>
@@ -585,9 +607,9 @@ export default function MovieDetailPage() {
             ) : (
               <Card className="cinect-glass border">
                 <CardContent className="p-6 text-center">
-                  <p className="text-muted-foreground mb-2">Login to write a review</p>
+                  <p className="text-muted-foreground mb-2">{t("loginToReview")}</p>
                   <Button asChild>
-                    <Link href="/login">Login</Link>
+                    <Link href="/login">{tAuth("login")}</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -603,7 +625,7 @@ export default function MovieDetailPage() {
             ) : reviews.length > 0 ? (
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium">Audience reviews</p>
+                  <p className="text-sm font-medium">{t("audienceReviews")}</p>
                   <div className="inline-flex rounded-md border text-xs">
                     <Button
                       type="button"
@@ -612,7 +634,7 @@ export default function MovieDetailPage() {
                       className="h-8 rounded-none px-3"
                       onClick={() => setReviewSort("newest")}
                     >
-                      Newest
+                      {t("reviewSortNewest")}
                     </Button>
                     <Button
                       type="button"
@@ -621,7 +643,7 @@ export default function MovieDetailPage() {
                       className="h-8 rounded-none px-3 border-l"
                       onClick={() => setReviewSort("highest")}
                     >
-                      Highest rating
+                      {t("reviewSortHighest")}
                     </Button>
                   </div>
                 </div>
@@ -639,7 +661,7 @@ export default function MovieDetailPage() {
                             <div>
                               <p className="font-medium">{review.userName}</p>
                               <p className="text-muted-foreground text-xs">
-                                {format(new Date(review.createdAt), "PP")}
+                                {format(new Date(review.createdAt), "PP", { locale: dateFnsLocale })}
                               </p>
                             </div>
                           </div>
@@ -653,7 +675,7 @@ export default function MovieDetailPage() {
                               variant={liked ? "default" : "ghost"}
                               size="icon"
                               className="h-8 w-8"
-                              aria-label={liked ? "Unlike review" : "Like review"}
+                              aria-label={liked ? t("reviewUnlikeAria") : t("reviewLikeAria")}
                               onClick={() =>
                                 setLikedReviews((prev) => ({
                                   ...prev,
@@ -683,7 +705,9 @@ export default function MovieDetailPage() {
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <span className="text-muted-foreground text-sm">Page {reviewPage}</span>
+                  <span className="text-muted-foreground text-sm">
+                    {t("reviewsPage", { page: reviewPage })}
+                  </span>
                   <Button
                     variant="outline"
                     size="sm"
@@ -698,7 +722,7 @@ export default function MovieDetailPage() {
               <Card className="cinect-glass border">
                 <CardContent className="py-12 text-center">
                   <ThumbsUp className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
-                  <p className="text-muted-foreground">No reviews yet. Be the first to review!</p>
+                  <p className="text-muted-foreground">{t("noReviewsYet")}</p>
                 </CardContent>
               </Card>
             )}

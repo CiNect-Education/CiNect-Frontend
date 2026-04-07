@@ -29,15 +29,64 @@ interface AuditLogEntry {
   timestamp: string;
 }
 
-function toList<T>(v: unknown): T[] {
-  if (Array.isArray(v)) return v as T[];
-  if (v && typeof v === "object" && "data" in v && Array.isArray((v as { data: unknown }).data))
-    return (v as { data: T[] }).data;
-  return [];
+type RawAudit = {
+  id?: string;
+  userId?: string;
+  userName?: string;
+  userEmail?: string;
+  action?: string;
+  entity?: string;
+  entityType?: string;
+  entityId?: string;
+  details?: string;
+  newValues?: unknown;
+  timestamp?: string;
+  createdAt?: string;
+};
+
+function normalizeAuditLog(item: RawAudit): AuditLogEntry {
+  const details =
+    item.details ??
+    (item.newValues && typeof item.newValues === "object"
+      ? JSON.stringify(item.newValues)
+      : item.newValues != null
+        ? String(item.newValues)
+        : "");
+
+  return {
+    id: String(item.id ?? ""),
+    userId: String(item.userId ?? ""),
+    userName: String(item.userName ?? item.userEmail ?? item.userId ?? ""),
+    action: String(item.action ?? ""),
+    entity: String(item.entity ?? item.entityType ?? ""),
+    entityId: String(item.entityId ?? ""),
+    details,
+    timestamp: String(item.timestamp ?? item.createdAt ?? ""),
+  };
 }
 
-function exportToCsv(logs: AuditLogEntry[]) {
-  const headers = ["Timestamp", "User", "Action", "Entity", "Entity ID", "Details"];
+function extractAuditPayload(v: unknown): {
+  items: AuditLogEntry[];
+  meta?: { total?: number; totalPages?: number };
+} {
+  if (!v || typeof v !== "object") return { items: [] };
+  const obj = v as { data?: unknown; meta?: { total?: number; totalPages?: number } };
+  if (Array.isArray(obj.data)) {
+    return { items: obj.data.map((row) => normalizeAuditLog(row as RawAudit)), meta: obj.meta };
+  }
+  if (obj.data && typeof obj.data === "object") {
+    const nested = obj.data as { data?: unknown; meta?: { total?: number; totalPages?: number } };
+    if (Array.isArray(nested.data)) {
+      return {
+        items: nested.data.map((row) => normalizeAuditLog(row as RawAudit)),
+        meta: nested.meta ?? obj.meta,
+      };
+    }
+  }
+  return { items: [] };
+}
+
+function exportToCsv(logs: AuditLogEntry[], headers: string[]) {
   const rows = logs.map((log) => [
     log.timestamp ? format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss") : "",
     log.userName ?? log.userId ?? "",
@@ -60,6 +109,7 @@ function exportToCsv(logs: AuditLogEntry[]) {
 
 export default function AdminAuditLogsPage() {
   const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
   const [search, setSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -74,23 +124,23 @@ export default function AdminAuditLogsPage() {
       from: dateFrom || undefined,
       to: dateTo || undefined,
       action: actionFilter === ALL ? undefined : actionFilter,
-      page: page + 1,
+      page,
       limit,
     }),
     [search, dateFrom, dateTo, actionFilter, page]
   );
 
   const { data: logsRes, isLoading: logsLoading } = useAdminAuditLogs(params);
-  const logs = toList<AuditLogEntry>(logsRes?.data ?? logsRes);
-  const meta = (logsRes?.data as { meta?: { total?: number; totalPages?: number } } | undefined)
-    ?.meta;
+  const payload = extractAuditPayload(logsRes);
+  const logs = payload.items;
+  const meta = payload.meta;
   const totalPages = meta?.totalPages ?? 1;
 
   const columns: ColumnDef<AuditLogEntry>[] = useMemo(
     () => [
       {
         accessorKey: "timestamp",
-        header: "Timestamp",
+        header: t("auditColTimestamp"),
         cell: ({ row }) =>
           row.original.timestamp
             ? format(new Date(row.original.timestamp), "dd/MM/yyyy HH:mm")
@@ -98,14 +148,14 @@ export default function AdminAuditLogsPage() {
       },
       {
         accessorKey: "userName",
-        header: "User",
+        header: t("auditColUser"),
         cell: ({ row }) => row.original.userName ?? row.original.userId ?? "—",
       },
-      { accessorKey: "action", header: "Action" },
-      { accessorKey: "entity", header: "Entity" },
+      { accessorKey: "action", header: t("auditColAction") },
+      { accessorKey: "entity", header: t("auditColEntity") },
       {
         accessorKey: "entityId",
-        header: "Entity ID",
+        header: t("auditColEntityId"),
         cell: ({ row }) => (
           <span className="font-mono text-xs">
             {String(row.original.entityId ?? "").slice(0, 8)}
@@ -115,7 +165,7 @@ export default function AdminAuditLogsPage() {
       },
       {
         accessorKey: "details",
-        header: "Details",
+        header: t("auditColDetails"),
         cell: ({ row }) => (
           <span className="block max-w-[200px] truncate" title={row.original.details}>
             {row.original.details ?? "—"}
@@ -123,26 +173,39 @@ export default function AdminAuditLogsPage() {
         ),
       },
     ],
-    []
+    [t]
   );
 
   return (
     <div>
       <PageHeader
         title={t("auditLogs")}
-        description="View system audit logs and activity history."
+        description={t("descAuditLogs")}
         breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("auditLogs") }]}
         actions={
-          <Button variant="outline" size="sm" onClick={() => exportToCsv(logs)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              exportToCsv(logs, [
+                t("auditColTimestamp"),
+                t("auditColUser"),
+                t("auditColAction"),
+                t("auditColEntity"),
+                t("auditColEntityId"),
+                t("auditColDetails"),
+              ])
+            }
+          >
             <Download className="mr-2 h-4 w-4" />
-            Export CSV
+            {t("exportCSV")}
           </Button>
         }
       />
 
       <div className="cinect-glass mb-4 flex flex-wrap gap-4 rounded-lg border p-4">
         <Input
-          placeholder="Search user..."
+          placeholder={t("searchAuditUser")}
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -152,7 +215,7 @@ export default function AdminAuditLogsPage() {
         />
         <Input
           type="date"
-          placeholder="From"
+          placeholder={t("dateFrom")}
           value={dateFrom}
           onChange={(e) => {
             setDateFrom(e.target.value);
@@ -161,7 +224,7 @@ export default function AdminAuditLogsPage() {
         />
         <Input
           type="date"
-          placeholder="To"
+          placeholder={t("dateTo")}
           value={dateTo}
           onChange={(e) => {
             setDateTo(e.target.value);
@@ -176,10 +239,10 @@ export default function AdminAuditLogsPage() {
           }}
         >
           <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Action type" />
+            <SelectValue placeholder={t("actionType")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>All</SelectItem>
+            <SelectItem value={ALL}>{t("filterAll")}</SelectItem>
             <SelectItem value="CREATE">CREATE</SelectItem>
             <SelectItem value="UPDATE">UPDATE</SelectItem>
             <SelectItem value="DELETE">DELETE</SelectItem>
@@ -194,12 +257,12 @@ export default function AdminAuditLogsPage() {
         hidePagination
         className="cinect-glass rounded-lg border p-4"
         isLoading={logsLoading}
-        emptyMessage="No audit logs found."
+        emptyMessage={t("emptyAuditLogs")}
       />
 
       <div className="mt-2 flex items-center justify-between">
         <span className="text-muted-foreground text-sm">
-          Page {page + 1} of {totalPages}
+          {t("pageXofY", { current: page + 1, total: totalPages })}
         </span>
         <div className="flex gap-2">
           <Button
@@ -208,7 +271,7 @@ export default function AdminAuditLogsPage() {
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0}
           >
-            Previous
+            {tCommon("previous")}
           </Button>
           <Button
             variant="outline"
@@ -216,7 +279,7 @@ export default function AdminAuditLogsPage() {
             onClick={() => setPage((p) => p + 1)}
             disabled={page >= totalPages - 1}
           >
-            Next
+            {tCommon("next")}
           </Button>
         </div>
       </div>

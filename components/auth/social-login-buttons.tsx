@@ -73,7 +73,7 @@ export function SocialLoginButtons() {
           onClick={() => handleSocialLogin("google")}
         >
           <GoogleIcon className="h-5 w-5" />
-          <span className="sr-only">Google</span>
+          <span className="sr-only">{t("loginWithGoogle")}</span>
         </Button>
         <Button
           variant="outline"
@@ -82,7 +82,7 @@ export function SocialLoginButtons() {
           onClick={() => handleSocialLogin("facebook")}
         >
           <FacebookIcon className="h-5 w-5" />
-          <span className="sr-only">Facebook</span>
+          <span className="sr-only">{t("loginWithFacebook")}</span>
         </Button>
         <Button
           variant="outline"
@@ -91,7 +91,7 @@ export function SocialLoginButtons() {
           onClick={() => handleSocialLogin("github")}
         >
           <GithubIcon className="h-5 w-5" />
-          <span className="sr-only">GitHub</span>
+          <span className="sr-only">{t("loginWithGithub")}</span>
         </Button>
       </div>
     </div>

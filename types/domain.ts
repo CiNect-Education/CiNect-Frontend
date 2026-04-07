@@ -32,6 +32,8 @@ export interface User {
   dateOfBirth?: string;
   gender?: string;
   city?: string;
+  isActive?: boolean;
+  emailVerified?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -117,6 +119,8 @@ export interface CinemaListItem {
   imageUrl?: string;
   amenities: string[];
   roomCount: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface Room {
@@ -161,6 +165,22 @@ export interface Showtime {
   availableSeats?: number;
   totalSeats?: number;
   memberExclusive?: boolean;
+}
+
+/** GET /holds/:id — normalized for checkout (Nest/Spring + legacy Prisma shape). */
+export interface HoldDetails {
+  holdId: string;
+  showtimeId: string;
+  expiresAt: string;
+  seats: Array<{ id: string; row: string; number: number; type: string; price?: number }>;
+  showtime?: {
+    movieTitle?: string;
+    cinemaName?: string;
+    roomName?: string;
+    startTime?: string;
+    format?: string;
+    cinemaId?: string;
+  };
 }
 
 export interface BookingItem {
@@ -306,6 +326,8 @@ export interface MembershipProfile {
   tier: MembershipTier;
   currentPoints: number;
   totalPoints: number;
+  dailyCheckinStreak?: number;
+  lastDailyCheckinAt?: string;
   nextTier?: MembershipTier;
   pointsToNextTier?: number;
   memberSince: string;
@@ -315,7 +337,7 @@ export interface MembershipProfile {
 export interface GiftCard {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   imageUrl?: string;
   value: number;
   price: number;

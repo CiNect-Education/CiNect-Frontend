@@ -52,32 +52,59 @@ import {
   useUpdateRoom,
   useDeleteRoom,
 } from "@/hooks/queries/use-admin";
+import { unwrapList } from "@/lib/admin-data";
+import { useAuth } from "@/providers/auth-provider";
+import { ApiErrorState } from "@/components/system/api-error-state";
 
-const roomFormSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  cinemaId: z.string().min(1, "Cinema is required"),
-  format: z.enum(["2D", "3D", "IMAX", "4DX", "DOLBY"]),
-  totalSeats: z.coerce.number().min(0),
-  rows: z.coerce.number().min(1),
-  columns: z.coerce.number().min(1),
-  isActive: z.boolean(),
-});
+const ALL_CINEMAS_VALUE = "__ALL_CINEMAS__";
 
-type RoomFormValues = z.infer<typeof roomFormSchema>;
+type RoomFormValues = {
+  name: string;
+  cinemaId: string;
+  format: "2D" | "3D" | "IMAX" | "4DX" | "DOLBY";
+  totalSeats: number;
+  rows: number;
+  columns: number;
+  isActive: boolean;
+};
 
 export default function AdminRoomsPage() {
   const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const roomFormSchema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, t("validation.nameRequired")),
+        cinemaId: z.string().min(1, t("validation.cinemaRequired")),
+        format: z.enum(["2D", "3D", "IMAX", "4DX", "DOLBY"]),
+        totalSeats: z.coerce.number().min(0),
+        rows: z.coerce.number().min(1),
+        columns: z.coerce.number().min(1),
+        isActive: z.boolean(),
+      }),
+    [t]
+  );
   const [cinemaFilter, setCinemaFilter] = useState<string>("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Room | null>(null);
 
-  const { data: roomsRes, isLoading: roomsLoading } = useAdminRooms(
-    cinemaFilter ? { cinemaId: cinemaFilter } : undefined
-  );
-  const { data: cinemasRes } = useAdminCinemas();
-  const rooms = roomsRes?.data ?? [];
-  const cinemas = cinemasRes?.data ?? [];
+  const {
+    data: roomsRes,
+    isLoading: roomsLoading,
+    error: roomsError,
+    refetch: refetchRooms,
+  } = useAdminRooms(cinemaFilter ? { cinemaId: cinemaFilter } : undefined, {
+    enabled: isAuthenticated && !authLoading,
+  });
+  const {
+    data: cinemasRes,
+    error: cinemasError,
+    refetch: refetchCinemas,
+  } = useAdminCinemas(undefined, { enabled: isAuthenticated && !authLoading });
+  const rooms = unwrapList<Room>(roomsRes?.data ?? roomsRes);
+  const cinemas = unwrapList<{ id: string; name: string }>(cinemasRes?.data ?? cinemasRes);
   const createMutation = useCreateRoom();
   const updateMutation = useUpdateRoom();
   const deleteMutation = useDeleteRoom();
@@ -145,36 +172,36 @@ export default function AdminRoomsPage() {
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: t("colName"),
       },
       {
         id: "cinema",
-        header: "Cinema",
+        header: t("cinema"),
         cell: ({ row }) => row.original.cinemaName ?? row.original.cinemaId ?? "—",
       },
       {
         accessorKey: "format",
-        header: "Format",
+        header: t("labelFormat"),
       },
       {
         accessorKey: "totalSeats",
-        header: "Seats",
+        header: t("colSeats"),
       },
       {
         accessorKey: "isActive",
-        header: "Active",
-        cell: ({ row }) => (row.original.isActive ? "Yes" : "No"),
+        header: t("colActive"),
+        cell: ({ row }) => (row.original.isActive ? t("yes") : t("no")),
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t("colActions"),
         cell: ({ row }) => (
           <div className="flex gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => openEdit(row.original)}
-              aria-label="Edit room"
+              aria-label={t("ariaEditRoom")}
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -182,7 +209,7 @@ export default function AdminRoomsPage() {
               variant="ghost"
               size="icon"
               onClick={() => setDeleteTarget(row.original)}
-              aria-label="Delete room"
+              aria-label={t("ariaDeleteRoom")}
             >
               <Trash2 className="text-destructive h-4 w-4" />
             </Button>
@@ -190,31 +217,40 @@ export default function AdminRoomsPage() {
         ),
       },
     ],
-    [openEdit]
+    [openEdit, t]
   );
 
   return (
     <AdminPageShell
       title={t("rooms")}
-      description="Manage screening rooms across all cinema locations."
+      description={t("descRooms")}
       breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("rooms") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Room
+          {t("addRoomBtn")}
         </Button>
       }
     >
+      {(roomsError || cinemasError) && !roomsLoading ? (
+        <ApiErrorState
+          error={(roomsError ?? cinemasError) as Error}
+          onRetry={() => {
+            void refetchCinemas();
+            void refetchRooms();
+          }}
+        />
+      ) : null}
       <div className="cinect-glass mb-4 rounded-lg border p-4">
         <Select
-          value={cinemaFilter || "all"}
-          onValueChange={(v) => setCinemaFilter(v === "all" ? "" : v)}
+          value={cinemaFilter || ALL_CINEMAS_VALUE}
+          onValueChange={(v) => setCinemaFilter(v === ALL_CINEMAS_VALUE ? "" : v)}
         >
           <SelectTrigger className="w-64">
-            <SelectValue placeholder="All cinemas" />
+            <SelectValue placeholder={t("allCinemasFilter")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All cinemas</SelectItem>
+            <SelectItem value={ALL_CINEMAS_VALUE}>{t("allCinemasFilter")}</SelectItem>
             {cinemas.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
@@ -228,16 +264,16 @@ export default function AdminRoomsPage() {
         columns={columns}
         data={rooms}
         searchKey="name"
-        searchPlaceholder="Search rooms..."
+        searchPlaceholder={t("searchRooms")}
         className="cinect-glass rounded-lg border p-4"
         isLoading={roomsLoading}
-        emptyMessage="No rooms found."
+        emptyMessage={t("emptyRooms")}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="cinect-glass max-w-lg border">
           <DialogHeader>
-            <DialogTitle>{editingRoom ? "Edit Room" : "Add Room"}</DialogTitle>
+            <DialogTitle>{editingRoom ? t("editRoom") : t("addRoom")}</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -246,7 +282,7 @@ export default function AdminRoomsPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>{t("colName")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -259,11 +295,11 @@ export default function AdminRoomsPage() {
                 name="cinemaId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cinema</FormLabel>
+                    <FormLabel>{t("cinema")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select cinema" />
+                          <SelectValue placeholder={t("selectCinema")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -283,7 +319,7 @@ export default function AdminRoomsPage() {
                 name="format"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Format</FormLabel>
+                    <FormLabel>{t("labelFormat")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -308,7 +344,7 @@ export default function AdminRoomsPage() {
                   name="totalSeats"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Total Seats</FormLabel>
+                      <FormLabel>{t("labelTotalSeats")}</FormLabel>
                       <FormControl>
                         <Input type="number" {...field} />
                       </FormControl>
@@ -321,7 +357,7 @@ export default function AdminRoomsPage() {
                   name="rows"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Rows</FormLabel>
+                      <FormLabel>{t("labelRows")}</FormLabel>
                       <FormControl>
                         <Input type="number" {...field} />
                       </FormControl>
@@ -334,7 +370,7 @@ export default function AdminRoomsPage() {
                   name="columns"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Columns</FormLabel>
+                      <FormLabel>{t("labelColumns")}</FormLabel>
                       <FormControl>
                         <Input type="number" {...field} />
                       </FormControl>
@@ -348,7 +384,7 @@ export default function AdminRoomsPage() {
                 name="isActive"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <FormLabel>Active</FormLabel>
+                    <FormLabel>{t("colActive")}</FormLabel>
                     <FormControl>
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
@@ -357,13 +393,13 @@ export default function AdminRoomsPage() {
               />
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancel
+                  {tCommon("cancel")}
                 </Button>
                 <Button
                   type="submit"
                   disabled={createMutation.isPending || updateMutation.isPending}
                 >
-                  {editingRoom ? "Update" : "Create"}
+                  {editingRoom ? t("updateUserBtn") : tCommon("create")}
                 </Button>
               </DialogFooter>
             </form>
@@ -374,19 +410,18 @@ export default function AdminRoomsPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent className="cinect-glass border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Room</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteRoom")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deleteTarget?.name}&quot;? This action cannot
-              be undone.
+              {t("deleteRoomDesc", { name: deleteTarget?.name ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {tCommon("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -30,6 +30,7 @@ import {
   useAdminAnalyticsPeakHours,
 } from "@/hooks/queries/use-admin";
 import { exportToCSV, exportToPDF } from "@/lib/export-utils";
+import { unwrapList } from "@/lib/admin-data";
 import { format } from "date-fns";
 
 type DateRange = "7d" | "30d" | "90d" | "custom";
@@ -50,12 +51,26 @@ const PIE_COLORS = [
   "hsl(var(--chart-5))",
 ];
 
-function toArray<T>(v: unknown): T[] {
-  if (!v) return [];
-  if (Array.isArray(v)) return v;
-  const d = v as { data?: unknown };
-  const arr = d.data;
-  return Array.isArray(arr) ? arr : [];
+type RawMovieReport = {
+  movieId?: string;
+  id?: string;
+  movieTitle?: string;
+  title?: string;
+  revenue?: number;
+  bookings?: number;
+  bookingCount?: number;
+  occupancy?: number;
+  occupancyRate?: number;
+};
+
+function normalizeMovieReport(item: RawMovieReport) {
+  return {
+    movieId: item.movieId ?? item.id ?? "",
+    movieTitle: item.movieTitle ?? item.title ?? "",
+    revenue: Number(item.revenue ?? 0),
+    bookings: Number(item.bookings ?? item.bookingCount ?? 0),
+    occupancy: Number(item.occupancy ?? item.occupancyRate ?? 0),
+  };
 }
 
 export default function AdminAnalyticsPage() {
@@ -80,27 +95,21 @@ export default function AdminAnalyticsPage() {
   const { data: segmentsRes } = useAdminAnalyticsCustomerSegments();
   const { data: peakHoursRes } = useAdminAnalyticsPeakHours();
 
-  const revenueData = toArray<{ date: string; revenue: number; predicted?: boolean }>(
+  const revenueData = unwrapList<{ date: string; revenue: number; predicted?: boolean }>(
     revenueRes?.data ?? revenueRes
   );
-  const forecastData = toArray<{ date: string; revenue: number }>(forecastRes?.data ?? forecastRes);
-  const occupancyData = toArray<{
+  const forecastData = unwrapList<{ date: string; revenue: number }>(forecastRes?.data ?? forecastRes);
+  const occupancyData = unwrapList<{
     cinemaId: string;
     cinemaName: string;
     date: string;
     occupancy: number;
   }>(occupancyRes?.data ?? occupancyRes);
-  const moviesData = toArray<{
-    movieId: string;
-    movieTitle: string;
-    revenue: number;
-    bookings: number;
-    occupancy?: number;
-  }>(moviesRes?.data ?? moviesRes);
-  const segmentsData = toArray<{ segment: string; count: number; percentage: number }>(
+  const moviesData = unwrapList<RawMovieReport>(moviesRes?.data ?? moviesRes).map(normalizeMovieReport);
+  const segmentsData = unwrapList<{ segment: string; count: number; percentage: number }>(
     segmentsRes?.data ?? segmentsRes
   );
-  const peakHoursData = toArray<{ hour: number; bookings: number }>(
+  const peakHoursData = unwrapList<{ hour: number; bookings: number }>(
     peakHoursRes?.data ?? peakHoursRes
   );
 
@@ -176,7 +185,7 @@ export default function AdminAnalyticsPage() {
   return (
     <AdminPageShell
       title={t("analytics") ?? "Analytics"}
-      description="Enterprise analytics dashboard for revenue, occupancy, and customer insights."
+      description={t("descAnalytics")}
       breadcrumbs={[
         { label: t("title"), href: "/admin" },
         { label: t("analytics") ?? "Analytics" },
@@ -226,7 +235,7 @@ export default function AdminAnalyticsPage() {
         {/* Revenue Trend */}
         <Card id="revenue-section" className="cinect-glass border">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Revenue Trend</CardTitle>
+            <CardTitle>{t("analyticsRevenueTrend")}</CardTitle>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={exportRevenueCSV}>
                 <Download className="mr-2 h-4 w-4" />
@@ -245,7 +254,7 @@ export default function AdminAnalyticsPage() {
           <CardContent>
             {revenueData.length === 0 && forecastData.length === 0 ? (
               <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
-                No revenue data for this period
+                {t("analyticsNoRevenuePeriod")}
               </div>
             ) : (
               <div className="h-64 w-full min-w-0">
@@ -265,7 +274,7 @@ export default function AdminAnalyticsPage() {
                       stroke={CHART_COLORS[0]}
                       strokeWidth={2}
                       dot={false}
-                      name="Revenue"
+                      name={t("chartRevenue")}
                     />
                     {forecastData.length > 0 && (
                       <Line
@@ -275,7 +284,7 @@ export default function AdminAnalyticsPage() {
                         strokeWidth={2}
                         strokeDasharray="5 5"
                         dot={false}
-                        name="Forecast"
+                        name={t("chartForecast")}
                       />
                     )}
                   </LineChart>
@@ -288,7 +297,7 @@ export default function AdminAnalyticsPage() {
         {/* Forecast Chart */}
         <Card id="forecast-section" className="cinect-glass border">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Revenue Forecast</CardTitle>
+            <CardTitle>{t("analyticsRevenueForecast")}</CardTitle>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={exportForecastCSV}>
                 <Download className="mr-2 h-4 w-4" />
@@ -307,7 +316,7 @@ export default function AdminAnalyticsPage() {
           <CardContent>
             {forecastData.length === 0 ? (
               <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
-                No forecast data for this period
+                {t("analyticsNoForecastPeriod")}
               </div>
             ) : (
               <div className="h-64 w-full min-w-0">
@@ -327,7 +336,7 @@ export default function AdminAnalyticsPage() {
                       strokeWidth={2}
                       strokeDasharray="5 5"
                       dot={false}
-                      name="Predicted Revenue"
+                      name={t("chartPredictedRevenue")}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -340,7 +349,7 @@ export default function AdminAnalyticsPage() {
           {/* Occupancy Heatmap (Treemap) */}
           <Card id="occupancy-section" className="cinect-glass border">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Occupancy by Cinema & Date</CardTitle>
+              <CardTitle>{t("occupancyByCinema")}</CardTitle>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={exportOccupancyCSV}>
                   <Download className="mr-2 h-4 w-4" />
@@ -359,14 +368,14 @@ export default function AdminAnalyticsPage() {
             <CardContent>
               {occupancyData.length === 0 ? (
                 <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
-                  No occupancy data for this period
+                  {t("analyticsNoOccupancyPeriod")}
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr>
-                        <th className="border-b p-2 text-left">Cinema</th>
+                        <th className="border-b p-2 text-left">{t("occupancyTableCinema")}</th>
                         {occupancyDates.slice(0, 14).map((d) => (
                           <th key={d} className="text-muted-foreground border-b p-2 text-center">
                             {format(new Date(d), "MM/dd")}
@@ -412,7 +421,7 @@ export default function AdminAnalyticsPage() {
           {/* Customer Segmentation */}
           <Card id="segments-section" className="cinect-glass border">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Customer Segmentation</CardTitle>
+              <CardTitle>{t("analyticsCustomerSegmentation")}</CardTitle>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={exportSegmentsCSV}>
                   <Download className="mr-2 h-4 w-4" />
@@ -431,7 +440,7 @@ export default function AdminAnalyticsPage() {
             <CardContent>
               {segmentsData.length === 0 ? (
                 <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
-                  No segmentation data available
+                  {t("analyticsNoSegments")}
                 </div>
               ) : (
                 <div className="h-64 w-full min-w-0">
@@ -468,7 +477,7 @@ export default function AdminAnalyticsPage() {
         {/* Top Movies */}
         <Card id="movies-section" className="cinect-glass border">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Top Performing Movies</CardTitle>
+            <CardTitle>{t("analyticsTopMovies")}</CardTitle>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={exportMoviesCSV}>
                 <Download className="mr-2 h-4 w-4" />
@@ -487,7 +496,7 @@ export default function AdminAnalyticsPage() {
           <CardContent>
             {moviesData.length === 0 ? (
               <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
-                No movie data for this period
+                {t("analyticsNoMoviesPeriod")}
               </div>
             ) : (
               <div className="h-64 w-full min-w-0">
@@ -513,7 +522,7 @@ export default function AdminAnalyticsPage() {
         {/* Peak Hours */}
         <Card id="peak-hours-section" className="cinect-glass border">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Peak Booking Hours</CardTitle>
+            <CardTitle>{t("analyticsPeakHours")}</CardTitle>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={exportPeakHoursCSV}>
                 <Download className="mr-2 h-4 w-4" />
@@ -532,7 +541,7 @@ export default function AdminAnalyticsPage() {
           <CardContent>
             {peakHoursChartData.every((p) => p.bookings === 0) ? (
               <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed">
-                No peak hours data available
+                {t("analyticsNoPeakHours")}
               </div>
             ) : (
               <div className="h-64 w-full min-w-0">

@@ -56,45 +56,92 @@ import {
 } from "@/hooks/queries/use-admin";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { unwrapList } from "@/lib/admin-data";
+import { ApiErrorState } from "@/components/system/api-error-state";
 
-function toList<T>(v: unknown): T[] {
-  if (Array.isArray(v)) return v as T[];
-  if (v && typeof v === "object" && "data" in v && Array.isArray((v as { data: unknown }).data))
-    return (v as { data: T[] }).data;
-  return [];
+type RawUser = Partial<User> & {
+  userRoles?: Array<{ role?: { name?: UserRole } }>;
+};
+
+function normalizeUser(raw: RawUser): User {
+  const roleFromJoin = raw.userRoles?.[0]?.role?.name;
+  return {
+    id: String(raw.id ?? ""),
+    email: String(raw.email ?? ""),
+    fullName: String(raw.fullName ?? ""),
+    phone: raw.phone,
+    avatar: raw.avatar,
+    role: (raw.role ?? roleFromJoin ?? "USER") as UserRole,
+    membershipTier: raw.membershipTier,
+    membershipPoints: raw.membershipPoints,
+    dateOfBirth: raw.dateOfBirth,
+    gender: raw.gender,
+    city: raw.city,
+    isActive: raw.isActive,
+    emailVerified: raw.emailVerified,
+    createdAt: String(raw.createdAt ?? ""),
+    updatedAt: String(raw.updatedAt ?? raw.createdAt ?? ""),
+  };
 }
 
-const createUserSchema = z.object({
-  fullName: z.string().min(1, "Full name is required"),
-  email: z.string().email("Invalid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["ADMIN", "STAFF", "USER"]),
-  city: z.string().optional(),
-});
+type CreateUserFormValues = {
+  fullName: string;
+  email: string;
+  password: string;
+  role: "ADMIN" | "STAFF" | "USER";
+  city?: string;
+};
 
-const editUserSchema = z.object({
-  fullName: z.string().min(1, "Full name is required"),
-  email: z.string().email("Invalid email"),
-  role: z.enum(["ADMIN", "STAFF", "USER"]),
-  city: z.string().optional(),
-  cinemaIds: z.array(z.string()).optional(),
-});
-
-type CreateUserFormValues = z.infer<typeof createUserSchema>;
-type EditUserFormValues = z.infer<typeof editUserSchema>;
+type EditUserFormValues = {
+  fullName: string;
+  email: string;
+  role: "ADMIN" | "STAFF" | "USER";
+  city?: string;
+  cinemaIds?: string[];
+};
 
 export default function AdminUsersPage() {
   const t = useTranslations("admin");
+  const tAuth = useTranslations("auth");
+  const tCommon = useTranslations("common");
+  const tNav = useTranslations("nav");
+  const createUserSchema = useMemo(
+    () =>
+      z.object({
+        fullName: z.string().min(1, t("validation.fullNameRequired")),
+        email: z.string().email(t("validation.emailInvalid")),
+        password: z.string().min(6, t("validation.passwordMin6")),
+        role: z.enum(["ADMIN", "STAFF", "USER"]),
+        city: z.string().optional(),
+      }),
+    [t]
+  );
+  const editUserSchema = useMemo(
+    () =>
+      z.object({
+        fullName: z.string().min(1, t("validation.fullNameRequired")),
+        email: z.string().email(t("validation.emailInvalid")),
+        role: z.enum(["ADMIN", "STAFF", "USER"]),
+        city: z.string().optional(),
+        cinemaIds: z.array(z.string()).optional(),
+      }),
+    [t]
+  );
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
-  const { data: usersRes, isLoading: usersLoading } = useAdminUsers();
-  const actualUsers = toList<User>(usersRes?.data ?? usersRes);
+  const {
+    data: usersRes,
+    isLoading: usersLoading,
+    error: usersError,
+    refetch: refetchUsers,
+  } = useAdminUsers({ limit: 500 });
+  const actualUsers = unwrapList<RawUser>(usersRes?.data ?? usersRes).map(normalizeUser);
 
   const { data: cinemasRes } = useAdminCinemas();
-  const actualCinemas = toList<{ id: string; name: string }>(cinemasRes?.data ?? cinemasRes);
+  const actualCinemas = unwrapList<{ id: string; name: string }>(cinemasRes?.data ?? cinemasRes);
 
   const createMutation = useCreateUser();
   const updateMutation = useUpdateUser();
@@ -169,7 +216,6 @@ export default function AdminUsersPage() {
       email: values.email,
       role: values.role as UserRole,
       city: values.city || undefined,
-      ...(values.cinemaIds?.length ? { cinemaIds: values.cinemaIds } : {}),
     } as Parameters<typeof updateMutation.mutateAsync>[0]);
     setEditDialogOpen(false);
   }
@@ -182,26 +228,39 @@ export default function AdminUsersPage() {
 
   const columns: ColumnDef<User>[] = useMemo(
     () => [
-      { accessorKey: "fullName", header: "Name" },
-      { accessorKey: "email", header: "Email" },
-      { accessorKey: "role", header: "Role" },
-      { accessorKey: "city", header: "City", cell: ({ row }) => row.original.city ?? "—" },
+      { accessorKey: "fullName", header: t("colName") },
+      { accessorKey: "email", header: t("colEmail") },
+      {
+        accessorKey: "role",
+        header: tAuth("role"),
+        cell: ({ row }) => {
+          const r = row.original.role;
+          return r === "ADMIN"
+            ? t("roleAdmin")
+            : r === "STAFF"
+              ? t("roleStaff")
+              : r === "USER"
+                ? t("roleUser")
+                : r;
+        },
+      },
+      { accessorKey: "city", header: tNav("city"), cell: ({ row }) => row.original.city ?? "—" },
       {
         accessorKey: "createdAt",
-        header: "Created",
+        header: t("colCreated"),
         cell: ({ row }) =>
           row.original.createdAt ? format(new Date(row.original.createdAt), "dd/MM/yyyy") : "—",
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t("colActions"),
         cell: ({ row }) => (
           <div className="flex gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => openEdit(row.original)}
-              aria-label="Edit user"
+              aria-label={t("ariaEditUser")}
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -209,7 +268,7 @@ export default function AdminUsersPage() {
               variant="ghost"
               size="icon"
               onClick={() => setDeleteTarget(row.original)}
-              aria-label="Delete user"
+              aria-label={t("ariaDeleteUser")}
             >
               <Trash2 className="text-destructive h-4 w-4" />
             </Button>
@@ -217,35 +276,39 @@ export default function AdminUsersPage() {
         ),
       },
     ],
-    [openEdit]
+    [openEdit, t, tAuth, tNav]
   );
 
   return (
     <AdminPageShell
       title={t("users")}
-      description="Manage users, roles, and staff cinema assignments."
+      description={t("descUsers")}
       breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("users") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
-          Add User
+          {t("addUserBtn")}
         </Button>
       }
     >
-      <DataTable
-        columns={columns}
-        data={actualUsers}
-        searchKey="fullName"
-        searchPlaceholder="Search users..."
-        className="cinect-glass rounded-lg border p-4"
-        isLoading={usersLoading}
-        emptyMessage="No users found."
-      />
+      {usersError && !usersLoading ? (
+        <ApiErrorState error={usersError} onRetry={() => void refetchUsers()} />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={actualUsers}
+          searchKey="fullName"
+          searchPlaceholder={t("searchUsers")}
+          className="cinect-glass rounded-lg border p-4"
+          isLoading={usersLoading}
+          emptyMessage={t("emptyUsers")}
+        />
+      )}
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="cinect-glass max-w-lg border">
           <DialogHeader>
-            <DialogTitle>Create User</DialogTitle>
+            <DialogTitle>{t("createUser")}</DialogTitle>
           </DialogHeader>
           <Form {...createForm}>
             <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
@@ -254,7 +317,7 @@ export default function AdminUsersPage() {
                 name="fullName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full name</FormLabel>
+                    <FormLabel>{tAuth("fullName")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -267,7 +330,7 @@ export default function AdminUsersPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{tAuth("email")}</FormLabel>
                     <FormControl>
                       <Input type="email" {...field} />
                     </FormControl>
@@ -280,7 +343,7 @@ export default function AdminUsersPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{tAuth("password")}</FormLabel>
                     <FormControl>
                       <Input type="password" {...field} />
                     </FormControl>
@@ -293,17 +356,17 @@ export default function AdminUsersPage() {
                 name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel>{tAuth("role")}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select role" />
+                          <SelectValue placeholder={t("selectRole")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="ADMIN">Admin</SelectItem>
-                        <SelectItem value="STAFF">Staff</SelectItem>
-                        <SelectItem value="USER">User</SelectItem>
+                        <SelectItem value="ADMIN">{t("roleAdmin")}</SelectItem>
+                        <SelectItem value="STAFF">{t("roleStaff")}</SelectItem>
+                        <SelectItem value="USER">{t("roleUser")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -315,9 +378,9 @@ export default function AdminUsersPage() {
                 name="city"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>City</FormLabel>
+                    <FormLabel>{tNav("city")}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Optional" />
+                      <Input {...field} placeholder={t("optional")} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -325,10 +388,10 @@ export default function AdminUsersPage() {
               />
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                  Cancel
+                  {tCommon("cancel")}
                 </Button>
                 <Button type="submit" disabled={createMutation.isPending}>
-                  Create
+                  {tCommon("create")}
                 </Button>
               </DialogFooter>
             </form>
@@ -339,7 +402,7 @@ export default function AdminUsersPage() {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="cinect-glass max-w-lg border">
           <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
+            <DialogTitle>{t("editUser")}</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
             <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
@@ -348,7 +411,7 @@ export default function AdminUsersPage() {
                 name="fullName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full name</FormLabel>
+                    <FormLabel>{tAuth("fullName")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -361,7 +424,7 @@ export default function AdminUsersPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{tAuth("email")}</FormLabel>
                     <FormControl>
                       <Input type="email" {...field} />
                     </FormControl>
@@ -374,17 +437,17 @@ export default function AdminUsersPage() {
                 name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Role</FormLabel>
+                    <FormLabel>{tAuth("role")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select role" />
+                          <SelectValue placeholder={t("selectRole")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="ADMIN">Admin</SelectItem>
-                        <SelectItem value="STAFF">Staff</SelectItem>
-                        <SelectItem value="USER">User</SelectItem>
+                        <SelectItem value="ADMIN">{t("roleAdmin")}</SelectItem>
+                        <SelectItem value="STAFF">{t("roleStaff")}</SelectItem>
+                        <SelectItem value="USER">{t("roleUser")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -396,9 +459,9 @@ export default function AdminUsersPage() {
                 name="city"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>City</FormLabel>
+                    <FormLabel>{tNav("city")}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Optional" />
+                      <Input {...field} placeholder={t("optional")} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -410,7 +473,7 @@ export default function AdminUsersPage() {
                   name="cinemaIds"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Assigned cinemas</FormLabel>
+                      <FormLabel>{t("assignedCinemas")}</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -422,8 +485,8 @@ export default function AdminUsersPage() {
                               )}
                             >
                               {field.value?.length
-                                ? `${field.value.length} cinema(s) selected`
-                                : "Select cinemas"}
+                                ? t("cinemasSelectedCount", { count: field.value.length })
+                                : t("selectCinemas")}
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
@@ -455,10 +518,10 @@ export default function AdminUsersPage() {
               )}
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
-                  Cancel
+                  {tCommon("cancel")}
                 </Button>
                 <Button type="submit" disabled={updateMutation.isPending}>
-                  Update
+                  {t("updateUserBtn")}
                 </Button>
               </DialogFooter>
             </form>
@@ -469,19 +532,18 @@ export default function AdminUsersPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent className="cinect-glass border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteUser")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deleteTarget?.fullName}&quot;? This action
-              cannot be undone.
+              {t("deleteUserDesc", { name: deleteTarget?.fullName ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {tCommon("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

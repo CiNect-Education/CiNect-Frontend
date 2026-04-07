@@ -1,16 +1,20 @@
 /**
- * Auto-detect which backend is running (NestJS on 3001 or Spring on 8081).
+ * Auto-detect which backend is running (Spring on 8081 or NestJS on 3001).
  *
  * If NEXT_PUBLIC_API_BASE_URL is explicitly set, that value is used directly.
- * Otherwise, we probe both ports concurrently and use whichever responds first.
+ * Otherwise we probe candidates. **Spring is listed first** so a typical local setup
+ * (`mvn spring-boot:run` only) talks to the right API without accidentally hitting
+ * a stale Nest URL from localStorage.
  */
 
-const CANDIDATES = ["http://localhost:3001/api/v1", "http://localhost:8081/api/v1"];
+const CANDIDATES = ["http://localhost:8081/api/v1", "http://localhost:3001/api/v1"];
 
-const DEFAULT_URL = CANDIDATES[0]; // NestJS fallback
+/** Prefer Spring for SSR / first paint before `discoverApiBaseUrl` runs (matches dual-backend rule). */
+const DEFAULT_URL = CANDIDATES[0];
 
 let cachedUrl: string | null = null;
-const STORAGE_KEY = "cinect.apiBaseUrl";
+/** Bump when discovery rules change so old cached hosts are never reused blindly. */
+const STORAGE_KEY = "cinect.apiBaseUrl.v3";
 
 function isBrowser(): boolean {
   return typeof window !== "undefined";
@@ -32,37 +36,38 @@ async function probeUrl(baseUrl: string): Promise<string> {
 }
 
 export async function discoverApiBaseUrl(): Promise<string> {
-  // Already resolved
   if (cachedUrl) return cachedUrl;
 
-  // Explicit env var takes priority
   const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   if (envUrl) {
     cachedUrl = envUrl;
     return cachedUrl;
   }
 
-  // Server-side: can't probe, use default
   if (!isBrowser()) {
     return DEFAULT_URL;
   }
 
-  // Browser: reuse last successful discovery to avoid probing dead ports.
   const stored = window.localStorage.getItem(STORAGE_KEY);
   if (stored) {
-    cachedUrl = stored;
-    return cachedUrl;
+    try {
+      await probeUrl(stored);
+      cachedUrl = stored;
+      if (process.env.NODE_ENV === "development") {
+        console.log(`[API Discovery] Reusing healthy backend: ${cachedUrl}`);
+      }
+      return cachedUrl;
+    } catch {
+      window.localStorage.removeItem(STORAGE_KEY);
+    }
   }
 
   try {
-    // Race both ports — first healthy response wins
     cachedUrl = await Promise.any(CANDIDATES.map(probeUrl));
   } catch {
-    // All probes failed — fall back to default
     cachedUrl = DEFAULT_URL;
   }
 
-  // Persist so we don't keep pinging the other backend on every refresh.
   try {
     window.localStorage.setItem(STORAGE_KEY, cachedUrl);
   } catch {

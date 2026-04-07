@@ -43,26 +43,41 @@ import {
   useUpdateCinema,
   useDeleteCinema,
 } from "@/hooks/queries/use-admin";
+import { unwrapList } from "@/lib/admin-data";
 
-const cinemaFormSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  address: z.string().min(1, "Address is required"),
-  city: z.string().min(1, "City is required"),
-  district: z.string().optional(),
-  phone: z.string().optional(),
-  email: z.string().email().optional().or(z.literal("")),
-});
-
-type CinemaFormValues = z.infer<typeof cinemaFormSchema>;
+type CinemaFormValues = {
+  name: string;
+  address: string;
+  city: string;
+  district?: string;
+  phone?: string;
+  email?: string;
+};
 
 export default function AdminCinemasPage() {
   const t = useTranslations("admin");
+  const tAuth = useTranslations("auth");
+  const tCommon = useTranslations("common");
+  const cinemaFormSchema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, t("validation.nameRequired")),
+        address: z.string().min(1, t("validation.addressRequired")),
+        city: z.string().min(1, t("validation.cityRequired")),
+        district: z.string().optional(),
+        phone: z.string().optional(),
+        email: z
+          .union([z.literal(""), z.string().email(t("validation.emailInvalid"))])
+          .optional(),
+      }),
+    [t]
+  );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCinema, setEditingCinema] = useState<Cinema | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Cinema | null>(null);
 
   const { data: cinemasRes, isLoading: cinemasLoading } = useAdminCinemas();
-  const cinemas = cinemasRes?.data ?? [];
+  const cinemas = unwrapList<Cinema>(cinemasRes?.data ?? cinemasRes);
   const createMutation = useCreateCinema();
   const updateMutation = useUpdateCinema();
   const deleteMutation = useDeleteCinema();
@@ -132,31 +147,31 @@ export default function AdminCinemasPage() {
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: t("colName"),
       },
       {
         accessorKey: "city",
-        header: "City",
+        header: t("colCity"),
       },
       {
         accessorKey: "address",
-        header: "Address",
+        header: t("colAddress"),
       },
       {
         id: "rooms",
-        header: "Rooms",
+        header: t("colRooms"),
         cell: ({ row }) => row.original.rooms?.length ?? 0,
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t("colActions"),
         cell: ({ row }) => (
           <div className="flex gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => openEdit(row.original)}
-              aria-label="Edit cinema"
+              aria-label={t("ariaEditCinema")}
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -164,7 +179,7 @@ export default function AdminCinemasPage() {
               variant="ghost"
               size="icon"
               onClick={() => setDeleteTarget(row.original)}
-              aria-label="Delete cinema"
+              aria-label={t("ariaDeleteCinema")}
             >
               <Trash2 className="text-destructive h-4 w-4" />
             </Button>
@@ -172,18 +187,18 @@ export default function AdminCinemasPage() {
         ),
       },
     ],
-    [openEdit]
+    [openEdit, t]
   );
 
   return (
     <AdminPageShell
       title={t("cinemas")}
-      description="Manage cinema locations, addresses, and configurations."
+      description={t("descCinemas")}
       breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("cinemas") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Cinema
+          {t("addCinemaBtn")}
         </Button>
       }
     >
@@ -191,16 +206,16 @@ export default function AdminCinemasPage() {
         columns={columns}
         data={cinemas}
         searchKey="name"
-        searchPlaceholder="Search cinemas..."
+        searchPlaceholder={t("searchCinemas")}
         className="cinect-glass rounded-lg border p-4"
         isLoading={cinemasLoading}
-        emptyMessage="No cinemas found."
+        emptyMessage={t("emptyCinemas")}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="cinect-glass max-w-lg border">
           <DialogHeader>
-            <DialogTitle>{editingCinema ? "Edit Cinema" : "Add Cinema"}</DialogTitle>
+            <DialogTitle>{editingCinema ? t("editCinema") : t("addCinema")}</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -209,7 +224,7 @@ export default function AdminCinemasPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>{t("colName")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -222,7 +237,7 @@ export default function AdminCinemasPage() {
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Address</FormLabel>
+                    <FormLabel>{t("colAddress")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -236,7 +251,7 @@ export default function AdminCinemasPage() {
                   name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>City</FormLabel>
+                      <FormLabel>{t("colCity")}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -249,7 +264,7 @@ export default function AdminCinemasPage() {
                   name="district"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>District</FormLabel>
+                      <FormLabel>{t("colDistrict")}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -264,7 +279,7 @@ export default function AdminCinemasPage() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone</FormLabel>
+                      <FormLabel>{tAuth("phone")}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -277,7 +292,7 @@ export default function AdminCinemasPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{tAuth("email")}</FormLabel>
                       <FormControl>
                         <Input type="email" {...field} />
                       </FormControl>
@@ -288,13 +303,13 @@ export default function AdminCinemasPage() {
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancel
+                  {tCommon("cancel")}
                 </Button>
                 <Button
                   type="submit"
                   disabled={createMutation.isPending || updateMutation.isPending}
                 >
-                  {editingCinema ? "Update" : "Create"}
+                  {editingCinema ? t("updateUserBtn") : tCommon("create")}
                 </Button>
               </DialogFooter>
             </form>
@@ -305,19 +320,18 @@ export default function AdminCinemasPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent className="cinect-glass border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Cinema</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteCinema")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deleteTarget?.name}&quot;? This action cannot
-              be undone.
+              {t("deleteCinemaDesc", { name: deleteTarget?.name ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {tCommon("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

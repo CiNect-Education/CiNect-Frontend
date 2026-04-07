@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { useRef } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -11,6 +12,10 @@ import { useBooking } from "@/hooks/queries/use-booking-flow";
 import { Download, Calendar, MapPin, Clock, Users } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { format } from "date-fns";
+import { enUS } from "date-fns/locale";
+import { vi as viDateLocale } from "date-fns/locale";
+import { useLocale, useTranslations } from "next-intl";
+import { formatVnd, localizeRoomName } from "@/lib/showtime-display";
 
 function safeDate(value: unknown): Date | null {
   if (typeof value === "string" || typeof value === "number" || value instanceof Date) {
@@ -32,13 +37,65 @@ function toNumber(value: unknown): number {
 export default function TicketPage() {
   const params = useParams();
   const bookingId = params.bookingId as string;
+  const locale = useLocale();
+  const tShow = useTranslations("showtimeDisplay");
+  const dateFnsLocale = locale.startsWith("vi") ? viDateLocale : enUS;
+  const price = (n: number) => formatVnd(n, locale);
 
   const { data: bookingRes, isLoading, error, refetch } = useBooking(bookingId);
   const booking = bookingRes?.data as import("@/types/domain").Booking | undefined;
+  const ticketRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = () => {
-    // Use browser print dialog so users can choose "Save as PDF"
-    window.print();
+    const ticketNode = ticketRef.current;
+    if (!ticketNode) {
+      window.print();
+      return;
+    }
+
+    const printWindow = window.open("", "_blank", "noopener,noreferrer,width=960,height=1280");
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+
+    const styleTags = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+      .map((el) => el.outerHTML)
+      .join("\n");
+
+    printWindow.document.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>CiNect Ticket</title>
+          ${styleTags}
+          <style>
+            @page { margin: 1cm; }
+            body {
+              margin: 0;
+              padding: 16px;
+              print-color-adjust: exact;
+              -webkit-print-color-adjust: exact;
+              background: #fff;
+            }
+            .ticket-print-shell {
+              max-width: 760px;
+              margin: 0 auto;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="ticket-print-shell">${ticketNode.outerHTML}</div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
   };
 
   if (isLoading) {
@@ -86,7 +143,8 @@ export default function TicketPage() {
         </div>
       </div>
 
-      <Card className="cinect-glass print:shadow-none">
+      <div ref={ticketRef}>
+        <Card className="cinect-glass print:shadow-none">
         <CardHeader className="space-y-4">
           <div className="flex items-start justify-between">
             <div className="space-y-2">
@@ -128,10 +186,10 @@ export default function TicketPage() {
               <div className="space-y-1">
                 <div className="text-sm font-medium">Date & Time</div>
                 <div className="text-muted-foreground text-sm">
-                  {showtimeDate ? format(showtimeDate, "PPP") : "—"}
+                  {showtimeDate ? format(showtimeDate, "PPP", { locale: dateFnsLocale }) : "—"}
                 </div>
                 <div className="text-muted-foreground text-sm">
-                  {showtimeDate ? format(showtimeDate, "p") : "—"}
+                  {showtimeDate ? format(showtimeDate, "p", { locale: dateFnsLocale }) : "—"}
                 </div>
               </div>
             </div>
@@ -141,7 +199,9 @@ export default function TicketPage() {
               <div className="space-y-1">
                 <div className="text-sm font-medium">Cinema</div>
                 <div className="text-muted-foreground text-sm">{cinemaName}</div>
-                <div className="text-muted-foreground text-sm">Room {roomName}</div>
+                <div className="text-muted-foreground text-sm">
+                  {roomName ? localizeRoomName(roomName, (k, v) => tShow(k, v)) : "—"}
+                </div>
               </div>
             </div>
 
@@ -160,7 +220,7 @@ export default function TicketPage() {
               <div className="space-y-1">
                 <div className="text-sm font-medium">Showtime</div>
                 <div className="text-muted-foreground text-sm">
-                  {showtimeDate ? format(showtimeDate, "PPpp") : "—"}
+                  {showtimeDate ? format(showtimeDate, "PPpp", { locale: dateFnsLocale }) : "—"}
                 </div>
               </div>
             </div>
@@ -178,11 +238,10 @@ export default function TicketPage() {
                         {snack.quantity}x {snack.name}
                       </span>
                       <span>
-                        $
-                        {(
+                        {price(
                           (toNumber(snack.unitPrice) || toNumber(snack.totalPrice)) *
-                          toNumber(snack.quantity)
-                        ).toFixed(2)}
+                            toNumber(snack.quantity)
+                        )}
                       </span>
                     </div>
                   ))}
@@ -198,37 +257,36 @@ export default function TicketPage() {
             {seats && seats.length > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Tickets ({seats.length})</span>
-                <span>${seats.reduce((s, seat) => s + toNumber(seat.price), 0).toFixed(2)}</span>
+                <span>{price(seats.reduce((s, seat) => s + toNumber(seat.price), 0))}</span>
               </div>
             )}
             {snacks && snacks.length > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Snacks</span>
                 <span>
-                  $
-                  {snacks
-                    .reduce(
+                  {price(
+                    snacks.reduce(
                       (s, snack) =>
                         s +
                         (toNumber(snack.totalPrice) ||
                           toNumber(snack.unitPrice) * toNumber(snack.quantity)),
                       0
                     )
-                    .toFixed(2)}
+                  )}
                 </span>
               </div>
             )}
             {toNumber(booking.discountAmount) > 0 && (
               <div className="text-primary flex justify-between text-sm">
                 <span>Discount</span>
-                <span>-${toNumber(booking.discountAmount).toFixed(2)}</span>
+                <span>-{price(toNumber(booking.discountAmount))}</span>
               </div>
             )}
             <Separator />
             <div className="flex justify-between font-bold">
               <span>Total Paid</span>
               <span className="text-lg">
-                ${(toNumber(payment?.amount) || toNumber(booking.finalAmount)).toFixed(2)}
+                {price(toNumber(payment?.amount) || toNumber(booking.finalAmount))}
               </span>
             </div>
           </div>
@@ -239,11 +297,14 @@ export default function TicketPage() {
             <div>Transaction ID: {payment?.transactionId ?? "N/A"}</div>
             <div>
               Booked on:{" "}
-              {safeDate(booking.createdAt) ? format(new Date(booking.createdAt), "PPp") : "—"}
+              {safeDate(booking.createdAt)
+                ? format(new Date(booking.createdAt), "PPp", { locale: dateFnsLocale })
+                : "—"}
             </div>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
 
       {/* Print Styles */}
       <style jsx global>{`

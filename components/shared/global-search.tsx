@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import {
   Command,
@@ -10,7 +11,12 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import type { MovieListItem, CinemaListItem } from "@/types/domain";
@@ -30,6 +36,8 @@ function useDebouncedValue<T>(value: T, delay: number): T {
 }
 
 export function GlobalSearch() {
+  const t = useTranslations("globalSearch");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedQuery = useDebouncedValue(searchQuery.trim(), DEBOUNCE_MS);
@@ -81,7 +89,7 @@ export function GlobalSearch() {
         type="button"
         onClick={() => setOpen(true)}
         className="text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors"
-        aria-label="Search"
+        aria-label={tCommon("searchAria")}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -97,55 +105,64 @@ export function GlobalSearch() {
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.3-4.3" />
         </svg>
-        <span className="sr-only">Search</span>
+        <span className="sr-only">{tCommon("searchAria")}</span>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="overflow-hidden p-0 shadow-lg">
-          <DialogTitle className="sr-only">Search</DialogTitle>
-          <DialogDescription className="sr-only">
-            Search movies and cinemas by name.
-          </DialogDescription>
+          <DialogTitle className="sr-only">{t("dialogTitle")}</DialogTitle>
+          <DialogDescription className="sr-only">{t("dialogDescription")}</DialogDescription>
           <Command
             shouldFilter={false}
             className="[&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
           >
             <CommandInput
-              placeholder="Search movies and cinemas..."
+              placeholder={t("placeholder")}
               value={searchQuery}
               onValueChange={setSearchQuery}
             />
             <CommandList>
               <CommandEmpty>
                 {debouncedQuery.length < 2
-                  ? "Type at least 2 characters to search"
+                  ? t("minChars")
                   : isLoading
-                    ? "Searching..."
-                    : "No results found."}
+                    ? t("searching")
+                    : t("noResults")}
               </CommandEmpty>
               {hasResults && (
                 <>
                   {movies.length > 0 && (
-                    <CommandGroup heading="Movies">
+                    <CommandGroup heading={t("movies")}>
                       {movies.map((movie) => (
                         <CommandItem
                           key={movie.id}
                           value={`movie-${movie.id}`}
-                          onSelect={() => handleSelect(`/movies/${movie.id}`)}
+                          onSelect={() => handleSelect(`/movies/${movie.slug}`)}
                           className="flex items-center gap-3"
                         >
-                          <Film className="h-4 w-4 shrink-0" />
+                          {movie.posterUrl ? (
+                            <img
+                              src={movie.posterUrl}
+                              alt={movie.title}
+                              className="h-10 w-8 shrink-0 rounded object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="bg-muted flex h-10 w-8 shrink-0 items-center justify-center rounded">
+                              <Film className="h-4 w-4" />
+                            </div>
+                          )}
                           <span>{movie.title}</span>
                         </CommandItem>
                       ))}
                     </CommandGroup>
                   )}
                   {cinemas.length > 0 && (
-                    <CommandGroup heading="Cinemas">
+                    <CommandGroup heading={t("cinemas")}>
                       {cinemas.map((cinema) => (
                         <CommandItem
                           key={cinema.id}
                           value={`cinema-${cinema.id}`}
-                          onSelect={() => handleSelect(`/cinemas/${cinema.id}`)}
+                          onSelect={() => handleSelect(`/cinemas/${cinema.slug || cinema.id}`)}
                           className="flex items-center gap-3"
                         >
                           <Building2 className="h-4 w-4 shrink-0" />

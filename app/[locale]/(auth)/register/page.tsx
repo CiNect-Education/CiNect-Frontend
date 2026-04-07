@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,20 +29,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-const registerSchema = z
-  .object({
-    fullName: z.string().min(2),
-    email: z.string().email(),
-    phone: z.string().optional(),
-    password: z.string().min(6),
-    confirmPassword: z.string().min(6),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+const FULL_NAME_REGEX = /^[\p{L}\s]+$/u;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const PHONE_REGEX = /^0\d{9}$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
-type RegisterFormValues = z.infer<typeof registerSchema>;
+type RegisterFormValues = {
+  fullName: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirmPassword: string;
+};
 
 export default function RegisterPage() {
   const t = useTranslations("auth");
@@ -50,9 +49,46 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const registerSchema = useMemo(
+    () =>
+      z
+        .object({
+          fullName: z
+            .string()
+            .trim()
+            .min(2, t("validationFullNameMin"))
+            .max(50, t("validationFullNameMax"))
+            .regex(FULL_NAME_REGEX, t("validationFullNameLettersOnly")),
+          email: z
+            .string()
+            .trim()
+            .min(1, t("validationRequiredEmail"))
+            .regex(EMAIL_REGEX, t("validationInvalidEmail")),
+          phone: z
+            .string()
+            .trim()
+            .min(1, t("validationRequiredPhone"))
+            .regex(PHONE_REGEX, t("validationInvalidPhone")),
+          password: z
+            .string()
+            .min(1, t("validationRequiredPassword"))
+            .regex(PASSWORD_REGEX, t("validationInvalidPassword")),
+          confirmPassword: z
+            .string()
+            .min(1, t("validationRequiredConfirmPassword"))
+            .regex(PASSWORD_REGEX, t("validationInvalidConfirmPassword")),
+        })
+        .refine((data) => data.password === data.confirmPassword, {
+          message: t("passwordsMismatch"),
+          path: ["confirmPassword"],
+        }),
+    [t]
+  );
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: {
       fullName: "",
       email: "",
@@ -62,17 +98,21 @@ export default function RegisterPage() {
     },
   });
 
+  function onInvalidSubmit() {
+    toast.error(t("validationCheckRegisterForm"));
+  }
+
   async function onSubmit(data: RegisterFormValues) {
     setIsLoading(true);
     try {
       await register({
-        fullName: data.fullName,
-        email: data.email,
-        phone: data.phone || "",
+        fullName: data.fullName.trim(),
+        email: data.email.trim().toLowerCase(),
+        phone: data.phone.trim(),
         password: data.password,
         confirmPassword: data.confirmPassword,
       });
-      router.push("/account/profile");
+      router.push("/login");
     } catch {
       // Error toast already shown in AuthProvider
     } finally {
@@ -84,11 +124,11 @@ export default function RegisterPage() {
     <Card>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">{t("register")}</CardTitle>
-        <CardDescription>Create your CiNect account</CardDescription>
+        <CardDescription>{t("registerSubtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit, onInvalidSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="fullName"
@@ -96,7 +136,7 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>{t("fullName")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nguyen Van A" {...field} />
+                    <Input placeholder={t("namePlaceholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -109,7 +149,20 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>{t("email")}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="name@example.com" {...field} />
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        inputMode="email"
+                        placeholder={t("emailPlaceholder")}
+                        className="pr-24"
+                        {...field}
+                      />
+                      {field.value && !field.value.includes("@") ? (
+                        <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm">
+                          @gmail.com
+                        </span>
+                      ) : null}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -122,7 +175,12 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>{t("phone")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="0901234567" {...field} />
+                    <Input
+                      placeholder={t("phonePlaceholder")}
+                      inputMode="tel"
+                      maxLength={10}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -147,7 +205,7 @@ export default function RegisterPage() {
                         size="icon"
                         className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground"
                         onClick={() => setShowPassword((p) => !p)}
-                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
@@ -176,7 +234,7 @@ export default function RegisterPage() {
                         size="icon"
                         className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground"
                         onClick={() => setShowConfirmPassword((p) => !p)}
-                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                        aria-label={showConfirmPassword ? t("hidePassword") : t("showPassword")}
                       >
                         {showConfirmPassword ? (
                           <EyeOff className="h-4 w-4" />
@@ -191,7 +249,7 @@ export default function RegisterPage() {
               )}
             />
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating account..." : t("registerBtn")}
+              {isLoading ? t("creatingAccount") : t("registerBtn")}
             </Button>
           </form>
         </Form>

@@ -55,10 +55,10 @@ export default function NotificationsPage() {
       list.push({
         id: `booking:${b.id}:${isUpcoming ? "upcoming" : "past"}`,
         type: "booking",
-        title: isUpcoming ? "Upcoming booking" : "Thanks for watching",
+        title: isUpcoming ? t("notifUpcomingBookingTitle") : t("notifPastBookingTitle"),
         message: isUpcoming
-          ? `${movie} at ${cinema} • your showtime is coming up.`
-          : `${movie} • hope you enjoyed the movie!`,
+          ? t("notifUpcomingBookingMsg", { movie, cinema })
+          : t("notifPastBookingMsg", { movie }),
         createdAt: isUpcoming ? b.showtime : b.updatedAt ?? b.createdAt,
         href: `/tickets/${b.id}`,
       });
@@ -68,16 +68,16 @@ export default function NotificationsPage() {
     list.push({
       id: "promo:checkout",
       type: "promo",
-      title: "Tip: apply promo codes",
-      message: "You can enter promo codes, gift cards, and points during checkout.",
+      title: t("notifPromoTipTitle"),
+      message: t("notifPromoTipMessage"),
       createdAt: new Date().toISOString(),
       href: "/movies",
     });
     list.push({
       id: "membership:profile",
       type: "membership",
-      title: "Membership reminder",
-      message: "Set your date of birth in Profile to unlock birthday perks.",
+      title: t("notifMembershipTitle"),
+      message: t("notifMembershipMessage"),
       createdAt: new Date().toISOString(),
       href: "/account/profile",
     });
@@ -96,7 +96,7 @@ export default function NotificationsPage() {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(READ_AT_KEY, now.toISOString());
     }
-    toast.success("All notifications marked as read");
+    toast.success(t("markAllReadToast"));
   };
 
   return (
@@ -111,7 +111,8 @@ export default function NotificationsPage() {
         actions={
           <Button variant="outline" size="sm" onClick={handleMarkAllRead} disabled={unreadCount === 0}>
             <CheckCheck className="mr-2 h-4 w-4" />
-            Mark all read{unreadCount > 0 ? ` (${unreadCount})` : ""}
+            {t("markAllRead")}
+            {unreadCount > 0 ? ` (${unreadCount})` : ""}
           </Button>
         }
       />
@@ -127,13 +128,13 @@ export default function NotificationsPage() {
       ) : notifications.length === 0 ? (
         <Card className="cinect-glass border">
           <CardHeader>
-            <CardTitle className="text-lg">All Notifications</CardTitle>
+            <CardTitle className="text-lg">{t("notificationsAllTitle")}</CardTitle>
           </CardHeader>
           <CardContent>
             <EmptyState
               icon={Bell}
-              title="No notifications"
-              description="You are all caught up. Notifications about your bookings, promotions, and membership updates will appear here."
+              title={t("notificationsEmptyTitle")}
+              description={t("notificationsEmptyDesc")}
             />
           </CardContent>
         </Card>
@@ -143,7 +144,11 @@ export default function NotificationsPage() {
             const isUnread = new Date(n.createdAt).getTime() > readAt.getTime();
             const Icon = n.type === "booking" ? Ticket : n.type === "promo" ? Tag : Crown;
             const badge =
-              n.type === "booking" ? "Booking" : n.type === "promo" ? "Promo" : "Membership";
+              n.type === "booking"
+                ? t("badgeBooking")
+                : n.type === "promo"
+                  ? t("badgePromo")
+                  : t("badgeMembership");
             return (
               <Card
                 key={n.id}
@@ -164,7 +169,7 @@ export default function NotificationsPage() {
                       </Badge>
                       {isUnread && (
                         <Badge className="text-[11px]" variant="default">
-                          New
+                          {t("notifNewBadge")}
                         </Badge>
                       )}
                       <span className="text-muted-foreground text-xs">
@@ -175,7 +180,7 @@ export default function NotificationsPage() {
                     {n.href && (
                       <div className="mt-2">
                         <Button size="sm" variant="outline" asChild>
-                          <Link href={n.href}>Open</Link>
+                          <Link href={n.href}>{t("notifOpen")}</Link>
                         </Button>
                       </div>
                     )}

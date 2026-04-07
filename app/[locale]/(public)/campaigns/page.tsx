@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,6 +19,8 @@ function toList<T>(v: unknown): T[] {
 }
 
 export default function CampaignsPage() {
+  const t = useTranslations("campaigns");
+  const tNav = useTranslations("nav");
   const { data, isLoading, error, refetch } = useActiveCampaigns();
   const campaigns = toList<{
     id: string;
@@ -53,18 +56,16 @@ export default function CampaignsPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
       <PageHeader
-        title="Campaigns"
-        description="Discover our latest campaigns, movie tie-ins, and special offers"
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Campaigns" }]}
+        title={t("title")}
+        description={t("description")}
+        breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("title") }]}
       />
 
       {campaigns.length === 0 ? (
         <div className="rounded-lg border border-dashed p-12 text-center">
           <Tag className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
-          <p className="mb-2 font-medium">No active campaigns</p>
-          <p className="text-muted-foreground text-sm">
-            Check back soon for new campaigns and promotions.
-          </p>
+          <p className="mb-2 font-medium">{t("emptyTitle")}</p>
+          <p className="text-muted-foreground text-sm">{t("emptyHint")}</p>
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

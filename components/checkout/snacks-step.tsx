@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
+import { formatVnd } from "@/lib/showtime-display";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { SnackItem } from "@/types/domain";
@@ -10,7 +12,6 @@ interface SnacksStepProps {
   snacks: SnackItem[];
   selectedSnacks: Array<{ snackId: string; quantity: number }>;
   onSnackChange: (snackId: string, quantity: number) => void;
-  onSkip: () => void;
   onContinue: () => void;
   onSaveFavorite?: () => void;
   onApplyFavorite?: () => void;
@@ -21,12 +22,13 @@ export function SnacksStep({
   snacks,
   selectedSnacks,
   onSnackChange,
-  onSkip,
   onContinue,
   onSaveFavorite,
   onApplyFavorite,
   hasFavorite,
 }: SnacksStepProps) {
+  const t = useTranslations("checkout");
+  const locale = useLocale();
   const isSvgLikeRemote = (url: string) => url.includes("placehold.co");
 
   const toNumber = (v: unknown): number => {
@@ -73,7 +75,7 @@ export function SnacksStep({
                   <div>
                     <h3 className="font-semibold">{snack.name}</h3>
                     {snack.id === bestValueSnackId && (
-                      <p className="text-primary text-xs font-semibold">Best value</p>
+                      <p className="text-primary text-xs font-semibold">{t("bestValue")}</p>
                     )}
                     {snack.description && (
                       <p className="text-muted-foreground line-clamp-2 text-sm">
@@ -83,7 +85,7 @@ export function SnacksStep({
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-bold">
-                      ${unitPrice.toFixed(2)}
+                      {formatVnd(unitPrice, locale)}
                     </span>
                     <div className="flex items-center gap-2">
                       <Button
@@ -126,7 +128,7 @@ export function SnacksStep({
               onClick={onSaveFavorite}
               disabled={!hasSelection}
             >
-              Save as favorite
+              {t("saveFavoriteCombo")}
             </Button>
           )}
           {onApplyFavorite && (
@@ -137,16 +139,13 @@ export function SnacksStep({
               onClick={onApplyFavorite}
               disabled={!hasFavorite}
             >
-              Use favorite
+              {t("useFavoriteCombo")}
             </Button>
           )}
         </div>
         <div className="flex flex-1 gap-2">
-          <Button type="button" variant="outline" className="flex-1" onClick={onSkip}>
-            Skip
-          </Button>
           <Button type="button" className="flex-1" onClick={onContinue}>
-            Continue to Payment
+            {t("continueToPayment")}
           </Button>
         </div>
       </div>

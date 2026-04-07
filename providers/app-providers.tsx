@@ -5,6 +5,7 @@ import { QueryProvider } from "./query-provider";
 import { AuthProvider } from "./auth-provider";
 import { GlobalLoadingProvider } from "@/components/shared/global-loading";
 import { RateLimitBanner } from "@/components/shared/rate-limit-banner";
+import { DailyCheckinPopup } from "@/components/shared/daily-checkin-popup";
 import { Toaster } from "@/components/ui/sonner";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
@@ -14,6 +15,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
         <AuthProvider>
           <GlobalLoadingProvider>
             <RateLimitBanner />
+            <DailyCheckinPopup />
             {children}
             <Toaster richColors position="top-right" />
           </GlobalLoadingProvider>

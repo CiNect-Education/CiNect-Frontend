@@ -1,30 +1,39 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useTheme } from "next-themes";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Settings, Sun, Moon, Monitor, MapPin, Check } from "lucide-react";
+import { Settings, Sun, Moon, Monitor, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const CITIES = [
-  { id: "hcm", name: "TP. Ho Chi Minh" },
-  { id: "hn", name: "Ha Noi" },
-  { id: "dn", name: "Da Nang" },
-  { id: "hp", name: "Hai Phong" },
-  { id: "ct", name: "Can Tho" },
-  { id: "bd", name: "Binh Duong" },
-  { id: "nt", name: "Nha Trang" },
-  { id: "vt", name: "Vung Tau" },
-];
+import {
+  bookingCityLabel,
+  normalizeBookingCityId,
+  persistSelectedBookingCity,
+  SELECTED_CITY_STORAGE_KEY,
+} from "@/lib/booking-region";
+import { DetectRegionButton } from "@/components/shared/detect-region-button";
+import {
+  BookingAddressModeSegment,
+  BookingCityField,
+} from "@/components/shared/booking-city-field";
+import { useProvincesLegacy, useProvincesNew } from "@/hooks/queries/use-cinemas";
 
 const LOCALES = [
   { id: "vi", label: "Tiếng Việt", flag: "🇻🇳" },
   { id: "en", label: "English", flag: "🇺🇸" },
 ];
+
+function toList<T>(v: unknown): T[] {
+  if (!v) return [];
+  if (Array.isArray(v)) return v;
+  const d = v as { data?: unknown; items?: unknown };
+  const arr = d.data ?? d.items;
+  return Array.isArray(arr) ? arr : [];
+}
 
 export function SettingsPanel() {
   const t = useTranslations("nav");
@@ -33,15 +42,68 @@ export function SettingsPanel() {
   const router = useRouter();
   const pathname = usePathname();
   const [selectedCity, setSelectedCity] = useState<string>("");
+  const [addressMode, setAddressMode] = useState<"new" | "legacy">("new");
+  const { data: provincesRes } = useProvincesNew();
+  const { data: legacyRes } = useProvincesLegacy();
+  const provincesNew = useMemo(
+    () => toList<{ code: string; nameVi: string; nameEn: string }>(provincesRes?.data),
+    [provincesRes?.data]
+  );
+  const provincesLegacy = useMemo(
+    () =>
+      toList<{
+        code: string;
+        nameVi: string;
+        nameEn: string;
+        provinceNew: { code: string; nameVi: string; nameEn: string };
+      }>(legacyRes?.data),
+    [legacyRes?.data]
+  );
+  const cityOptions = useMemo(() => {
+    if (addressMode === "legacy" && provincesLegacy.length > 0) {
+      return provincesLegacy.map((p) => ({
+        id: p.code,
+        label: locale.startsWith("vi") ? p.nameVi : p.nameEn,
+      }));
+    }
+    return provincesNew.map((p) => ({
+      id: p.code,
+      label: locale.startsWith("vi") ? p.nameVi : p.nameEn,
+    }));
+  }, [addressMode, locale, provincesLegacy, provincesNew]);
+  const cityLabel = useMemo(() => {
+    if (!selectedCity) return "";
+    return cityOptions.find((c) => c.id === selectedCity)?.label ?? bookingCityLabel(selectedCity, locale);
+  }, [selectedCity, cityOptions, locale]);
 
   useEffect(() => {
-    const saved = localStorage.getItem("selected_city");
-    if (saved) setSelectedCity(saved);
+    const saved = localStorage.getItem(SELECTED_CITY_STORAGE_KEY);
+    if (saved) setSelectedCity(normalizeBookingCityId(saved));
   }, []);
+  useEffect(() => {
+    if (!selectedCity) return;
+    if (provincesLegacy.some((p) => p.code === selectedCity)) {
+      setAddressMode("legacy");
+      return;
+    }
+    if (provincesNew.some((p) => p.code === selectedCity)) {
+      setAddressMode("new");
+    }
+  }, [selectedCity, provincesLegacy, provincesNew]);
 
   function handleCitySelect(cityId: string) {
-    setSelectedCity(cityId);
-    localStorage.setItem("selected_city", cityId);
+    const normalized = normalizeBookingCityId(cityId);
+    setSelectedCity(normalized);
+    persistSelectedBookingCity(normalized);
+  }
+  function handleAddressModeChange(nextMode: "new" | "legacy") {
+    setAddressMode(nextMode);
+    if (!selectedCity) return;
+    const existsInNext =
+      nextMode === "legacy"
+        ? provincesLegacy.some((p) => p.code === selectedCity)
+        : provincesNew.some((p) => p.code === selectedCity);
+    if (!existsInNext) handleCitySelect("");
   }
 
   function handleLocaleChange(newLocale: string) {
@@ -56,7 +118,7 @@ export function SettingsPanel() {
           <span className="sr-only">{t("settings")}</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-80 p-0">
+      <SheetContent side="right" className="flex w-80 flex-col p-0">
         <SheetHeader className="border-b px-5 py-4">
           <SheetTitle className="flex items-center gap-2 text-left text-base">
             <Settings className="text-primary h-4 w-4" />
@@ -64,7 +126,8 @@ export function SettingsPanel() {
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex flex-col gap-6 p-5">
+        <div className="min-h-0 flex-1 overflow-y-auto p-5">
+          <div className="flex flex-col gap-6">
           {/* Theme */}
           <div>
             <h4 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
@@ -125,25 +188,27 @@ export function SettingsPanel() {
             <h4 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
               {t("city")}
             </h4>
-            <div className="grid grid-cols-2 gap-1.5">
-              {CITIES.map((city) => (
-                <button
-                  key={city.id}
-                  type="button"
-                  onClick={() => handleCitySelect(city.id)}
-                  className={cn(
-                    "flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all",
-                    selectedCity === city.id
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  <MapPin className="h-3 w-3 shrink-0" />
-                  <span className="truncate">{city.name}</span>
-                </button>
-              ))}
+            <div className="mb-2 flex min-w-0 flex-wrap items-center gap-1.5">
+              <BookingAddressModeSegment mode={addressMode} onChange={handleAddressModeChange} />
+              <BookingCityField
+                cityOptions={cityOptions}
+                value={selectedCity}
+                displayLabel={cityLabel}
+                onChange={handleCitySelect}
+                compact
+                className="min-w-0 flex-1"
+              />
+            </div>
+            <div className="mb-1">
+              <DetectRegionButton
+                className="w-full"
+                showLabel
+                labelAlwaysVisible
+                onApplied={(cityId) => handleCitySelect(cityId)}
+              />
             </div>
           </div>
+        </div>
         </div>
       </SheetContent>
     </Sheet>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,13 @@ import { useCinema, useCinemaShowtimes } from "@/hooks/queries/use-cinemas";
 import { MapPin, Phone, Mail, Film, ExternalLink, Calendar } from "lucide-react";
 import type { Showtime } from "@/types/domain";
 import Image from "next/image";
+import {
+  buildGoogleMapsDirectionsUrl,
+  buildGoogleMapsPlaceUrl,
+  formatDistanceKm,
+  getCurrentPositionCoords,
+  haversineKm,
+} from "@/lib/maps";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -26,13 +33,19 @@ function toList<T>(v: unknown): T[] {
 export default function CinemaDetailPage() {
   const params = useParams();
   const t = useTranslations("cinemas");
-  const cinemaId = params.id as string;
+  const tNav = useTranslations("nav");
+  const locale = useLocale();
+  const timeLocaleTag = locale.startsWith("vi") ? "vi-VN" : "en-US";
+  const cinemaSlug = params.id as string;
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState("");
 
-  const { data: cinemaRes, isLoading, error, refetch } = useCinema(cinemaId);
-  const { data: showtimesRes } = useCinemaShowtimes(cinemaId, selectedDate);
-
+  const { data: cinemaRes, isLoading, error, refetch } = useCinema(cinemaSlug);
   const cinema = cinemaRes?.data as import("@/types/domain").Cinema | undefined;
+  const { data: showtimesRes } = useCinemaShowtimes(cinema?.id || "", selectedDate);
+
   const showtimes = toList<Showtime>(showtimesRes?.data ?? showtimesRes);
 
   // Group showtimes by movie for nicer display
@@ -42,7 +55,7 @@ export default function CinemaDetailPage() {
       if (!acc[key]) {
         acc[key] = {
           movieId: st.movieId,
-          movieTitle: st.movieTitle || "Movie",
+          movieTitle: st.movieTitle || t("movieTitleFallback"),
           moviePosterUrl: st.moviePosterUrl,
           items: [] as Showtime[],
         };
@@ -62,9 +75,9 @@ export default function CinemaDetailPage() {
         <PageHeader
           title=""
           breadcrumbs={[
-            { label: "Home", href: "/" },
-            { label: t("title") || "Cinemas", href: "/cinemas" },
-            { label: "Cinema Detail" },
+            { label: tNav("home"), href: "/" },
+            { label: t("title"), href: "/cinemas" },
+            { label: t("breadcrumbDetail") },
           ]}
         />
         <Skeleton className="mb-6 aspect-video max-w-2xl rounded-lg" />
@@ -86,19 +99,52 @@ export default function CinemaDetailPage() {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
         <div className="rounded-lg border border-dashed p-12 text-center">
-          <p className="text-muted-foreground">Cinema not found</p>
+          <p className="text-muted-foreground">{t("cinemaNotFound")}</p>
           <Button variant="outline" className="mt-4" asChild>
-            <Link href="/cinemas">Back to Cinemas</Link>
+            <Link href="/cinemas">{t("backToCinemas")}</Link>
           </Button>
         </div>
       </div>
     );
   }
 
-  const mapUrl =
-    cinema.latitude != null && cinema.longitude != null
-      ? `https://www.google.com/maps?q=${cinema.latitude},${cinema.longitude}`
-      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cinema.address)}`;
+  const mapUrl = buildGoogleMapsPlaceUrl({
+    lat: cinema.latitude,
+    lng: cinema.longitude,
+    address: cinema.address,
+    city: cinema.city,
+  });
+  const distanceFromUser =
+    userCoords && cinema.latitude != null && cinema.longitude != null
+      ? haversineKm(userCoords, { lat: cinema.latitude, lng: cinema.longitude })
+      : null;
+
+  async function detectMyLocation() {
+    setLocationError("");
+    setIsLocating(true);
+    try {
+      const coords = await getCurrentPositionCoords();
+      setUserCoords(coords);
+    } catch {
+      setLocationError(t("locationUnavailable"));
+    } finally {
+      setIsLocating(false);
+    }
+  }
+
+  function openDirectionsFromMe() {
+    if (!userCoords) return;
+    const url = buildGoogleMapsDirectionsUrl({
+      origin: userCoords,
+      destination: {
+        lat: cinema.latitude,
+        lng: cinema.longitude,
+        address: cinema.address,
+        city: cinema.city,
+      },
+    });
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
 
   const next7Days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
@@ -111,8 +157,8 @@ export default function CinemaDetailPage() {
       <PageHeader
         title={cinema.name}
         breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: t("title") || "Cinemas", href: "/cinemas" },
+          { label: tNav("home"), href: "/" },
+          { label: t("title"), href: "/cinemas" },
           { label: cinema.name },
         ]}
       />
@@ -159,6 +205,11 @@ export default function CinemaDetailPage() {
             </span>
           )}
         </div>
+        {distanceFromUser != null ? (
+          <p className="text-primary text-sm font-medium">
+            {t("distanceFromYou", { distance: formatDistanceKm(distanceFromUser) })}
+          </p>
+        ) : null}
         {cinema.amenities?.length ? (
           <div className="flex flex-wrap gap-2 pt-2">
             {cinema.amenities.map((a) => (
@@ -171,12 +222,23 @@ export default function CinemaDetailPage() {
       </div>
 
       <div className="mb-6">
-        <Button variant="outline" asChild>
-          <a href={mapUrl} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="mr-2 h-4 w-4" />
-            View on Google Maps
-          </a>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" asChild>
+            <a href={mapUrl} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="mr-2 h-4 w-4" />
+              {t("openInMaps")}
+            </a>
+          </Button>
+          <Button variant="secondary" onClick={detectMyLocation} disabled={isLocating}>
+            {isLocating ? t("locating") : t("useMyLocation")}
+          </Button>
+          {userCoords ? (
+            <Button variant="default" onClick={openDirectionsFromMe}>
+              {t("directionsFromMe")}
+            </Button>
+          ) : null}
+        </div>
+        {locationError ? <p className="text-destructive mt-2 text-xs">{locationError}</p> : null}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -199,7 +261,7 @@ export default function CinemaDetailPage() {
                     onClick={() => setSelectedDate(dateStr)}
                     className="shrink-0"
                   >
-                    {d.toLocaleDateString("en-US", {
+                    {d.toLocaleDateString(timeLocaleTag, {
                       weekday: "short",
                       day: "numeric",
                       month: "short",
@@ -243,9 +305,10 @@ export default function CinemaDetailPage() {
                       {group.items.map((st) => (
                         <Button key={st.id} size="sm" variant="outline" asChild>
                           <Link href={`/booking/${st.id}`}>
-                            {new Date(st.startTime).toLocaleTimeString([], {
+                            {new Date(st.startTime).toLocaleTimeString(timeLocaleTag, {
                               hour: "2-digit",
                               minute: "2-digit",
+                              hour12: !locale.startsWith("vi"),
                             })}
                             {st.format && st.format !== "2D" && (
                               <Badge variant="secondary" className="ml-1 text-[10px]">

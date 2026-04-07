@@ -22,14 +22,15 @@ import { Clock, Star, Calendar, Film, ChevronLeft, ChevronRight } from "lucide-r
 import type { MovieListItem } from "@/types/domain";
 import type { PaginationMeta } from "@/types/api";
 import Image from "next/image";
+import { ClientOnly } from "@/components/system/client-only";
 
 const SORT_OPTIONS = [
-  { value: "releaseDate:desc", label: "Newest First" },
-  { value: "releaseDate:asc", label: "Oldest First" },
-  { value: "title:asc", label: "Title A-Z" },
-  { value: "title:desc", label: "Title Z-A" },
-  { value: "rating:desc", label: "Highest Rated" },
-  { value: "rating:asc", label: "Lowest Rated" },
+  { value: "releaseDate:desc", labelKey: "sortNewestFirst" as const },
+  { value: "releaseDate:asc", labelKey: "sortOldestFirst" as const },
+  { value: "title:asc", labelKey: "sortTitleAsc" as const },
+  { value: "title:desc", labelKey: "sortTitleDesc" as const },
+  { value: "rating:desc", labelKey: "sortRatingDesc" as const },
+  { value: "rating:asc", labelKey: "sortRatingAsc" as const },
 ];
 
 function MoviesContent() {
@@ -48,15 +49,17 @@ function MoviesContent() {
   const sort = searchParams.get("sort") || undefined;
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
   const limit = 24;
+  const parsedDurationMin = durationMin ? parseInt(durationMin, 10) : undefined;
+  const parsedDurationMax = durationMax ? parseInt(durationMax, 10) : undefined;
 
   const params: Record<string, string | number | undefined> = {
-    q,
+    ...(q ? { search: q } : {}),
     status,
     genre,
     language,
     ageRating,
-    durationMin: durationMin ? parseInt(durationMin, 10) : undefined,
-    durationMax: durationMax ? parseInt(durationMax, 10) : undefined,
+    durationMin: Number.isFinite(parsedDurationMin) ? parsedDurationMin : undefined,
+    durationMax: Number.isFinite(parsedDurationMax) ? parsedDurationMax : undefined,
     format,
     sort: sort || "releaseDate:desc",
     page,
@@ -91,8 +94,8 @@ function MoviesContent() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
       <PageHeader
-        title={t("title") || "Movies"}
-        description={t("description") || "Browse our complete movie collection"}
+        title={t("title")}
+        description={t("description")}
       />
 
       <div className="mt-8 flex flex-col gap-6 lg:flex-row">
@@ -106,16 +109,16 @@ function MoviesContent() {
           {/* Sticky Sort Bar */}
           <div className="cinect-glass sticky top-0 z-10 mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border px-4 py-3">
             <span className="text-muted-foreground text-sm">
-              {total > 0 ? `${total} movies` : "No results"}
+              {t("resultsSummary", { count: total })}
             </span>
             <Select value={sort || "releaseDate:desc"} onValueChange={updateSort}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Sort by" />
+                <SelectValue placeholder={t("sortBy")} />
               </SelectTrigger>
               <SelectContent>
                 {SORT_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
+                    {t(opt.labelKey)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -139,9 +142,9 @@ function MoviesContent() {
           ) : movies.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
               <Film className="text-muted-foreground mb-3 h-12 w-12" />
-              <h3 className="mb-2 text-lg font-semibold">{t("noResults") || "No movies found"}</h3>
+              <h3 className="mb-2 text-lg font-semibold">{t("noResults")}</h3>
               <p className="text-muted-foreground text-sm">
-                {t("tryDifferentFilters") || "Try adjusting your filters"}
+                {t("tryDifferentFilters")}
               </p>
             </div>
           ) : (
@@ -189,7 +192,7 @@ function MovieCard({ movie }: { movie: MovieListItem }) {
       typeof g === "object" && g !== null && "name" in g ? g.name : String(g)
     ) ?? [];
   return (
-    <Link href={`/movies/${movie.id}`}>
+    <Link href={`/movies/${movie.slug}`}>
       <Card className="group hover:shadow-primary/20 h-full overflow-hidden transition-all hover:shadow-lg">
         <div className="bg-muted relative aspect-[2/3] overflow-hidden">
           {movie.posterUrl ? (
@@ -207,21 +210,34 @@ function MovieCard({ movie }: { movie: MovieListItem }) {
           )}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/55 to-transparent" />
           <div className="absolute top-2 left-2 flex flex-wrap gap-1">
-            {movie.status === "NOW_SHOWING" && <Badge className="bg-primary">Now Showing</Badge>}
-            {movie.status === "COMING_SOON" && <Badge className="bg-secondary">Coming Soon</Badge>}
+            {movie.status === "NOW_SHOWING" && (
+              <Badge className="bg-primary text-primary-foreground text-[10px] shadow-sm">
+                Now Showing
+              </Badge>
+            )}
+            {movie.status === "COMING_SOON" && (
+              <Badge className="bg-black/75 text-[10px] text-white shadow-sm">
+                Coming Soon
+              </Badge>
+            )}
             {movie.ageRating && (
-              <Badge variant="outline" className="bg-background/80">
+              <Badge className="bg-black/70 text-[10px] text-white shadow-sm backdrop-blur">
                 {movie.ageRating}
               </Badge>
             )}
           </div>
           {movie.rating && (
-            <Badge className="absolute top-2 right-2 bg-black/80">{movie.rating}</Badge>
+            <Badge className="absolute top-2 right-2 bg-black/80 text-[10px] text-white shadow-sm">
+              {movie.rating}
+            </Badge>
           )}
           {movie.formats?.length ? (
             <div className="absolute right-2 bottom-2 left-2 flex flex-wrap gap-1">
               {movie.formats.slice(0, 3).map((f) => (
-                <Badge key={f} variant="secondary" className="text-xs">
+                <Badge
+                  key={f}
+                  className="bg-black/65 text-[10px] text-white shadow-sm backdrop-blur"
+                >
                   {f}
                 </Badge>
               ))}
@@ -231,9 +247,9 @@ function MovieCard({ movie }: { movie: MovieListItem }) {
         <CardContent className="p-4">
           <h3 className="mb-2 line-clamp-2 font-semibold text-balance">{movie.title}</h3>
           {genres.length > 0 && (
-            <p className="text-muted-foreground mb-2 line-clamp-1 text-xs">{genres.join(", ")}</p>
+            <p className="mb-2 line-clamp-1 text-xs text-foreground/75">{genres.join(", ")}</p>
           )}
-          <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-foreground/70">
             {movie.duration && (
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
@@ -268,7 +284,15 @@ export default function MoviesPage() {
         </div>
       }
     >
-      <MoviesContent />
+      <ClientOnly
+        fallback={
+          <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
+            <div className="bg-muted h-96 animate-pulse rounded-lg" />
+          </div>
+        }
+      >
+        <MoviesContent />
+      </ClientOnly>
     </Suspense>
   );
 }

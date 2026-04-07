@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
@@ -8,9 +8,11 @@ import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import type { UserRole } from "@/types/domain";
 import {
   Card,
   CardContent,
@@ -29,12 +31,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-});
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+type LoginFormValues = { email: string; password: string };
+
+function resolvePostLoginPath(role: UserRole | undefined, returnTo: string): string {
+  const isAdmin = role === "ADMIN" || role === "STAFF";
+  if (!isAdmin) return returnTo;
+  return returnTo.startsWith("/admin") ? returnTo : "/admin";
+}
 
 export default function LoginPage() {
   const t = useTranslations("auth");
@@ -43,22 +49,69 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const loginSchema = useMemo(
+    () =>
+      z.object({
+        email: z
+          .string()
+          .trim()
+          .min(1, t("validationRequiredEmail"))
+          .regex(EMAIL_REGEX, t("validationInvalidEmail")),
+        password: z
+          .string()
+          .min(1, t("validationRequiredPassword"))
+          .regex(PASSWORD_REGEX, t("validationInvalidPassword")),
+      }),
+    [t]
+  );
 
-  const rawReturnTo = searchParams.get("returnTo") || "/account/profile";
-  // `useRouter()` here is locale-aware, so strip leading "/{locale}" if present
-  const returnTo =
-    rawReturnTo.startsWith(`/${locale}/`) ? rawReturnTo.replace(`/${locale}`, "") : rawReturnTo;
+  const returnTo = useMemo(() => {
+    const queryReturnTo = searchParams.get("returnTo");
+    if (queryReturnTo) {
+      return queryReturnTo.startsWith(`/${locale}/`)
+        ? queryReturnTo.replace(`/${locale}`, "")
+        : queryReturnTo;
+    }
+
+    if (typeof window !== "undefined") {
+      try {
+        const ref = document.referrer ? new URL(document.referrer) : null;
+        const sameOrigin = ref && ref.origin === window.location.origin;
+        const path = ref ? `${ref.pathname}${ref.search}` : "";
+        const isAuthPage = /^\/(vi|en)\/(login|register|forgot-password|reset-password|callback)/.test(
+          path
+        );
+
+        if (sameOrigin && path && !isAuthPage) {
+          return path.startsWith(`/${locale}/`) ? path.replace(`/${locale}`, "") : path;
+        }
+      } catch {
+        // Ignore malformed referrer URL and fallback to home page.
+      }
+    }
+
+    return "/";
+  }, [locale, searchParams]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: { email: "", password: "" },
   });
+
+  function onInvalidSubmit() {
+    toast.error(t("validationCheckLoginForm"));
+  }
 
   async function onSubmit(data: LoginFormValues) {
     setIsLoading(true);
     try {
-      await login(data);
-      router.push(returnTo);
+      const user = await login({
+        email: data.email.trim().toLowerCase(),
+        password: data.password,
+      });
+      router.push(resolvePostLoginPath(user?.role, returnTo));
     } catch {
       // Error toast already shown in AuthProvider
     } finally {
@@ -70,11 +123,11 @@ export default function LoginPage() {
     <Card>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">{t("login")}</CardTitle>
-        <CardDescription>Enter your credentials to access your account</CardDescription>
+        <CardDescription>{t("loginSubtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit, onInvalidSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="email"
@@ -82,7 +135,20 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>{t("email")}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="name@example.com" {...field} />
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        inputMode="email"
+                        placeholder={t("emailPlaceholder")}
+                        className="pr-24"
+                        {...field}
+                      />
+                      {field.value && !field.value.includes("@") ? (
+                        <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm">
+                          @gmail.com
+                        </span>
+                      ) : null}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -107,7 +173,7 @@ export default function LoginPage() {
               )}
             />
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : t("loginBtn")}
+              {isLoading ? t("signingIn") : t("loginBtn")}
             </Button>
           </form>
         </Form>
