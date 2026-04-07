@@ -63,6 +63,9 @@ export function useCreateReview(movieId: string) {
   return useApiMutation<Review, CreateReviewInput>("post", `/movies/${movieId}/reviews`, {
     schema: reviewSchema,
     successMessage: "Review submitted",
-    invalidateKeys: [["movie-reviews", movieId]],
+    invalidateKeys: [
+      ["movie-reviews", movieId],
+      ["movie", movieId],
+    ],
   });
 }
