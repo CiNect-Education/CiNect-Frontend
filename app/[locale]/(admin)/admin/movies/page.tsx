@@ -156,7 +156,7 @@ export default function AdminMoviesPage() {
       status: values.status,
       ageRating: values.ageRating,
       language: values.language,
-      director: values.director,
+      director: values.director?.trim() || "—",
       castMembers: [] as string[],
       genreIds: [] as string[],
     };

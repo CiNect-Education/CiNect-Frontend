@@ -15,9 +15,11 @@ export function unwrapList<T>(payload: unknown): T[] {
   if (o.data && typeof o.data === "object" && !Array.isArray(o.data)) {
     const inner = o.data as Record<string, unknown>;
     if (Array.isArray(inner.data)) return inner.data as T[];
+    if (Array.isArray(inner.items)) return inner.items as T[];
     if (Array.isArray(inner.content)) return inner.content as T[];
   }
 
+  if (Array.isArray(o.items)) return o.items as T[];
   if (Array.isArray(o.content)) return o.content as T[];
 
   return [];
