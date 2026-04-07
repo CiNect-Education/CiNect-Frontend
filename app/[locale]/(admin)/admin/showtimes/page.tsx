@@ -57,6 +57,7 @@ import { cn } from "@/lib/utils";
 import { unwrapList } from "@/lib/admin-data";
 import { useAuth } from "@/providers/auth-provider";
 import { ApiErrorState } from "@/components/system/api-error-state";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ALL_CINEMAS_VALUE = "__ALL_CINEMAS__";
 
@@ -124,17 +125,20 @@ export default function AdminShowtimesPage() {
 
   const {
     data: showtimesRes,
+    isLoading: showtimesLoading,
     error: showtimesError,
     refetch: refetchShowtimes,
   } = useAdminShowtimes(params, { enabled: isAuthenticated && !authLoading });
   const { data: moviesRes } = useAdminMovies();
   const {
     data: cinemasRes,
+    isLoading: cinemasLoading,
     error: cinemasError,
     refetch: refetchCinemas,
   } = useAdminCinemas(undefined, { enabled: isAuthenticated && !authLoading });
   const {
     data: roomsRes,
+    isLoading: roomsLoading,
     error: roomsError,
     refetch: refetchRooms,
   } = useAdminRooms(cinemaFilter ? { cinemaId: cinemaFilter } : undefined, {
@@ -183,6 +187,17 @@ export default function AdminShowtimesPage() {
       format: "2D",
     },
   });
+
+  const selectedCinemaId = form.watch("cinemaId");
+
+  const availableRooms = useMemo(
+    () =>
+      rooms.filter((r) => {
+        const cid = r.cinemaId ?? r.cinema?.id;
+        return !selectedCinemaId || !cid || cid === selectedCinemaId;
+      }),
+    [rooms, selectedCinemaId]
+  );
 
   const cinemaNameById = useMemo(() => {
     const m = new Map<string, string>();
@@ -306,9 +321,14 @@ export default function AdminShowtimesPage() {
         <Select
           value={cinemaFilter || ALL_CINEMAS_VALUE}
           onValueChange={(v) => setCinemaFilter(v === ALL_CINEMAS_VALUE ? "" : v)}
+          disabled={authLoading || !isAuthenticated || cinemasLoading}
         >
           <SelectTrigger className="w-48">
-            <SelectValue placeholder={t("cinemaFilterPlaceholder")} />
+            <SelectValue
+              placeholder={
+                cinemasLoading ? tCommon("loading") : t("cinemaFilterPlaceholder")
+              }
+            />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL_CINEMAS_VALUE}>{t("allCinemasFilter")}</SelectItem>
@@ -324,10 +344,21 @@ export default function AdminShowtimesPage() {
           value={dateFilter}
           onChange={(e) => setDateFilter(e.target.value)}
           className="w-40"
+          disabled={authLoading || !isAuthenticated}
         />
       </div>
 
       <div className="space-y-6">
+        {(showtimesLoading || roomsLoading) && !showtimesError && !roomsError ? (
+          <div className="cinect-glass rounded-lg border p-4">
+            <Skeleton className="mb-3 h-5 w-64" />
+            <div className="flex flex-wrap gap-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-9 w-44" />
+              ))}
+            </div>
+          </div>
+        ) : null}
         {rooms.map((room) => {
           const roomShowtimes = roomsByRoom.get(room.id) ?? [];
           const cinemaLabel =
@@ -430,13 +461,25 @@ export default function AdminShowtimesPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("cinema")}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      onValueChange={(v) => {
+                        field.onChange(v);
+                        form.setValue("roomId", "");
+                      }}
+                      value={field.value}
+                      disabled={cinemasLoading}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t("selectCinema")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        {cinemasLoading ? (
+                          <div className="p-2">
+                            <Skeleton className="h-8 w-full" />
+                          </div>
+                        ) : null}
                         {cinemas.map((c) => (
                           <SelectItem key={c.id} value={c.id}>
                             {c.name}
@@ -461,7 +504,12 @@ export default function AdminShowtimesPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {rooms.map((r) => (
+                        {roomsLoading ? (
+                          <div className="p-2">
+                            <Skeleton className="h-8 w-full" />
+                          </div>
+                        ) : null}
+                        {availableRooms.map((r) => (
                           <SelectItem key={r.id} value={r.id}>
                             {r.name} ({r.format})
                           </SelectItem>
