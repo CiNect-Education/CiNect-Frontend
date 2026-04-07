@@ -189,7 +189,7 @@ function MovieCard({ movie }: { movie: MovieListItem }) {
       typeof g === "object" && g !== null && "name" in g ? g.name : String(g)
     ) ?? [];
   return (
-    <Link href={`/movies/${movie.id}`}>
+    <Link href={`/movies/${movie.slug}`}>
       <Card className="group hover:shadow-primary/20 h-full overflow-hidden transition-all hover:shadow-lg">
         <div className="bg-muted relative aspect-[2/3] overflow-hidden">
           {movie.posterUrl ? (

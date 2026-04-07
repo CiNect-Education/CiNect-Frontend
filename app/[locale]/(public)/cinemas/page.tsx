@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -21,6 +21,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import {
+  buildGoogleMapsDirectionsUrl,
+  buildGoogleMapsPlaceUrl,
+  formatDistanceKm,
+  getCurrentPositionCoords,
+  haversineKm,
+} from "@/lib/maps";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -40,6 +47,9 @@ export default function CinemasPage() {
   const router = useRouter();
 
   const city = searchParams.get("city") || "";
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string>("");
   const amenities = useMemo(
     () => searchParams.get("amenities")?.split(",").filter(Boolean) || [],
     [searchParams]
@@ -88,6 +98,53 @@ export default function CinemasPage() {
     router.push(`?${p.toString()}`);
   }
 
+  async function detectMyLocation() {
+    setLocationError("");
+    setIsLocating(true);
+    try {
+      const coords = await getCurrentPositionCoords();
+      setUserCoords(coords);
+    } catch {
+      setLocationError(t("locationUnavailable"));
+    } finally {
+      setIsLocating(false);
+    }
+  }
+
+  function openPlaceMap(
+    e: React.MouseEvent,
+    cinema: Pick<CinemaListItem, "latitude" | "longitude" | "address" | "city">
+  ) {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = buildGoogleMapsPlaceUrl({
+      lat: cinema.latitude,
+      lng: cinema.longitude,
+      address: cinema.address,
+      city: cinema.city,
+    });
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  function openDirections(
+    e: React.MouseEvent,
+    cinema: Pick<CinemaListItem, "latitude" | "longitude" | "address" | "city">
+  ) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!userCoords) return;
+    const url = buildGoogleMapsDirectionsUrl({
+      origin: userCoords,
+      destination: {
+        lat: cinema.latitude,
+        lng: cinema.longitude,
+        address: cinema.address,
+        city: cinema.city,
+      },
+    });
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
       <PageHeader
@@ -122,6 +179,18 @@ export default function CinemasPage() {
           <div className="text-muted-foreground text-sm">
             {tCommon("cinemasFound", { count: cinemas.length })}
           </div>
+        </div>
+
+        <div className="mt-3 flex items-center gap-2">
+          <Badge
+            variant="outline"
+            className="cursor-pointer"
+            onClick={detectMyLocation}
+            aria-disabled={isLocating}
+          >
+            {isLocating ? t("locating") : t("useMyLocation")}
+          </Badge>
+          {locationError ? <span className="text-destructive text-xs">{locationError}</span> : null}
         </div>
 
         {allAmenities.length > 0 && (
@@ -195,6 +264,18 @@ export default function CinemasPage() {
                     <span className="line-clamp-1">{cinema.address}</span>
                   </div>
                   <p className="text-muted-foreground mb-3 text-xs">{cinema.city}</p>
+                  {userCoords && cinema.latitude != null && cinema.longitude != null ? (
+                    <p className="text-primary mb-3 text-xs font-medium">
+                      {t("distanceFromYou", {
+                        distance: formatDistanceKm(
+                          haversineKm(userCoords, {
+                            lat: cinema.latitude,
+                            lng: cinema.longitude,
+                          })
+                        ),
+                      })}
+                    </p>
+                  ) : null}
                   {cinema.amenities?.length ? (
                     <div className="flex flex-wrap gap-1">
                       {cinema.amenities.slice(0, 4).map((a) => (
@@ -204,6 +285,24 @@ export default function CinemasPage() {
                       ))}
                     </div>
                   ) : null}
+                  <div className="mt-3 flex items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className="cursor-pointer"
+                      onClick={(e) => openPlaceMap(e, cinema)}
+                    >
+                      {t("openInMaps")}
+                    </Badge>
+                    {userCoords ? (
+                      <Badge
+                        variant="secondary"
+                        className="cursor-pointer"
+                        onClick={(e) => openDirections(e, cinema)}
+                      >
+                        {t("directionsFromMe")}
+                      </Badge>
+                    ) : null}
+                  </div>
                 </CardContent>
               </Card>
             </Link>

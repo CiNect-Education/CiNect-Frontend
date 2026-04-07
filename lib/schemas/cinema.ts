@@ -53,6 +53,8 @@ export const cinemaListItemSchema = z
     imageUrl: n(z.string()),
     amenities: z.array(z.string()),
     roomCount: n(z.number()),
+    latitude: n(z.number()),
+    longitude: n(z.number()),
   })
   .passthrough();
 

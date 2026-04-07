@@ -334,7 +334,13 @@
     "breadcrumbDetail": "Cinema",
     "cinemaNotFound": "Cinema not found",
     "backToCinemas": "Back to cinemas",
-    "movieTitleFallback": "Movie"
+    "movieTitleFallback": "Movie",
+    "openInMaps": "Open in Google Maps",
+    "useMyLocation": "Use my location",
+    "locating": "Locating...",
+    "locationUnavailable": "Could not get your location. Please check browser location permission.",
+    "distanceFromYou": "{distance} away from you",
+    "directionsFromMe": "Directions from my location"
   },
   "booking": {
     "selectSeats": "Select Seats",

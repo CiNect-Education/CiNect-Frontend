@@ -334,7 +334,13 @@
     "breadcrumbDetail": "Rạp",
     "cinemaNotFound": "Không tìm thấy rạp",
     "backToCinemas": "Quay lại danh sách rạp",
-    "movieTitleFallback": "Phim"
+    "movieTitleFallback": "Phim",
+    "openInMaps": "Mở trên Google Maps",
+    "useMyLocation": "Dùng vị trí của tôi",
+    "locating": "Đang xác định vị trí...",
+    "locationUnavailable": "Không thể lấy vị trí của bạn. Vui lòng kiểm tra quyền truy cập vị trí.",
+    "distanceFromYou": "Cách bạn {distance}",
+    "directionsFromMe": "Chỉ đường từ vị trí của tôi"
   },
   "booking": {
     "selectSeats": "Chọn Ghế",

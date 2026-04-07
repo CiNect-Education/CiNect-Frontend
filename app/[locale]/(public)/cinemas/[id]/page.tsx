@@ -14,6 +14,13 @@ import { useCinema, useCinemaShowtimes } from "@/hooks/queries/use-cinemas";
 import { MapPin, Phone, Mail, Film, ExternalLink, Calendar } from "lucide-react";
 import type { Showtime } from "@/types/domain";
 import Image from "next/image";
+import {
+  buildGoogleMapsDirectionsUrl,
+  buildGoogleMapsPlaceUrl,
+  formatDistanceKm,
+  getCurrentPositionCoords,
+  haversineKm,
+} from "@/lib/maps";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -31,6 +38,9 @@ export default function CinemaDetailPage() {
   const timeLocaleTag = locale.startsWith("vi") ? "vi-VN" : "en-US";
   const cinemaId = params.id as string;
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState("");
 
   const { data: cinemaRes, isLoading, error, refetch } = useCinema(cinemaId);
   const { data: showtimesRes } = useCinemaShowtimes(cinemaId, selectedDate);
@@ -98,10 +108,43 @@ export default function CinemaDetailPage() {
     );
   }
 
-  const mapUrl =
-    cinema.latitude != null && cinema.longitude != null
-      ? `https://www.google.com/maps?q=${cinema.latitude},${cinema.longitude}`
-      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cinema.address)}`;
+  const mapUrl = buildGoogleMapsPlaceUrl({
+    lat: cinema.latitude,
+    lng: cinema.longitude,
+    address: cinema.address,
+    city: cinema.city,
+  });
+  const distanceFromUser =
+    userCoords && cinema.latitude != null && cinema.longitude != null
+      ? haversineKm(userCoords, { lat: cinema.latitude, lng: cinema.longitude })
+      : null;
+
+  async function detectMyLocation() {
+    setLocationError("");
+    setIsLocating(true);
+    try {
+      const coords = await getCurrentPositionCoords();
+      setUserCoords(coords);
+    } catch {
+      setLocationError(t("locationUnavailable"));
+    } finally {
+      setIsLocating(false);
+    }
+  }
+
+  function openDirectionsFromMe() {
+    if (!userCoords) return;
+    const url = buildGoogleMapsDirectionsUrl({
+      origin: userCoords,
+      destination: {
+        lat: cinema.latitude,
+        lng: cinema.longitude,
+        address: cinema.address,
+        city: cinema.city,
+      },
+    });
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
 
   const next7Days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
@@ -162,6 +205,11 @@ export default function CinemaDetailPage() {
             </span>
           )}
         </div>
+        {distanceFromUser != null ? (
+          <p className="text-primary text-sm font-medium">
+            {t("distanceFromYou", { distance: formatDistanceKm(distanceFromUser) })}
+          </p>
+        ) : null}
         {cinema.amenities?.length ? (
           <div className="flex flex-wrap gap-2 pt-2">
             {cinema.amenities.map((a) => (
@@ -174,12 +222,23 @@ export default function CinemaDetailPage() {
       </div>
 
       <div className="mb-6">
-        <Button variant="outline" asChild>
-          <a href={mapUrl} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="mr-2 h-4 w-4" />
-            View on Google Maps
-          </a>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" asChild>
+            <a href={mapUrl} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="mr-2 h-4 w-4" />
+              {t("openInMaps")}
+            </a>
+          </Button>
+          <Button variant="secondary" onClick={detectMyLocation} disabled={isLocating}>
+            {isLocating ? t("locating") : t("useMyLocation")}
+          </Button>
+          {userCoords ? (
+            <Button variant="default" onClick={openDirectionsFromMe}>
+              {t("directionsFromMe")}
+            </Button>
+          ) : null}
+        </div>
+        {locationError ? <p className="text-destructive mt-2 text-xs">{locationError}</p> : null}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

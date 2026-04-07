@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --turbo",
-    "dev:spring": "cross-env NEXT_PUBLIC_API_BASE_URL=http://localhost:8081/api/v1 next dev --turbo",
-    "dev:node": "cross-env NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api/v1 next dev --turbo",
+    "dev": "next dev --webpack",
+    "dev:spring": "cross-env NEXT_PUBLIC_API_BASE_URL=http://localhost:8081/api/v1 next dev --webpack",
+    "dev:node": "cross-env NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api/v1 next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

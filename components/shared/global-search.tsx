@@ -131,7 +131,7 @@ export function GlobalSearch() {
                         <CommandItem
                           key={movie.id}
                           value={`movie-${movie.id}`}
-                          onSelect={() => handleSelect(`/movies/${movie.id}`)}
+                          onSelect={() => handleSelect(`/movies/${movie.slug}`)}
                           className="flex items-center gap-3"
                         >
                           <Film className="h-4 w-4 shrink-0" />
