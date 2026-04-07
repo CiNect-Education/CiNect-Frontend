@@ -53,6 +53,8 @@ import {
   useDeleteRoom,
 } from "@/hooks/queries/use-admin";
 import { unwrapList } from "@/lib/admin-data";
+import { useAuth } from "@/providers/auth-provider";
+import { ApiErrorState } from "@/components/system/api-error-state";
 
 const ALL_CINEMAS_VALUE = "__ALL_CINEMAS__";
 
@@ -69,6 +71,7 @@ type RoomFormValues = {
 export default function AdminRoomsPage() {
   const t = useTranslations("admin");
   const tCommon = useTranslations("common");
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const roomFormSchema = useMemo(
     () =>
       z.object({
@@ -87,10 +90,19 @@ export default function AdminRoomsPage() {
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Room | null>(null);
 
-  const { data: roomsRes, isLoading: roomsLoading } = useAdminRooms(
-    cinemaFilter ? { cinemaId: cinemaFilter } : undefined
-  );
-  const { data: cinemasRes } = useAdminCinemas();
+  const {
+    data: roomsRes,
+    isLoading: roomsLoading,
+    error: roomsError,
+    refetch: refetchRooms,
+  } = useAdminRooms(cinemaFilter ? { cinemaId: cinemaFilter } : undefined, {
+    enabled: isAuthenticated && !authLoading,
+  });
+  const {
+    data: cinemasRes,
+    error: cinemasError,
+    refetch: refetchCinemas,
+  } = useAdminCinemas(undefined, { enabled: isAuthenticated && !authLoading });
   const rooms = unwrapList<Room>(roomsRes?.data ?? roomsRes);
   const cinemas = unwrapList<{ id: string; name: string }>(cinemasRes?.data ?? cinemasRes);
   const createMutation = useCreateRoom();
@@ -220,6 +232,15 @@ export default function AdminRoomsPage() {
         </Button>
       }
     >
+      {(roomsError || cinemasError) && !roomsLoading ? (
+        <ApiErrorState
+          error={(roomsError ?? cinemasError) as Error}
+          onRetry={() => {
+            void refetchCinemas();
+            void refetchRooms();
+          }}
+        />
+      ) : null}
       <div className="cinect-glass mb-4 rounded-lg border p-4">
         <Select
           value={cinemaFilter || ALL_CINEMAS_VALUE}

@@ -42,6 +42,20 @@ export const couponSchema = z.object({
   userId: nullish(z.string()),
 });
 
+function normalizeNewsStringList(val: unknown): string[] | undefined {
+  if (val === null || val === undefined) return undefined;
+  if (Array.isArray(val)) return val.map((x) => String(x));
+  if (typeof val === "string") {
+    try {
+      const p = JSON.parse(val) as unknown;
+      return Array.isArray(p) ? p.map((x) => String(x)) : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+  return undefined;
+}
+
 export const newsArticleSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -51,8 +65,8 @@ export const newsArticleSchema = z.object({
   category: z.enum(["REVIEWS", "TRAILERS", "PROMOTIONS", "GUIDES", "GENERAL"]),
   imageUrl: nullish(z.string()),
   author: z.string(),
-  tags: nullish(z.array(z.string())),
-  relatedArticleIds: nullish(z.array(z.string())),
+  tags: z.preprocess((v) => normalizeNewsStringList(v), z.array(z.string()).optional()),
+  relatedArticleIds: z.preprocess((v) => normalizeNewsStringList(v), z.array(z.string()).optional()),
   publishedAt: z.string(),
   createdAt: z.string(),
 });

@@ -55,6 +55,8 @@ import {
 import { ApiError } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { unwrapList } from "@/lib/admin-data";
+import { useAuth } from "@/providers/auth-provider";
+import { ApiErrorState } from "@/components/system/api-error-state";
 
 const ALL_CINEMAS_VALUE = "__ALL_CINEMAS__";
 
@@ -103,6 +105,7 @@ function getMinutesOfDay(iso: string): number {
 export default function AdminShowtimesPage() {
   const t = useTranslations("admin");
   const tCommon = useTranslations("common");
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [cinemaFilter, setCinemaFilter] = useState<string>("");
   const [dateFilter, setDateFilter] = useState<string>(new Date().toISOString().slice(0, 10));
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -119,18 +122,38 @@ export default function AdminShowtimesPage() {
     [cinemaFilter, dateFilter]
   );
 
-  const { data: showtimesRes } = useAdminShowtimes(params);
+  const {
+    data: showtimesRes,
+    error: showtimesError,
+    refetch: refetchShowtimes,
+  } = useAdminShowtimes(params, { enabled: isAuthenticated && !authLoading });
   const { data: moviesRes } = useAdminMovies();
-  const { data: cinemasRes } = useAdminCinemas();
-  const { data: roomsRes } = useAdminRooms(cinemaFilter ? { cinemaId: cinemaFilter } : undefined);
+  const {
+    data: cinemasRes,
+    error: cinemasError,
+    refetch: refetchCinemas,
+  } = useAdminCinemas(undefined, { enabled: isAuthenticated && !authLoading });
+  const {
+    data: roomsRes,
+    error: roomsError,
+    refetch: refetchRooms,
+  } = useAdminRooms(cinemaFilter ? { cinemaId: cinemaFilter } : undefined, {
+    enabled: isAuthenticated && !authLoading,
+  });
 
   const showtimesRaw = unwrapList<RawShowtime>(showtimesRes?.data ?? showtimesRes);
   const showtimes = useMemo(() => showtimesRaw.map(normalizeShowtime), [showtimesRaw]);
   const movies = unwrapList<{ id: string; title: string }>(moviesRes?.data ?? moviesRes);
   const cinemas = unwrapList<{ id: string; name: string }>(cinemasRes?.data ?? cinemasRes);
-  const rooms = unwrapList<{ id: string; name: string; format: string; cinemaName?: string; cinemaId?: string }>(
-    roomsRes?.data ?? roomsRes
-  );
+  const rooms = unwrapList<{
+    id: string;
+    name: string;
+    format: string;
+    cinemaName?: string;
+    cinemaId?: string;
+    /** Nest Prisma shape: nested cinema */
+    cinema?: { id?: string; name?: string };
+  }>(roomsRes?.data ?? roomsRes);
 
   const createMutation = useCreateShowtime();
   const updateMutation = useUpdateShowtime();
@@ -160,6 +183,12 @@ export default function AdminShowtimesPage() {
       format: "2D",
     },
   });
+
+  const cinemaNameById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const c of cinemas) m.set(c.id, c.name);
+    return m;
+  }, [cinemas]);
 
   const roomsByRoom = useMemo(() => {
     const map = new Map<string, Showtime[]>();
@@ -262,6 +291,17 @@ export default function AdminShowtimesPage() {
         </Button>
       }
     >
+      {(showtimesError || cinemasError || roomsError) ? (
+        <ApiErrorState
+          error={(showtimesError ?? cinemasError ?? roomsError) as Error}
+          onRetry={() => {
+            void refetchCinemas();
+            void refetchRooms();
+            void refetchShowtimes();
+          }}
+          className="py-10"
+        />
+      ) : null}
       <div className="cinect-glass mb-6 flex flex-wrap gap-3 rounded-lg border p-4">
         <Select
           value={cinemaFilter || ALL_CINEMAS_VALUE}
@@ -290,10 +330,16 @@ export default function AdminShowtimesPage() {
       <div className="space-y-6">
         {rooms.map((room) => {
           const roomShowtimes = roomsByRoom.get(room.id) ?? [];
+          const cinemaLabel =
+            room.cinemaName ??
+            room.cinema?.name ??
+            (room.cinemaId ? cinemaNameById.get(room.cinemaId) : undefined) ??
+            roomShowtimes.find((s) => s.cinemaName)?.cinemaName ??
+            room.cinemaId;
           return (
             <div key={room.id} className="cinect-glass rounded-lg border p-4">
               <div className="mb-3 font-medium">
-                {room.cinemaName ?? room.cinemaId} — {room.name} ({room.format})
+                {cinemaLabel} — {room.name} ({room.format})
               </div>
               <div className="flex flex-wrap gap-2">
                 {roomShowtimes.map((st) => (
