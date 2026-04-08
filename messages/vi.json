@@ -481,6 +481,7 @@
     "minChars": "Nhập ít nhất 2 ký tự để tìm",
     "searching": "Đang tìm…",
     "noResults": "Không có kết quả.",
+    "noMatchingMovies": "Rất tiếc, không tìm thấy phim phù hợp với lựa chọn của bạn!",
     "movies": "Phim",
     "cinemas": "Rạp"
   },

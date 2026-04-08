@@ -122,7 +122,9 @@ export default function BookingPage() {
   const { conflictedSeatIds: realtimeConflicts, clearConflicts: clearRealtimeConflicts } =
     useSeatRealtime(showtimeId, selectedSeats);
 
-  const allConflicts = [...new Set([...conflictedSeatIds, ...realtimeConflicts])];
+  const allConflicts = holdId
+    ? []
+    : [...new Set([...conflictedSeatIds, ...realtimeConflicts])];
 
   const handleSeatClick = (seatId: string) => {
     setConflictedSeatIds([]);
@@ -151,6 +153,8 @@ export default function BookingPage() {
         typeof payload === "object" && payload && "expiresAt" in payload
           ? (payload as { expiresAt: string }).expiresAt
           : (response as { expiresAt?: string }).expiresAt;
+      setConflictedSeatIds([]);
+      clearRealtimeConflicts();
       setHoldId(holdIdVal ?? null);
       setExpiresAt(normalizeIsoDate(expiresAtVal));
     } catch (err) {
@@ -167,7 +171,7 @@ export default function BookingPage() {
         setSelectedSeats([]);
       }
     }
-  }, [selectedSeats, showtimeId, holdMutation, router, locale]);
+  }, [selectedSeats, showtimeId, holdMutation, router, locale, clearRealtimeConflicts]);
 
   const handleExpire = useCallback(async () => {
     if (expiringRef.current) return;
