@@ -1,12 +1,7 @@
 "use client";
 
-<<<<<<< HEAD
-import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
-=======
 import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
->>>>>>> b4bbca5f3c38cab048cae128cb850c64522db3d2
 import { useSearchParams, useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { PageHeader } from "@/components/shared/page-header";
@@ -20,19 +15,17 @@ import type { CinemaListItem } from "@/types/domain";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import {
-<<<<<<< HEAD
   buildGoogleMapsDirectionsUrl,
   buildGoogleMapsPlaceUrl,
   formatDistanceKm,
   getCurrentPositionCoords,
   haversineKm,
 } from "@/lib/maps";
-=======
+import {
   BookingAddressModeSegment,
   BookingCityField,
 } from "@/components/shared/booking-city-field";
 import { bookingCityLabel, normalizeBookingCityId } from "@/lib/booking-region";
->>>>>>> b4bbca5f3c38cab048cae128cb850c64522db3d2
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -51,14 +44,10 @@ export default function CinemasPage() {
   const router = useRouter();
   const [addressMode, setAddressMode] = useState<"new" | "legacy">("new");
 
-<<<<<<< HEAD
-  const city = searchParams.get("city") || "";
+  const city = normalizeBookingCityId(searchParams.get("city") || "");
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string>("");
-=======
-  const city = normalizeBookingCityId(searchParams.get("city") || "");
->>>>>>> b4bbca5f3c38cab048cae128cb850c64522db3d2
   const amenities = useMemo(
     () => searchParams.get("amenities")?.split(",").filter(Boolean) || [],
     [searchParams]

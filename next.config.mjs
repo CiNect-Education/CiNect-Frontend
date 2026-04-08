@@ -38,6 +38,7 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     remotePatterns: [
       { protocol: "https", hostname: "placehold.co" },
+      { protocol: "https", hostname: "example.com" },
       { protocol: "https", hostname: "image.tmdb.org" },
       { protocol: "https", hostname: "m.media-amazon.com" },
       { protocol: "https", hostname: "*.supabase.co" },

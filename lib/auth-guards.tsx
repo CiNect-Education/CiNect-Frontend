@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
+import { normalizeLocalizedPath } from "@/lib/locale-path";
 import type { UserRole } from "@/types/domain";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,7 +26,7 @@ export function RequireAuth({ children, fallback }: RequireAuthProps) {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      const returnTo = encodeURIComponent(pathname);
+      const returnTo = encodeURIComponent(normalizeLocalizedPath(pathname));
       router.push(`/login?returnTo=${returnTo}`);
     }
   }, [isAuthenticated, isLoading, pathname, router]);
