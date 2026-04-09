@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { AdminPageShell } from "@/components/layout/admin-page-shell";
 import { DataTable } from "@/components/admin/data-table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -62,6 +63,7 @@ type MovieFormValues = {
   ageRating: "P" | "C13" | "C16" | "C18";
   language?: string;
   director?: string;
+  genreIds: string[];
 };
 
 const DEFAULT_POSTER = "https://placehold.co/600x900/png?text=CiNect+Poster";
@@ -85,6 +87,7 @@ export default function AdminMoviesPage() {
         ageRating: z.enum(["P", "C13", "C16", "C18"]),
         language: z.string().optional(),
         director: z.string().optional(),
+        genreIds: z.array(z.string()).default([]),
       }),
     [t]
   );
@@ -107,6 +110,7 @@ export default function AdminMoviesPage() {
       ageRating: "P",
       language: "",
       director: "",
+      genreIds: [],
     },
   });
 
@@ -122,6 +126,7 @@ export default function AdminMoviesPage() {
       ageRating: "P",
       language: "Vietnamese",
       director: "",
+      genreIds: [],
     });
     setDialogOpen(true);
   }
@@ -139,10 +144,24 @@ export default function AdminMoviesPage() {
         ageRating: movie.ageRating,
         language: movie.language ?? "",
         director: movie.director ?? "",
+        genreIds: (movie.genres ?? []).map((g) => g.id),
       });
       setDialogOpen(true);
     },
     [form]
+  );
+
+  const availableGenres = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          movies
+            .flatMap((m) => m.genres ?? [])
+            .filter((g): g is { id: string; name: string } => !!g?.id && !!g?.name)
+            .map((g) => [g.id, g])
+        ).values()
+      ).sort((a, b) => a.name.localeCompare(b.name)),
+    [movies]
   );
 
   async function onSubmit(values: MovieFormValues) {
@@ -158,7 +177,7 @@ export default function AdminMoviesPage() {
       language: values.language,
       director: values.director?.trim() || "—",
       castMembers: [] as string[],
-      genreIds: [] as string[],
+      genreIds: values.genreIds,
     };
     if (editingMovie) {
       await updateMutation.mutateAsync({ ...payload, id: editingMovie.id });
@@ -406,6 +425,42 @@ export default function AdminMoviesPage() {
                     <FormLabel>{t("labelDirector")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="genreIds"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("colGenres")}</FormLabel>
+                    <FormControl>
+                      <div className="flex flex-wrap gap-2">
+                        {availableGenres.length > 0 ? (
+                          availableGenres.map((genre) => {
+                            const selected = field.value.includes(genre.id);
+                            return (
+                              <Badge
+                                key={genre.id}
+                                variant={selected ? "default" : "outline"}
+                                className="cursor-pointer"
+                                onClick={() => {
+                                  const next = selected
+                                    ? field.value.filter((id) => id !== genre.id)
+                                    : [...field.value, genre.id];
+                                  field.onChange(next);
+                                }}
+                              >
+                                {genre.name}
+                              </Badge>
+                            );
+                          })
+                        ) : (
+                          <span className="text-muted-foreground text-sm">{tCommon("noResults")}</span>
+                        )}
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

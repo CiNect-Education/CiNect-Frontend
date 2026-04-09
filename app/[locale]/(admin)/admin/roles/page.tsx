@@ -35,26 +35,55 @@ const PERMISSION_ROWS = [
   ["analytics.read", "permAnalyticsRead"],
 ] as const;
 
+const KNOWN_PERMISSION_KEYS = new Set(PERMISSION_ROWS.map(([key]) => key));
+
+/** Legacy seed used colon-separated keys (e.g. movies:read); UI rows use dots (movies.read). */
+function normalizePermissionsFromApi(raw: string[] | undefined): string[] {
+  const out = new Set<string>();
+  const legacyExpand: Record<string, string[]> = {
+    "showtimes:manage": ["showtimes.read", "showtimes.write"],
+  };
+  for (const p of raw ?? []) {
+    if (legacyExpand[p]) {
+      legacyExpand[p].forEach((x) => out.add(x));
+      continue;
+    }
+    if (p.includes(":")) {
+      const dotted = p.replace(":", ".");
+      if (KNOWN_PERMISSION_KEYS.has(dotted)) out.add(dotted);
+      continue;
+    }
+    if (KNOWN_PERMISSION_KEYS.has(p)) out.add(p);
+  }
+  return Array.from(out);
+}
+
 export default function AdminRolesPage() {
   const t = useTranslations("admin");
   const tToast = useTranslations("toast");
   const { data, isLoading, error, refetch } = useAdminRoles();
   const roles = useMemo(() => unwrapList<{ id: string; name: string; permissions?: string[] }>(data?.data ?? data), [data]);
 
+  /** ADMIN is full access server-side; only STAFF / USER are configurable here. */
+  const manageableRoles = useMemo(
+    () => roles.filter((r) => r.name === "STAFF" || r.name === "USER"),
+    [roles]
+  );
+
   const [permissionMap, setPermissionMap] = useState<Record<string, string[]>>({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (roles.length === 0) return;
+    if (manageableRoles.length === 0) return;
     setPermissionMap((prev) => {
       if (Object.keys(prev).length > 0) return prev;
       const map: Record<string, string[]> = {};
-      roles.forEach((role) => {
-        map[role.id] = [...(role.permissions || [])];
+      manageableRoles.forEach((role) => {
+        map[role.id] = normalizePermissionsFromApi(role.permissions);
       });
       return map;
     });
-  }, [roles]);
+  }, [manageableRoles]);
 
   const togglePermission = (roleId: string, permission: string) => {
     setPermissionMap((prev) => {
@@ -74,7 +103,7 @@ export default function AdminRolesPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      for (const role of roles) {
+      for (const role of manageableRoles) {
         await apiClient.put(`/admin/roles/${role.id}`, {
           permissions: permissionMap[role.id] || [],
         });
@@ -114,7 +143,7 @@ export default function AdminRolesPage() {
       description={t("descRoles")}
       breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("roles") }]}
       actions={
-        <Button onClick={handleSave} disabled={saving}>
+        <Button onClick={handleSave} disabled={saving || manageableRoles.length === 0}>
           <Save className="mr-2 h-4 w-4" />
           {saving ? t("saving") : t("saveChanges")}
         </Button>
@@ -129,35 +158,39 @@ export default function AdminRolesPage() {
           <CardDescription>{t("permissionMatrixDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="px-4 py-3 text-left font-medium">{t("colPermission")}</th>
-                  {roles.map((role) => (
-                    <th key={role.id} className="px-4 py-3 text-center font-medium uppercase">
-                      {role.name}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {PERMISSION_ROWS.map(([permKey, labelKey]) => (
-                  <tr key={permKey} className="hover:bg-muted/50 border-b">
-                    <td className="px-4 py-3">{t(labelKey)}</td>
-                    {roles.map((role) => (
-                      <td key={role.id} className="px-4 py-3 text-center">
-                        <Checkbox
-                          checked={hasPermission(role.id, permKey)}
-                          onCheckedChange={() => togglePermission(role.id, permKey)}
-                        />
-                      </td>
+          {manageableRoles.length === 0 ? (
+            <p className="text-muted-foreground text-sm">{t("rolesNoManageable")}</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="px-4 py-3 text-left font-medium">{t("colPermission")}</th>
+                    {manageableRoles.map((role) => (
+                      <th key={role.id} className="px-4 py-3 text-center font-medium uppercase">
+                        {role.name}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {PERMISSION_ROWS.map(([permKey, labelKey]) => (
+                    <tr key={permKey} className="hover:bg-muted/50 border-b">
+                      <td className="px-4 py-3">{t(labelKey)}</td>
+                      {manageableRoles.map((role) => (
+                        <td key={role.id} className="px-4 py-3 text-center">
+                          <Checkbox
+                            checked={hasPermission(role.id, permKey)}
+                            onCheckedChange={() => togglePermission(role.id, permKey)}
+                          />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </AdminPageShell>

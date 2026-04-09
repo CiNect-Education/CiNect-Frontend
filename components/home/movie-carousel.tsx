@@ -78,7 +78,7 @@ export function MovieCarousel({ movies, title, viewAllHref }: MovieCarouselProps
                   </div>
                 )}
 
-                {movie.rating != null && (
+                {movie.rating != null && Number(movie.rating) > 0 && (
                   <Badge className="absolute top-2 right-2 bg-black/80 text-[10px] text-white shadow-sm">
                     {movie.rating}
                   </Badge>
@@ -106,7 +106,7 @@ export function MovieCarousel({ movies, title, viewAllHref }: MovieCarouselProps
                       {movie.duration}m
                     </span>
                   )}
-                  {movie.rating != null && (
+                  {movie.rating != null && Number(movie.rating) > 0 && (
                     <span className="flex items-center gap-1">
                       <Star className="fill-primary text-primary h-3 w-3" />
                       {movie.rating}
