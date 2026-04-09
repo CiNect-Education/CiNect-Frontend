@@ -22,7 +22,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
-import { normalizeLocalizedPath } from "../../../../lib/locale-path";
 import {
   Form,
   FormControl,
@@ -69,7 +68,9 @@ export default function LoginPage() {
   const returnTo = useMemo(() => {
     const queryReturnTo = searchParams.get("returnTo");
     if (queryReturnTo) {
-      return normalizeLocalizedPath(queryReturnTo);
+      return queryReturnTo.startsWith(`/${locale}/`)
+        ? queryReturnTo.replace(`/${locale}`, "")
+        : queryReturnTo;
     }
 
     if (typeof window !== "undefined") {
@@ -82,7 +83,7 @@ export default function LoginPage() {
         );
 
         if (sameOrigin && path && !isAuthPage) {
-          return normalizeLocalizedPath(path);
+          return path.startsWith(`/${locale}/`) ? path.replace(`/${locale}`, "") : path;
         }
       } catch {
         // Ignore malformed referrer URL and fallback to home page.

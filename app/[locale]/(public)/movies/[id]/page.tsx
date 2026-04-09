@@ -67,7 +67,6 @@ export default function MovieDetailPage() {
     date: selectedDate,
   });
   const showtimes = showtimesRes?.data ?? [];
-
   // Cinemas (for city filter)
   const { data: cinemasRes } = useCinemas();
   const cinemaItems =
@@ -255,7 +254,7 @@ export default function MovieDetailPage() {
                     <Calendar className="h-4 w-4" />
                     {new Date(movie.releaseDate).toLocaleDateString()}
                   </span>
-                  {movie.rating && (
+                  {movie.rating != null && movie.rating > 0 && (
                     <span className="flex items-center gap-1 text-sm">
                       <Star className="fill-primary text-primary h-4 w-4" />
                       <span className="font-semibold">{movie.rating.toFixed(1)}</span>
@@ -265,8 +264,14 @@ export default function MovieDetailPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-3">
+                  <Button size="lg" asChild>
+                    <Link href={`/showtimes?movie=${movie.id}`}>
+                      <Ticket className="mr-2 h-5 w-5" />
+                      {t("bookNow")}
+                    </Link>
+                  </Button>
                   {movie.trailerUrl && (
-                    <Button size="lg" asChild>
+                    <Button size="lg" variant="outline" asChild>
                       <a href={movie.trailerUrl} target="_blank" rel="noopener noreferrer">
                         <Play className="mr-2 h-5 w-5" />
                         {t("trailer")}

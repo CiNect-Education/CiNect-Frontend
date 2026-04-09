@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { cn } from "@/lib/utils";
+import { CinectBrandLogo } from "@/components/branding/cinect-brand-logo";
 
 const MAIN_NAV = [
   { key: "movies", href: "/movies", icon: Film },
@@ -82,10 +83,8 @@ export function MobileNav() {
         {/* ─── Header ─── */}
         <SheetHeader className="bg-muted/30 border-b px-5 py-4">
           <SheetTitle className="flex items-center gap-2.5 text-left">
-            <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
-              <Film className="text-primary-foreground h-4 w-4" />
-            </div>
-            <span className="text-lg font-bold tracking-tight">CiNect</span>
+            <CinectBrandLogo size="sm" />
+            <span className="sr-only">CiNect</span>
           </SheetTitle>
         </SheetHeader>
 

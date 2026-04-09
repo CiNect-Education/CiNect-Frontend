@@ -226,7 +226,7 @@ function MovieCard({ movie }: { movie: MovieListItem }) {
               </Badge>
             )}
           </div>
-          {movie.rating && (
+          {movie.rating != null && Number(movie.rating) > 0 && (
             <Badge className="absolute top-2 right-2 bg-black/80 text-[10px] text-white shadow-sm">
               {movie.rating}
             </Badge>
@@ -256,7 +256,7 @@ function MovieCard({ movie }: { movie: MovieListItem }) {
                 {movie.duration}m
               </span>
             )}
-            {movie.rating && (
+            {movie.rating != null && Number(movie.rating) > 0 && (
               <span className="flex items-center gap-1">
                 <Star className="fill-primary text-primary h-3 w-3" />
                 {movie.rating}

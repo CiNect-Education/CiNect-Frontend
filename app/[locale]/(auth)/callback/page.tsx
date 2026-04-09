@@ -4,13 +4,13 @@ import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { setAccessToken, setRefreshToken } from "@/lib/auth-storage";
-import { normalizeLocalizedPath } from "@/lib/locale-path";
 import { Loader2 } from "lucide-react";
 import { getApiBaseUrl } from "@/lib/api-discovery";
 import type { UserRole } from "@/types/domain";
 
 function normalizeReturnTo(raw: string | null): string {
-  return normalizeLocalizedPath(raw);
+  if (!raw) return "/";
+  return raw.startsWith("/vi/") || raw.startsWith("/en/") ? raw.slice(3) || "/" : raw;
 }
 
 function resolvePostLoginPath(role: UserRole | undefined, returnTo: string): string {

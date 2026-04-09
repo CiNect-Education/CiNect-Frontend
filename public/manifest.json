@@ -1,7 +1,7 @@
 {
-  "name": "CinemaConnect",
-  "short_name": "CinemaConnect",
-  "description": "Book cinema tickets online",
+  "name": "CiNect",
+  "short_name": "CiNect",
+  "description": "Đặt vé xem phim trực tuyến — CiNect",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
