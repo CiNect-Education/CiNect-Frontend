@@ -9,11 +9,19 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "CiNect - Trai Nghiem Dien Anh Dinh Cao",
+    default: "CiNect - Trải nghiệm điện ảnh đỉnh cao",
     template: "%s | CiNect",
   },
   description:
-    "Kham pha phim moi nhat, dat ve truc tuyen va tan huong uu dai doc quyen tai CiNect.",
+    "Khám phá phim mới nhất, đặt vé trực tuyến và tận hưởng ưu đãi độc quyền tại CiNect.",
+  icons: {
+    icon: [
+      { url: "/favicon.png", sizes: "any", type: "image/png" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/icon-192.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export const viewport: Viewport = {
@@ -32,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#e11d48" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="icon" href="/favicon.png" type="image/png" />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>{children}</body>
     </html>

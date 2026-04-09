@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { Film } from "lucide-react";
+import { CinectBrandLogo } from "@/components/branding/cinect-brand-logo";
 import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
@@ -16,8 +16,8 @@ export function Footer() {
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
             <Link href="/" className="flex items-center gap-2 font-bold">
-              <Film className="text-primary h-5 w-5" />
-              <span>CiNect</span>
+              <CinectBrandLogo size="lg" />
+              <span className="sr-only">CiNect</span>
             </Link>
             <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
               {t("brandTagline")}

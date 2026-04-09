@@ -15,17 +15,17 @@ import type { CinemaListItem } from "@/types/domain";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import {
+  BookingAddressModeSegment,
+  BookingCityField,
+} from "@/components/shared/booking-city-field";
+import { bookingCityLabel, normalizeBookingCityId } from "@/lib/booking-region";
+import {
   buildGoogleMapsDirectionsUrl,
   buildGoogleMapsPlaceUrl,
   formatDistanceKm,
   getCurrentPositionCoords,
   haversineKm,
 } from "@/lib/maps";
-import {
-  BookingAddressModeSegment,
-  BookingCityField,
-} from "@/components/shared/booking-city-field";
-import { bookingCityLabel, normalizeBookingCityId } from "@/lib/booking-region";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];

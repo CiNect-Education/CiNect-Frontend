@@ -152,8 +152,7 @@ export default function ShowtimesPageClient() {
     }
   }, [city, provincesLegacy, provincesNew]);
   const today = new Date();
-  const selectedDate = dateFromParams || "";
-  const apiDate = dateFromParams || undefined;
+  const date = dateFromParams || localCalendarDate(today);
   const next7Days = Array.from({ length: 8 }, (_, i) => {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
@@ -162,7 +161,7 @@ export default function ShowtimesPageClient() {
 
   const apiParams: Record<string, string> = {};
   if (city) apiParams.city = city;
-  if (apiDate) apiParams.date = apiDate;
+  if (date) apiParams.date = date;
   if (cinemaId) apiParams.cinemaId = cinemaId;
   if (movieId) apiParams.movieId = movieId;
 
@@ -366,7 +365,7 @@ export default function ShowtimesPageClient() {
               return (
                 <Button
                   key={dateStr}
-                  variant={selectedDate === dateStr ? "default" : "outline"}
+                  variant={date === dateStr ? "default" : "outline"}
                   size="sm"
                   onClick={() => setDate(dateStr)}
                   className="shrink-0"

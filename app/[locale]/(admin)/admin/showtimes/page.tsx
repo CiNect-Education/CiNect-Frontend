@@ -98,6 +98,30 @@ type ShowtimeFormValues = {
   format: "2D" | "3D" | "IMAX" | "4DX" | "DOLBY";
 };
 
+function toDateTimeLocalValue(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  const hh = String(date.getHours()).padStart(2, "0");
+  const mm = String(date.getMinutes()).padStart(2, "0");
+  return `${y}-${m}-${d}T${hh}:${mm}`;
+}
+
+function roundUpToFiveMinutes(date: Date): Date {
+  const rounded = new Date(date);
+  rounded.setSeconds(0, 0);
+  const mins = rounded.getMinutes();
+  const next = mins % 5 === 0 ? mins : mins + (5 - (mins % 5));
+  rounded.setMinutes(next);
+  return rounded;
+}
+
+function getMinFutureStartTimeLocal(): string {
+  // Keep a buffer so newly-created showtimes are always in the future.
+  const nowWithBuffer = new Date(Date.now() + 30 * 60 * 1000);
+  return toDateTimeLocalValue(roundUpToFiveMinutes(nowWithBuffer));
+}
+
 function getMinutesOfDay(iso: string): number {
   const d = new Date(iso);
   return d.getHours() * 60 + d.getMinutes();
@@ -230,14 +254,17 @@ export default function AdminShowtimesPage() {
     setConflictError(null);
     setConflictIds(new Set());
     setEditingShowtime(null);
-    const start = dateFilter
-      ? `${dateFilter}T10:00:00`
-      : new Date().toISOString().slice(0, 10) + "T10:00:00";
+    const minFutureLocal = getMinFutureStartTimeLocal();
+    const datePreferredLocal = dateFilter ? `${dateFilter}T10:00` : "";
+    const startLocal =
+      datePreferredLocal && datePreferredLocal > minFutureLocal
+        ? datePreferredLocal
+        : minFutureLocal;
     form.reset({
       movieId: "",
       cinemaId: cinemaFilter || "",
       roomId: "",
-      startTime: start.slice(0, 16),
+      startTime: startLocal,
       basePrice: 80000,
       format: "2D",
     });
@@ -528,7 +555,7 @@ export default function AdminShowtimesPage() {
                     <FormItem>
                       <FormLabel>{t("labelStart")}</FormLabel>
                       <FormControl>
-                        <Input type="datetime-local" {...field} />
+                        <Input type="datetime-local" min={getMinFutureStartTimeLocal()} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

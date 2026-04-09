@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
-import { Film, Ticket, MapPin } from "lucide-react";
+import { Ticket, MapPin } from "lucide-react";
+import { CinectBrandLogo } from "@/components/branding/cinect-brand-logo";
 import { UserMenu } from "@/components/shared/user-menu";
 import { GlobalSearch } from "@/components/shared/global-search";
 import { SettingsPanel } from "@/components/shared/settings-panel";
@@ -116,10 +117,8 @@ export function Header() {
 
           {/* Logo */}
           <Link href="/" className="text-foreground flex items-center gap-2.5 font-bold">
-            <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
-              <Film className="text-primary-foreground h-4 w-4" />
-            </div>
-            <span className="hidden text-lg tracking-tight sm:inline">CiNect</span>
+            <CinectBrandLogo size="sm" priority />
+            <span className="sr-only">CiNect</span>
           </Link>
 
           {/* Desktop Navigation */}

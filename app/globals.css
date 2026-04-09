@@ -191,3 +191,101 @@
 .animate-tier-scale {
   animation: tier-scale 2s ease-in-out infinite;
 }
+
+/* CiNect brand logo: ambient pulse + sweep shine + sparkles */
+@keyframes cinect-logo-ambient {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes cinect-logo-shine {
+  0% {
+    transform: translateX(-130%) skewX(-12deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.12;
+  }
+  45% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: translateX(130%) skewX(-12deg);
+    opacity: 0;
+  }
+}
+
+@keyframes cinect-logo-sparkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.85);
+    box-shadow: 0 0 4px hsl(var(--primary) / 0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+    box-shadow:
+      0 0 10px hsl(var(--primary) / 0.65),
+      0 0 16px hsl(200 90% 55% / 0.35);
+  }
+}
+
+.cinect-logo-ambient {
+  background: radial-gradient(
+    circle at 50% 40%,
+    hsl(var(--primary) / 0.35) 0%,
+    hsl(200 85% 55% / 0.12) 42%,
+    transparent 70%
+  );
+  animation: cinect-logo-ambient 3.5s ease-in-out infinite;
+}
+
+.dark .cinect-logo-ambient {
+  background: radial-gradient(
+    circle at 50% 40%,
+    hsl(var(--primary) / 0.45) 0%,
+    hsl(200 90% 50% / 0.18) 40%,
+    transparent 68%
+  );
+}
+
+.cinect-logo-shine {
+  position: absolute;
+  inset: -40% -60%;
+  width: 45%;
+  mix-blend-mode: overlay;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    hsl(0 0% 100% / 0) 35%,
+    hsl(0 0% 100% / 0.35) 50%,
+    hsl(0 0% 100% / 0) 65%,
+    transparent 100%
+  );
+  animation: cinect-logo-shine 4.2s ease-in-out infinite;
+}
+
+.dark .cinect-logo-shine {
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    hsl(210 40% 96% / 0) 38%,
+    hsl(210 40% 96% / 0.14) 50%,
+    hsl(210 40% 96% / 0) 62%,
+    transparent 100%
+  );
+}
+
+.cinect-logo-sparkle {
+  pointer-events: none;
+  z-index: 3;
+  animation: cinect-logo-sparkle 2.2s ease-in-out infinite;
+}
