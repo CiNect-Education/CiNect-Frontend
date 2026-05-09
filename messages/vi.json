@@ -478,12 +478,16 @@
   "globalSearch": {
     "dialogTitle": "Tìm kiếm",
     "dialogDescription": "Tìm phim và rạp theo tên.",
-    "placeholder": "Tìm phim và rạp…",
+    "placeholder": "Nhập tên phim hoặc rạp…",
     "minChars": "Nhập ít nhất 2 ký tự để tìm",
     "searching": "Đang tìm…",
     "noResults": "Không có kết quả.",
     "movies": "Phim",
-    "cinemas": "Rạp"
+    "cinemas": "Rạp",
+    "keyboardHint": "Esc để đóng, Enter để chọn",
+    "nowShowing": "Đang chiếu",
+    "comingSoon": "Sắp chiếu",
+    "ended": "Đã kết thúc"
   },
   "bookingFlow": {
     "holdNotFound": "Giữ ghế không tồn tại hoặc đã hết hạn.",

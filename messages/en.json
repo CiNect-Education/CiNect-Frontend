@@ -478,12 +478,16 @@
   "globalSearch": {
     "dialogTitle": "Search",
     "dialogDescription": "Search movies and cinemas by name.",
-    "placeholder": "Search movies and cinemas…",
+    "placeholder": "Type a movie or cinema name…",
     "minChars": "Type at least 2 characters to search",
     "searching": "Searching…",
     "noResults": "No results found.",
     "movies": "Movies",
-    "cinemas": "Cinemas"
+    "cinemas": "Cinemas",
+    "keyboardHint": "Esc to close, Enter to select",
+    "nowShowing": "Now showing",
+    "comingSoon": "Coming soon",
+    "ended": "Ended"
   },
   "bookingFlow": {
     "holdNotFound": "Hold not found or expired.",
