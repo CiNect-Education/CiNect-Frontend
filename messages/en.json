@@ -198,6 +198,7 @@
     "rolesUpdated": "Roles updated successfully",
     "rolesUpdateFailed": "Failed to update roles",
     "loginFailed": "Login failed",
+    "invalidLoginPassword": "Incorrect password, please try again",
     "registerFailed": "Registration failed"
   },
   "home": {

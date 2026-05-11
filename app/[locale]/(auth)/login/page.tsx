@@ -32,7 +32,6 @@ import {
 } from "@/components/ui/form";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
 type LoginFormValues = { email: string; password: string };
 
@@ -57,10 +56,7 @@ export default function LoginPage() {
           .trim()
           .min(1, t("validationRequiredEmail"))
           .regex(EMAIL_REGEX, t("validationInvalidEmail")),
-        password: z
-          .string()
-          .min(1, t("validationRequiredPassword"))
-          .regex(PASSWORD_REGEX, t("validationInvalidPassword")),
+        password: z.string().min(1, t("validationRequiredPassword")),
       }),
     [t]
   );
@@ -139,7 +135,6 @@ export default function LoginPage() {
                       <Input
                         type="text"
                         inputMode="email"
-                        placeholder={t("emailPlaceholder")}
                         className="pr-24"
                         {...field}
                       />

@@ -198,6 +198,7 @@
     "rolesUpdated": "Đã cập nhật vai trò",
     "rolesUpdateFailed": "Không thể cập nhật vai trò",
     "loginFailed": "Đăng nhập thất bại",
+    "invalidLoginPassword": "Mật khẩu không đúng, vui lòng nhập lại",
     "registerFailed": "Đăng ký thất bại"
   },
   "home": {

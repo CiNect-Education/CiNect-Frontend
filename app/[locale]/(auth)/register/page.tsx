@@ -157,11 +157,6 @@ export default function RegisterPage() {
                         className="pr-24"
                         {...field}
                       />
-                      {field.value && !field.value.includes("@") ? (
-                        <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm">
-                          @gmail.com
-                        </span>
-                      ) : null}
                     </div>
                   </FormControl>
                   <FormMessage />

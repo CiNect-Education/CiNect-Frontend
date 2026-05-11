@@ -97,8 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         toast.success(tToast("welcomeBack"));
         return userResult.data?.data ?? null;
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : tToast("loginFailed");
-        toast.error(message);
+        toast.error(tToast("invalidLoginPassword"));
         throw error;
       }
     },
