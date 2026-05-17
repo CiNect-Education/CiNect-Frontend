@@ -23,6 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as UiCalendar } from "@/components/ui/calendar";
 import {
   BOOKING_CITY_CHANGED_EVENT,
   SELECTED_CITY_STORAGE_KEY,
@@ -85,6 +87,7 @@ export default function ShowtimesPageClient() {
   const [cityQuery, setCityQuery] = useState("");
   const [cityPickerOpen, setCityPickerOpen] = useState(false);
   const [cityInputValue, setCityInputValue] = useState("");
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const provincesNew = useMemo(
     () => toList<{ code: string; nameVi: string; nameEn: string }>(provincesRes?.data),
@@ -153,11 +156,46 @@ export default function ShowtimesPageClient() {
   }, [city, provincesLegacy, provincesNew]);
   const today = new Date();
   const date = dateFromParams || localCalendarDate(today);
+  const selectedDate = useMemo(() => {
+    if (!date) return undefined;
+    const [y, m, d] = date.split("-").map(Number);
+    if (!y || !m || !d) return undefined;
+    return new Date(y, m - 1, d);
+  }, [date]);
+  const startOfToday = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
   const next7Days = Array.from({ length: 8 }, (_, i) => {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
     return d;
   });
+  const selectedDateLabel = useMemo(() => {
+    if (!selectedDate) return "";
+    const selectedKey = localCalendarDate(selectedDate);
+    const todayKey = localCalendarDate(today);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const tomorrowKey = localCalendarDate(tomorrow);
+    if (selectedKey === todayKey) return tHome("today");
+    if (selectedKey === tomorrowKey) return tHome("tomorrow");
+    return formatDateChipLabel(selectedDate, locale);
+  }, [selectedDate, today, tHome, locale]);
+  const selectedDateKey = selectedDate ? localCalendarDate(selectedDate) : "";
+  const next7DayKeys = next7Days.map((d) => localCalendarDate(d));
+  const isSelectedInPresetRange = selectedDateKey ? next7DayKeys.includes(selectedDateKey) : false;
+  const endOfPresetRange = useMemo(() => {
+    const d = new Date(today);
+    d.setDate(today.getDate() + 7);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [today]);
+  const isSelectedBeforePreset = !!selectedDate && selectedDate < startOfToday;
+  const isSelectedAfterPreset = !!selectedDate && selectedDate > endOfPresetRange;
+  const showCustomSelectedDateChip =
+    !!selectedDateLabel && !isSelectedInPresetRange && (isSelectedBeforePreset || isSelectedAfterPreset);
 
   const apiParams: Record<string, string> = {};
   if (city) apiParams.city = city;
@@ -356,6 +394,15 @@ export default function ShowtimesPageClient() {
         <div>
           <p className="text-muted-foreground mb-2 text-sm font-medium">{t("selectDate")}</p>
           <div className="flex gap-2 overflow-x-auto pb-2">
+            {showCustomSelectedDateChip && isSelectedBeforePreset && (
+              <>
+                <Button variant="default" size="sm" className="shrink-0" onClick={() => setDate(selectedDateKey)}>
+                  <Calendar className="mr-1.5 h-4 w-4" />
+                  {selectedDateLabel}
+                </Button>
+                <span className="text-muted-foreground inline-flex shrink-0 items-center px-1 text-sm">...</span>
+              </>
+            )}
             {next7Days.map((d) => {
               const dateStr = localCalendarDate(d);
               const isToday =
@@ -379,6 +426,46 @@ export default function ShowtimesPageClient() {
                 </Button>
               );
             })}
+            {showCustomSelectedDateChip && isSelectedAfterPreset && (
+              <>
+                <span className="text-muted-foreground inline-flex shrink-0 items-center px-1 text-sm">...</span>
+                <Button variant="default" size="sm" className="shrink-0" onClick={() => setDate(selectedDateKey)}>
+                  <Calendar className="mr-1.5 h-4 w-4" />
+                  {selectedDateLabel}
+                </Button>
+              </>
+            )}
+            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0"
+                  aria-label={t("selectDate")}
+                  title={t("selectDate")}
+                >
+                  <Calendar className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <UiCalendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(picked) => {
+                    if (!picked) return;
+                    setDate(localCalendarDate(picked));
+                    setDatePickerOpen(false);
+                  }}
+                  disabled={(picked) => picked < startOfToday}
+                  classNames={{
+                    // Keep "today" readable but not highlighted like selected day.
+                    today: "text-foreground font-medium bg-transparent",
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 

@@ -61,6 +61,7 @@ export function BookingCityField({
       <PopoverTrigger asChild>
         <div className={cn("min-w-0", compact ? "max-w-[min(100%,11rem)] sm:max-w-[13rem]" : "w-full max-w-[min(100%,14rem)]", className)}>
           <Input
+            suppressHydrationWarning
             value={inputValue}
             onFocus={() => {
               setOpen(true);
@@ -144,6 +145,7 @@ export function BookingAddressModeSegment({ mode, onChange, className }: Segment
       aria-label={tCommon("addressSystem")}
     >
       <button
+        suppressHydrationWarning
         type="button"
         title={tCommon("addressSystemNew")}
         onClick={() => onChange("new")}
@@ -157,6 +159,7 @@ export function BookingAddressModeSegment({ mode, onChange, className }: Segment
         34
       </button>
       <button
+        suppressHydrationWarning
         type="button"
         title={tCommon("addressSystemLegacy")}
         onClick={() => onChange("legacy")}

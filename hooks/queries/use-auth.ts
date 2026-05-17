@@ -38,20 +38,12 @@ export function useLogin() {
 }
 
 export function useRegister() {
-  const queryClient = useQueryClient();
-
   return useApiMutation<
     { user: User; tokens: { accessToken: string; refreshToken: string; expiresIn: number } },
     RegisterInput
   >("post", "/auth/register", {
     schema: authResponseSchema,
     successMessage: "Registration successful",
-    onSuccess: (res) => {
-      const { user, tokens } = res.data;
-      setAccessToken(tokens.accessToken);
-      setRefreshToken(tokens.refreshToken);
-      queryClient.setQueryData(["auth", "me"], { data: user, timestamp: new Date().toISOString() });
-    },
   });
 }
 
