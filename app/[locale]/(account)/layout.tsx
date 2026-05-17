@@ -8,7 +8,7 @@ import { ClientOnly } from "@/components/system/client-only";
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   return (
     <RequireAuth>
-      <div className="flex min-h-screen flex-col">
+      <div className="bg-background flex min-h-screen flex-col">
         <Header />
         <main className="flex-1">
           <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">

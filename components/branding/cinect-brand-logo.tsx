@@ -1,90 +1,110 @@
 "use client";
 
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 
+/** Bump when replacing processed PNGs so browsers skip stale cache. */
+const BRAND_LOGO_VERSION = "4";
+
 const SIZES = {
-  sm: "h-9 w-9 min-h-[2.25rem] min-w-[2.25rem]",
-  md: "h-11 w-11 min-h-[2.75rem] min-w-[2.75rem]",
-  lg: "h-14 w-14 min-h-[3.5rem] min-w-[3.5rem]",
-  xl: "h-24 w-24 min-h-[6rem] min-w-[6rem]",
+  sm: "h-12",
+  md: "h-14",
+  lg: "h-[5rem]",
+  xl: "h-32",
+  /** Main site header — tall mark like cinestar.com.vn */
+  header: "cinect-logo-mark--header h-[4.25rem] w-[11rem] sm:h-[4.5rem] sm:w-[12rem]",
+  /** Footer — large, flat (no glow frame) */
+  footer: "cinect-logo-mark--footer h-[6.5rem] w-[17rem] sm:h-28 sm:w-[19rem]",
 } as const;
 
 export type CinectBrandLogoSize = keyof typeof SIZES;
 
+/** `auto` follows theme; `on-dark` / `on-light` for fixed backgrounds (e.g. footer). */
+export type CinectBrandLogoSurface = "auto" | "on-dark" | "on-light";
+
 type Props = {
   size?: CinectBrandLogoSize;
+  surface?: CinectBrandLogoSurface;
   className?: string;
-  /** Extra shimmer + sparkles (default true) */
-  sparkle?: boolean;
+  shine?: boolean;
+  /** No ambient glow / shine / blend modes (footer) */
+  plain?: boolean;
   priority?: boolean;
 };
 
 /**
- * CiNect mark in a circular frame: light asset on white, dark asset on near-black.
- * Harmonizes with theme via ring/offset using design tokens.
+ * CiNect mark — large, borderless, tinted to match site palette (gold + violet).
  */
-export function CinectBrandLogo({ size = "sm", className, sparkle = true, priority = false }: Props) {
+export function CinectBrandLogo({
+  size = "sm",
+  surface = "auto",
+  className,
+  shine = true,
+  plain = false,
+  priority = false,
+}: Props) {
+  const showEffects = shine && !plain;
+  const surfaceKey =
+    surface === "on-dark" ? "dark" : surface === "on-light" ? "light" : "auto";
+
+  const lightClass = cn(
+    "cinect-logo-img cinect-logo-img-light",
+    surfaceKey === "dark" && "hidden",
+    surfaceKey === "light" && "block",
+    surfaceKey === "auto" && "block dark:hidden"
+  );
+
+  const darkClass = cn(
+    "cinect-logo-img cinect-logo-img-dark",
+    surfaceKey === "dark" && "block",
+    surfaceKey === "light" && "hidden",
+    surfaceKey === "auto" && "hidden dark:block"
+  );
+
   return (
-    <span className={cn("relative inline-flex shrink-0 items-center justify-center", SIZES[size], className)}>
-      {/* Soft brand-colored ambient glow */}
-      <span
-        aria-hidden
-        className="cinect-logo-ambient absolute inset-0 -z-10 scale-[1.15] rounded-full blur-md"
-      />
-
-      <span
-        className={cn(
-          "relative flex h-full w-full overflow-hidden rounded-full",
-          "shadow-sm ring-2 ring-primary/30 ring-offset-2 ring-offset-background",
-          "dark:shadow-[0_0_0_1px_rgba(255,255,255,0.06)] dark:ring-primary/40"
-        )}
-      >
-        {/* object-cover + scale: fill the circle (crop), zoom past PNG margins so it doesn’t sit “in a box” */}
-        <Image
-          src="/brand/cinect-logo-light.png"
-          alt="CiNect"
-          width={512}
-          height={512}
-          quality={100}
-          className="relative z-[1] h-full w-full origin-center object-cover object-center scale-[1.18] transform-gpu dark:hidden"
-          priority={priority}
-          sizes="192px"
-        />
-        <Image
-          src="/brand/cinect-logo-dark.png"
-          alt="CiNect"
-          width={512}
-          height={512}
-          quality={100}
-          className="relative z-[1] hidden h-full w-full origin-center object-cover object-center scale-[1.18] transform-gpu dark:block"
-          sizes="192px"
-        />
-        {/* Shine: no full-surface blend — that was washing out the mark */}
-        <span
-          className="cinect-logo-shine-wrap pointer-events-none absolute inset-0 z-[2] overflow-hidden rounded-full"
-          aria-hidden
-        >
-          <span className="cinect-logo-shine" />
-        </span>
-      </span>
-
-      {sparkle && (
-        <>
-          <span
-            className="cinect-logo-sparkle absolute -right-0.5 top-0 h-1.5 w-1.5 rounded-full bg-amber-400"
-            style={{ animationDelay: "0s" }}
-          />
-          <span
-            className="cinect-logo-sparkle absolute -left-0.5 bottom-2 h-1 w-1 rounded-full bg-sky-400"
-            style={{ animationDelay: "0.45s" }}
-          />
-          <span
-            className="cinect-logo-sparkle absolute bottom-0 right-1.5 h-1.5 w-1.5 rounded-full bg-primary"
-            style={{ animationDelay: "0.9s" }}
-          />
-        </>
+    <span
+      className={cn(
+        "cinect-logo-mark relative inline-flex shrink-0 items-center justify-center",
+        surface === "on-dark" && "cinect-logo-mark--on-dark",
+        surface === "on-light" && "cinect-logo-mark--on-light",
+        surface === "auto" && "cinect-logo-mark--auto",
+        plain && "cinect-logo-mark--plain",
+        SIZES[size],
+        className
       )}
+    >
+      {showEffects && (
+        <span aria-hidden className="cinect-logo-ambient pointer-events-none absolute -inset-[35%] -z-10" />
+      )}
+
+      <span className="relative flex h-full items-center">
+        {/* Native img: Next/Image optimizer flattens PNG alpha onto black in dev/prod */}
+        <img
+          src={`/brand/cinect-logo-light.png?v=${BRAND_LOGO_VERSION}`}
+          alt="CiNect"
+          width={512}
+          height={341}
+          decoding="async"
+          fetchPriority={priority ? "high" : "auto"}
+          className={lightClass}
+        />
+        <img
+          src={`/brand/cinect-logo-dark.png?v=${BRAND_LOGO_VERSION}`}
+          alt="CiNect"
+          width={512}
+          height={341}
+          decoding="async"
+          className={darkClass}
+        />
+
+        {showEffects && (
+          <span
+            className="cinect-logo-shine-wrap pointer-events-none absolute inset-0 z-[2] overflow-hidden"
+            aria-hidden
+          >
+            <span className="cinect-logo-shine" />
+          </span>
+        )}
+      </span>
     </span>
   );
 }

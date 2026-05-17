@@ -127,7 +127,7 @@ export default function HomePage() {
       )}
 
       {/* Hero Section with Featured Carousel */}
-      <section className="from-primary/10 via-background to-background relative overflow-hidden bg-gradient-to-b">
+      <section className="cinect-hero-band relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
         <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="mb-6 text-center">

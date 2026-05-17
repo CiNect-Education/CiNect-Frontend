@@ -10,7 +10,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <div className="bg-background flex min-h-screen flex-col items-center justify-center p-4">
       <div className="mb-8 flex flex-col items-center gap-3">
         <Link href="/" className="flex flex-col items-center gap-1 text-xl font-bold">
-          <CinectBrandLogo size="xl" priority />
+          <CinectBrandLogo size="xl" priority className="drop-shadow-lg" />
           <span className="sr-only">CiNect</span>
         </Link>
         <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">

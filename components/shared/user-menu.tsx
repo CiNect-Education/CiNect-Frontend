@@ -22,10 +22,10 @@ export function UserMenu() {
   if (!isAuthenticated) {
     return (
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" asChild>
+        <Button variant="ghost" size="sm" asChild className="font-semibold">
           <Link href="/login">{t("login")}</Link>
         </Button>
-        <Button size="sm" asChild>
+        <Button variant="cta" size="sm" asChild>
           <Link href="/register">{t("register")}</Link>
         </Button>
       </div>

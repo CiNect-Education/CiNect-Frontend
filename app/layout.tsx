@@ -1,10 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Be_Vietnam_Pro, Inter } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
   variable: "--font-inter",
+});
+
+const beVietnam = Be_Vietnam_Pro({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-display",
 });
 
 export const metadata: Metadata = {
@@ -16,18 +22,19 @@ export const metadata: Metadata = {
     "Khám phá phim mới nhất, đặt vé trực tuyến và tận hưởng ưu đãi độc quyền tại CiNect.",
   icons: {
     icon: [
-      { url: "/favicon.png", sizes: "any", type: "image/png" },
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/favicon.png?v=5", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-48.png?v=5", sizes: "48x48", type: "image/png" },
+      { url: "/icons/icon-192.png?v=5", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png?v=5", sizes: "512x512", type: "image/png" },
     ],
-    apple: [{ url: "/icons/icon-192.png", sizes: "180x180", type: "image/png" }],
+    apple: [{ url: "/icons/icon-192.png?v=5", sizes: "180x180", type: "image/png" }],
   },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b1120" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f3fa" },
+    { media: "(prefers-color-scheme: dark)", color: "#1a1f4a" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -38,11 +45,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#e11d48" />
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-        <link rel="icon" href="/favicon.png" type="image/png" />
+        <meta name="theme-color" content="#1a1f4a" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png?v=5" />
+        <link rel="icon" href="/favicon.png?v=5" type="image/png" sizes="32x32" />
+        <link rel="icon" href="/favicon-48.png?v=5" type="image/png" sizes="48x48" />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`}>{children}</body>
+      <body className={`${inter.variable} ${beVietnam.variable} font-sans antialiased`}>
+        {children}
+      </body>
     </html>
   );
 }

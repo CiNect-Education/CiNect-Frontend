@@ -21,7 +21,7 @@ export function BottomNav() {
   const path = pathname.replace(/^\/(vi|en)/, "") || "/";
 
   return (
-    <nav className="bg-background/95 fixed right-0 bottom-0 left-0 z-50 border-t backdrop-blur-md md:hidden">
+    <nav className="cinect-header-nav fixed right-0 bottom-0 left-0 z-50 border-t border-white/10 shadow-soft md:hidden">
       <div className="flex items-center justify-around py-2">
         {items.map((item) => {
           const Icon = item.icon;
@@ -34,7 +34,7 @@ export function BottomNav() {
               href={item.href}
               className={cn(
                 "flex flex-col items-center gap-0.5 px-3 py-1 text-xs transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground"
+                isActive ? "text-primary font-semibold" : "text-white/70"
               )}
             >
               <Icon className="h-5 w-5" />

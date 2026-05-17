@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { normalizeLocalizedPath } from "@/lib/locale-path";
 import type { UserRole } from "@/types/domain";
@@ -27,7 +28,7 @@ export function RequireAuth({ children, fallback }: RequireAuthProps) {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       const returnTo = encodeURIComponent(normalizeLocalizedPath(pathname));
-      router.push(`/login?returnTo=${returnTo}`);
+      router.replace(`/login?returnTo=${returnTo}`);
     }
   }, [isAuthenticated, isLoading, pathname, router]);
 

@@ -8,7 +8,7 @@ import { ClientOnly } from "@/components/system/client-only";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="cinect-page-bg flex min-h-screen flex-col">
       <PwaInstallPrompt />
       <MaintenanceBanner />
       <Header />

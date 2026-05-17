@@ -5,139 +5,232 @@
   text-wrap: balance;
 }
 
+/* ─── Cinestar-inspired design tokens (dark = cinestar.com.vn, light = adapted) ─── */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 228 32% 97%;
+    --foreground: 248 42% 16%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 248 42% 16%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 36 77% 49%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
-    --accent: 36 77% 49%;
+    --popover-foreground: 248 42% 16%;
+  /* Cinestar gold: #f1e35d / #F7C631 */
+    --primary: 49 90% 60%;
+    --primary-foreground: 0 0% 9%;
+    --cta-from: 52 88% 67%;
+    --cta-to: 44 94% 52%;
+    --secondary: 248 35% 93%;
+    --secondary-foreground: 248 40% 30%;
+    --muted: 228 24% 94%;
+    --muted-foreground: 248 18% 40%;
+    --accent: 272 48% 44%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 36 77% 49%;
-    --chart-1: 36 77% 49%;
-    --chart-2: 200 65% 48%;
-    --chart-3: 150 60% 40%;
+    --border: 260 18% 88%;
+    --input: 260 18% 88%;
+    --ring: 49 90% 55%;
+    --chart-1: 49 90% 60%;
+    --chart-2: 272 42% 42%;
+    --chart-3: 150 55% 40%;
     --chart-4: 280 55% 55%;
     --chart-5: 0 70% 55%;
-    --radius: 0.5rem;
-    --sidebar-background: 220 14% 96%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 36 77% 49%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 92%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 36 77% 49%;
+    --radius: 0.625rem;
 
-    /* Premium surfaces (light = "luxury") */
+    --sidebar-background: 260 25% 96%;
+    --sidebar-foreground: 258 42% 16%;
+    --sidebar-primary: 49 90% 60%;
+    --sidebar-primary-foreground: 0 0% 9%;
+    --sidebar-accent: 260 22% 92%;
+    --sidebar-accent-foreground: 258 42% 16%;
+    --sidebar-border: 260 18% 88%;
+    --sidebar-ring: 49 90% 55%;
+
     --surface-1: 0 0% 100%;
-    --surface-2: 220 14% 98%;
-    --glass-bg: 0 0% 100% / 0.72;
-    --glass-border: 220 13% 91% / 0.7;
-    --hero-glow: 36 77% 49% / 0.18;
+    --surface-2: 260 25% 95%;
+    --glass-bg: 0 0% 100% / 0.88;
+    --glass-border: 260 18% 88% / 0.85;
+    --hero-glow: 49 90% 60% / 0.22;
 
-    /* Seat map tokens (avoid hardcoded Tailwind colors) */
-    --seat-available-bg: 150 60% 40% / 0.14;
-    --seat-available-fg: 150 45% 25%;
-    --seat-available-border: 150 60% 40% / 0.35;
-    --seat-vip-bg: 160 84% 39% / 0.14;
-    --seat-vip-fg: 160 55% 25%;
-    --seat-vip-border: 160 84% 39% / 0.38;
-    --seat-couple-bg: 290 70% 55% / 0.12;
-    --seat-couple-fg: 290 45% 30%;
-    --seat-couple-border: 290 70% 55% / 0.38;
-    --seat-held-bg: 36 77% 49% / 0.16;
-    --seat-held-fg: 30 65% 28%;
-    --seat-held-border: 36 77% 49% / 0.45;
-    --seat-booked-bg: var(--destructive) / 0.14;
-    --seat-booked-fg: 0 70% 35%;
-    --seat-booked-border: var(--destructive) / 0.45;
-    --seat-conflict-bg: var(--destructive) / 0.16;
-    --seat-conflict-border: var(--destructive) / 0.65;
+    --header-top: 228 28% 96%;
+    --header-main: 0 0% 100%;
+    --header-nav-mid: 272 42% 34%;
+    --header-nav-end: 228 48% 32%;
+    --header-nav-foreground: 0 0% 98%;
+    --footer-from: 248 40% 34%;
+    --footer-mid: 258 44% 28%;
+    --footer-to: 228 50% 24%;
+
+    --seat-available-bg: 150 55% 40% / 0.12;
+    --seat-available-fg: 150 45% 28%;
+    --seat-available-border: 150 55% 40% / 0.35;
+    --seat-vip-bg: 160 75% 38% / 0.12;
+    --seat-vip-fg: 160 50% 28%;
+    --seat-vip-border: 160 75% 38% / 0.38;
+    --seat-couple-bg: 290 65% 52% / 0.1;
+    --seat-couple-fg: 290 45% 32%;
+    --seat-couple-border: 290 65% 52% / 0.35;
+    --seat-held-bg: 43 96% 48% / 0.18;
+    --seat-held-fg: 38 70% 28%;
+    --seat-held-border: 43 96% 48% / 0.45;
+    --seat-booked-bg: var(--destructive) / 0.12;
+    --seat-booked-fg: 0 65% 38%;
+    --seat-booked-border: var(--destructive) / 0.4;
+    --seat-conflict-bg: var(--destructive) / 0.14;
+    --seat-conflict-border: var(--destructive) / 0.6;
+
+    --shadow-soft: 0 4px 20px hsl(258 40% 20% / 0.08);
+    --shadow-cta: 0 3px 14px hsl(44 85% 38% / 0.38);
+    --shadow-purple: 0 4px 14px hsl(272 45% 35% / 0.3);
   }
 
   .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 96%;
-    --card: 222 47% 8%;
-    --card-foreground: 210 40% 96%;
-    --popover: 222 47% 8%;
-    --popover-foreground: 210 40% 96%;
-    --primary: 36 77% 49%;
-    --primary-foreground: 222 47% 6%;
-    --secondary: 222 30% 14%;
-    --secondary-foreground: 210 40% 96%;
-    --muted: 222 30% 14%;
-    --muted-foreground: 215 20% 55%;
-    --accent: 36 77% 49%;
-    --accent-foreground: 222 47% 6%;
-    --border: 222 30% 16%;
-    --input: 222 30% 16%;
-    --ring: 36 77% 49%;
-    --chart-1: 36 77% 49%;
-    --chart-2: 200 65% 48%;
-    --chart-3: 150 60% 40%;
-    --chart-4: 280 55% 55%;
-    --chart-5: 0 70% 55%;
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 36 77% 49%;
-    --sidebar-primary-foreground: 222 47% 6%;
-    --sidebar-accent: 222 30% 14%;
-    --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 222 30% 16%;
-    --sidebar-ring: 36 77% 49%;
+    /* Cinestar.com.vn: indigo + violet + plum (not flat purple), gold CTA */
+    --background: 235 48% 12%;
+    --foreground: 0 0% 98%;
+    --card: 248 38% 16%;
+    --card-foreground: 0 0% 98%;
+    --popover: 248 38% 16%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 49 90% 62%;
+    --primary-foreground: 0 0% 9%;
+    --cta-from: 52 88% 68%;
+    --cta-to: 44 94% 54%;
+    --secondary: 228 45% 28%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 248 32% 18%;
+    --muted-foreground: 228 20% 78%;
+    --accent: 285 52% 48%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 252 30% 22%;
+    --input: 252 30% 22%;
+    --ring: 49 90% 58%;
+    --chart-1: 45 96% 53%;
+    --chart-2: 272 45% 48%;
+    --chart-3: 150 55% 45%;
+    --chart-4: 280 55% 58%;
+    --chart-5: 0 70% 58%;
 
-    /* Premium surfaces (dark = "cinematic") */
-    --surface-1: 222 47% 8%;
-    --surface-2: 222 30% 12%;
-    --glass-bg: 222 47% 8% / 0.62;
-    --glass-border: 222 30% 16% / 0.8;
-    --hero-glow: 36 77% 49% / 0.22;
+    --sidebar-background: 252 38% 13%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 49 90% 62%;
+    --sidebar-primary-foreground: 0 0% 9%;
+    --sidebar-accent: 252 32% 18%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 252 30% 22%;
+    --sidebar-ring: 49 90% 58%;
 
-    /* Seat map tokens */
-    --seat-available-bg: 150 60% 40% / 0.16;
-    --seat-available-fg: 150 55% 70%;
-    --seat-available-border: 150 60% 40% / 0.35;
-    --seat-vip-bg: 160 84% 39% / 0.16;
-    --seat-vip-fg: 160 55% 72%;
-    --seat-vip-border: 160 84% 39% / 0.38;
-    --seat-couple-bg: 290 70% 55% / 0.14;
-    --seat-couple-fg: 290 65% 80%;
-    --seat-couple-border: 290 70% 55% / 0.38;
-    --seat-held-bg: 36 77% 49% / 0.18;
-    --seat-held-fg: 36 77% 80%;
-    --seat-held-border: 36 77% 49% / 0.45;
+    --surface-1: 248 36% 15%;
+    --surface-2: 235 40% 17%;
+    --glass-bg: 248 38% 14% / 0.78;
+    --glass-border: 228 35% 42% / 0.35;
+    --hero-glow: 49 90% 62% / 0.32;
+
+    --header-top: 235 42% 14%;
+    --header-main: 248 36% 16%;
+    --header-nav-mid: 272 50% 34%;
+    --header-nav-end: 228 52% 30%;
+    --header-nav-foreground: 0 0% 98%;
+    --footer-from: 248 42% 30%;
+    --footer-mid: 258 46% 26%;
+    --footer-to: 228 52% 22%;
+
+    --seat-available-bg: 150 55% 45% / 0.16;
+    --seat-available-fg: 150 55% 72%;
+    --seat-available-border: 150 55% 45% / 0.35;
+    --seat-vip-bg: 160 75% 42% / 0.16;
+    --seat-vip-fg: 160 55% 75%;
+    --seat-vip-border: 160 75% 42% / 0.38;
+    --seat-couple-bg: 290 65% 55% / 0.14;
+    --seat-couple-fg: 290 65% 82%;
+    --seat-couple-border: 290 65% 55% / 0.38;
+    --seat-held-bg: 45 96% 53% / 0.2;
+    --seat-held-fg: 45 90% 78%;
+    --seat-held-border: 45 96% 53% / 0.45;
     --seat-booked-bg: var(--destructive) / 0.18;
     --seat-booked-fg: 0 70% 80%;
     --seat-booked-border: var(--destructive) / 0.45;
-    --seat-conflict-bg: var(--destructive) / 0.2;
-    --seat-conflict-border: var(--destructive) / 0.7;
+    --seat-conflict-bg: var(--destructive) / 0.22;
+    --seat-conflict-border: var(--destructive) / 0.65;
+
+    --shadow-soft: 0 8px 32px hsl(252 50% 4% / 0.55);
+    --shadow-cta: 0 4px 18px hsl(44 85% 32% / 0.45);
+    --shadow-purple: 0 4px 20px hsl(272 55% 28% / 0.55);
   }
 
   * {
     border-color: hsl(var(--border));
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+
+  .dark body {
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(ellipse 100% 70% at 50% -15%, hsl(272 55% 38% / 0.42) 0%, transparent 55%),
+      radial-gradient(ellipse 65% 50% at 100% 30%, hsl(228 60% 32% / 0.35) 0%, transparent 50%),
+      radial-gradient(ellipse 55% 45% at 0% 70%, hsl(285 48% 32% / 0.22) 0%, transparent 45%),
+      linear-gradient(
+        168deg,
+        hsl(235 50% 13%) 0%,
+        hsl(248 44% 11%) 38%,
+        hsl(272 42% 12%) 62%,
+        hsl(228 48% 10%) 100%
+      );
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  a:not([class]) {
+    color: hsl(var(--primary));
+    transition: color 0.2s ease, opacity 0.2s ease;
+  }
+
+  a:not([class]):hover {
+    opacity: 0.88;
   }
 }
 
 @layer utilities {
-  /* One class that looks premium in both light+dark */
+  /* Page shell: light lavender wash / dark inherits body gradient */
+  .cinect-page-bg {
+    background-color: hsl(var(--background));
+  }
+
+  :root .cinect-page-bg {
+    background-image: linear-gradient(
+      180deg,
+      hsl(228 35% 97%) 0%,
+      hsl(248 28% 96%) 45%,
+      hsl(228 30% 95%) 100%
+    );
+  }
+
+  .dark .cinect-page-bg {
+    background-color: transparent;
+    background-image: none;
+  }
+
   .cinect-glass {
     background-color: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
@@ -160,6 +253,352 @@
       transparent 58%
     );
   }
+
+  .cinect-hero-band {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--primary) / 0.14) 0%,
+      hsl(var(--background)) 50%,
+      hsl(var(--background)) 100%
+    );
+  }
+
+  .dark .cinect-hero-band {
+    background:
+      radial-gradient(ellipse 95% 65% at 50% -5%, hsl(272 58% 42% / 0.4) 0%, transparent 58%),
+      radial-gradient(ellipse 55% 45% at 95% 15%, hsl(228 62% 38% / 0.28) 0%, transparent 52%),
+      radial-gradient(ellipse 45% 40% at 5% 25%, hsl(285 50% 36% / 0.2) 0%, transparent 48%),
+      linear-gradient(180deg, hsl(248 38% 16% / 0.85) 0%, transparent 72%);
+  }
+
+  .cinect-header-top {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--header-top)) 0%,
+      hsl(var(--header-main)) 100%
+    );
+    border-color: hsl(var(--border) / 0.6);
+  }
+
+  .cinect-header-main {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--header-main)) 0%,
+      hsl(var(--surface-1)) 100%
+    );
+    border-color: hsl(var(--border) / 0.65);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .dark .cinect-header-main {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--header-main)) 0%,
+      hsl(248 38% 14%) 100%
+    );
+  }
+
+  .cinect-header-nav {
+    background: linear-gradient(
+      90deg,
+      hsl(272 52% 36%) 0%,
+      hsl(var(--header-nav-mid)) 42%,
+      hsl(var(--header-nav-end)) 100%
+    );
+    color: hsl(var(--header-nav-foreground));
+  }
+
+  .dark .cinect-header-nav {
+    background: linear-gradient(
+      90deg,
+      hsl(285 48% 38%) 0%,
+      hsl(var(--header-nav-mid)) 38%,
+      hsl(var(--header-nav-end)) 72%,
+      hsl(228 55% 26%) 100%
+    );
+  }
+
+  .cinect-footer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--footer-from)) 0%,
+      hsl(var(--footer-mid)) 48%,
+      hsl(var(--footer-to)) 100%
+    );
+    color: hsl(0 0% 96%);
+  }
+
+  .dark .cinect-footer {
+    background: linear-gradient(
+      95deg,
+      hsl(248 44% 32%) 0%,
+      hsl(272 46% 28%) 35%,
+      hsl(258 48% 24%) 65%,
+      hsl(228 52% 20%) 100%
+    );
+  }
+
+  .cinect-footer a {
+    color: hsl(0 0% 92%);
+    transition: color 0.2s ease, opacity 0.2s ease;
+  }
+
+  .cinect-footer a:hover {
+    color: hsl(var(--primary));
+    opacity: 1;
+  }
+
+  .cinect-footer-heading {
+    margin-bottom: 1rem;
+    font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: hsl(0 0% 100%);
+  }
+
+  .cinect-footer-link {
+    display: block;
+    padding: 0.2rem 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: hsl(0 0% 92% / 0.78);
+    transition: color 0.2s ease;
+  }
+
+  .cinect-footer-link:hover {
+    color: hsl(var(--primary));
+  }
+
+  .cinect-footer-cinema-list {
+    max-height: 14rem;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(0 0% 100% / 0.25) transparent;
+  }
+
+  .cinect-footer-cinema-list::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .cinect-footer-cinema-list::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: hsl(0 0% 100% / 0.25);
+  }
+
+  .cinect-nav-link {
+    position: relative;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: color 0.2s ease, opacity 0.2s ease;
+  }
+
+  .cinect-nav-link::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -2px;
+    width: 0;
+    height: 2px;
+    border-radius: 9999px;
+    background: hsl(var(--primary));
+    transform: translateX(-50%);
+    transition: width 0.25s ease;
+  }
+
+  .cinect-nav-link:hover::after,
+  .cinect-nav-link[data-active="true"]::after {
+    width: 70%;
+  }
+
+  .cinect-card-hover {
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  .cinect-card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-soft);
+    border-color: hsl(var(--primary) / 0.4);
+  }
+
+  .dark .cinect-card-hover:hover {
+    border-color: hsl(228 55% 55% / 0.35);
+    box-shadow:
+      var(--shadow-soft),
+      0 0 24px hsl(272 50% 40% / 0.15);
+  }
+
+  /* Auth panel (always light card — fixed Cinestar colors, not theme tokens) */
+  .cinect-auth-tab-inactive {
+    background-color: hsl(262 32% 25%);
+    color: hsl(0 0% 100%);
+    transition: background-color 0.2s ease;
+  }
+
+  .cinect-auth-tab-inactive:hover {
+    background-color: hsl(262 30% 30%);
+  }
+
+  .cinect-auth-tab-active {
+    background-color: hsl(0 0% 100%);
+    color: hsl(258 42% 16%);
+  }
+
+  .cinect-auth-social-btn {
+    display: inline-flex;
+    height: 2.75rem;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    border: 1px solid hsl(252 18% 82%);
+    background-color: hsl(0 0% 100%);
+    box-shadow: 0 1px 3px hsl(252 40% 20% / 0.08);
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      transform 0.15s ease;
+  }
+
+  .cinect-auth-social-btn:hover {
+    border-color: hsl(252 22% 72%);
+    background-color: hsl(252 25% 97%);
+    box-shadow: 0 4px 12px hsl(252 40% 20% / 0.12);
+  }
+
+  .cinect-auth-social-btn:active {
+    transform: scale(0.98);
+  }
+
+  /* Auth login/register — soft blur + plum tint like cinestar.com.vn/login */
+  .cinect-auth-bg-layer {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .cinect-auth-bg-image {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    object-position: center;
+    transform: scale(1.08);
+    filter: blur(5px);
+    -webkit-filter: blur(5px);
+  }
+
+  @media (min-width: 768px) {
+    .cinect-auth-bg-image {
+      filter: blur(6px);
+      -webkit-filter: blur(6px);
+    }
+  }
+
+  .cinect-auth-bg-tint {
+    background: hsl(248 42% 14% / 0.42);
+  }
+
+  .cinect-auth-bg-vignette {
+    background: linear-gradient(
+      90deg,
+      hsl(248 48% 8% / 0.68) 0%,
+      hsl(248 45% 12% / 0.48) 36%,
+      hsl(272 42% 14% / 0.28) 58%,
+      hsl(228 48% 16% / 0.1) 100%
+    );
+  }
+}
+
+/* CTA buttons — outside @layer so hover wins over Tailwind utilities */
+.cinect-press {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.cinect-press:hover:not(.cinect-btn-cta):not(.cinect-btn-purple):not(.cinect-btn-outline-light) {
+  filter: brightness(1.05);
+}
+
+.cinect-press:active:not(.cinect-btn-cta):not(.cinect-btn-purple):not(.cinect-btn-outline-light) {
+  transform: scale(0.98);
+}
+
+.cinect-btn-cta {
+  border: 1px solid hsl(44 80% 42% / 0.4);
+  background: linear-gradient(180deg, hsl(var(--cta-from)) 0%, hsl(var(--cta-to)) 100%);
+  color: hsl(var(--primary-foreground));
+  box-shadow: var(--shadow-cta);
+  font-weight: 700;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cinect-btn-cta:hover {
+    transform: translateY(-3px) scale(1.02);
+    border-color: hsl(44 78% 36% / 0.6);
+    background: linear-gradient(180deg, hsl(52 94% 74%) 0%, hsl(44 98% 60%) 100%);
+    box-shadow: 0 8px 26px hsl(44 88% 32% / 0.58);
+    filter: none;
+  }
+
+  .cinect-btn-purple:hover {
+    transform: translateY(-3px) scale(1.02);
+    border-color: hsl(0 0% 100% / 0.72);
+    background: linear-gradient(180deg, hsl(272 62% 54%) 0%, hsl(285 58% 48%) 100%);
+    box-shadow: 0 8px 26px hsl(272 58% 24% / 0.65);
+    filter: none;
+  }
+
+  .cinect-btn-outline-light:hover {
+    transform: translateY(-3px) scale(1.02);
+    border-color: hsl(0 0% 100% / 0.82);
+    background: hsl(0 0% 100% / 0.14);
+    box-shadow: 0 8px 22px hsl(248 50% 6% / 0.45);
+    color: hsl(0 0% 100%);
+    filter: none;
+  }
+}
+
+.cinect-btn-cta:active {
+  transform: translateY(0) scale(0.98);
+  background: linear-gradient(180deg, hsl(44 94% 54%) 0%, hsl(42 92% 48%) 100%);
+  box-shadow: 0 2px 10px hsl(44 85% 34% / 0.4);
+}
+
+.cinect-btn-purple {
+  border: 1.5px solid hsl(0 0% 100% / 0.38);
+  background: linear-gradient(180deg, hsl(272 52% 44%) 0%, hsl(285 50% 38%) 100%);
+  color: hsl(0 0% 100%);
+  box-shadow: var(--shadow-purple);
+  font-weight: 700;
+}
+
+.cinect-btn-purple:active {
+  transform: translateY(0) scale(0.98);
+  background: linear-gradient(180deg, hsl(272 48% 38%) 0%, hsl(285 46% 34%) 100%);
+  box-shadow: 0 2px 10px hsl(272 55% 28% / 0.45);
+}
+
+.cinect-btn-outline-light {
+  border: 1.5px solid hsl(0 0% 100% / 0.42);
+  background: transparent;
+  color: hsl(0 0% 100%);
+  font-weight: 700;
+}
+
+.cinect-btn-outline-light:active {
+  transform: translateY(0) scale(0.98);
+  background: hsl(0 0% 100% / 0.06);
 }
 
 @keyframes tier-glow {
@@ -192,7 +631,6 @@
   animation: tier-scale 2s ease-in-out infinite;
 }
 
-/* CiNect brand logo: ambient pulse + sweep shine + sparkles */
 @keyframes cinect-logo-ambient {
   0%,
   100% {
@@ -222,37 +660,99 @@
   }
 }
 
-@keyframes cinect-logo-sparkle {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: scale(0.85);
-    box-shadow: 0 0 4px hsl(var(--primary) / 0.5);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.15);
-    box-shadow:
-      0 0 10px hsl(var(--primary) / 0.65),
-      0 0 16px hsl(200 90% 55% / 0.35);
-  }
+.cinect-logo-mark .cinect-logo-img {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  width: auto;
+  max-width: none;
+  object-fit: contain;
+  object-position: center;
+  transition: filter 0.35s ease;
+}
+
+/* Header: zoom past PNG padding — match cinestar.com.vn prominence */
+.cinect-logo-mark--header .cinect-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left center;
+  transform: scale(1.32);
+  transform-origin: left center;
+}
+
+.cinect-logo-mark--header {
+  overflow: visible;
+}
+
+/* Footer: large mark, no glow frame */
+.cinect-logo-mark--footer .cinect-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left center;
+  transform: scale(1.3);
+  transform-origin: left center;
+}
+
+.cinect-logo-mark--footer {
+  overflow: visible;
+}
+
+.cinect-logo-mark--plain .cinect-logo-img-dark,
+.cinect-logo-mark--plain .cinect-logo-img-light,
+.cinect-logo-mark--plain.cinect-logo-mark--on-dark .cinect-logo-img-dark {
+  mix-blend-mode: normal;
+  filter: saturate(1.08) brightness(1.04);
+}
+
+.cinect-logo-mark--plain .cinect-logo-ambient,
+.cinect-logo-mark--plain .cinect-logo-shine-wrap {
+  display: none;
+}
+
+.cinect-logo-img-dark {
+  filter: saturate(1.18) brightness(1.1) contrast(1.03);
+  /* Fallback if a cached/optimized asset still has a black matte */
+  mix-blend-mode: screen;
+}
+
+.cinect-logo-mark--on-dark .cinect-logo-img-dark {
+  filter: saturate(1.22) brightness(1.12) contrast(1.04);
+  mix-blend-mode: screen;
+}
+
+.cinect-logo-img-light {
+  filter: saturate(1.14) contrast(1.04) brightness(1.02);
+  mix-blend-mode: multiply;
 }
 
 .cinect-logo-ambient {
   background: radial-gradient(
-    circle at 50% 40%,
-    hsl(var(--primary) / 0.35) 0%,
-    hsl(200 85% 55% / 0.12) 42%,
-    transparent 70%
+    ellipse 90% 75% at 50% 50%,
+    hsl(var(--primary) / 0.2) 0%,
+    hsl(var(--accent) / 0.1) 38%,
+    transparent 72%
   );
-  animation: cinect-logo-ambient 3.5s ease-in-out infinite;
+  filter: blur(14px);
+  animation: cinect-logo-ambient 4s ease-in-out infinite;
 }
 
-.dark .cinect-logo-ambient {
+.cinect-logo-mark--on-light .cinect-logo-ambient {
   background: radial-gradient(
-    circle at 50% 40%,
-    hsl(var(--primary) / 0.45) 0%,
-    hsl(200 90% 50% / 0.18) 40%,
+    ellipse 90% 75% at 50% 50%,
+    hsl(var(--primary) / 0.26) 0%,
+    hsl(272 42% 42% / 0.12) 40%,
+    transparent 70%
+  );
+}
+
+.cinect-logo-mark--on-dark .cinect-logo-ambient,
+.dark .cinect-logo-mark--auto .cinect-logo-ambient {
+  background: radial-gradient(
+    ellipse 90% 75% at 50% 50%,
+    hsl(var(--primary) / 0.38) 0%,
+    hsl(272 55% 50% / 0.18) 42%,
     transparent 68%
   );
 }
@@ -277,15 +777,9 @@
   background: linear-gradient(
     105deg,
     transparent 0%,
-    hsl(210 40% 96% / 0) 38%,
-    hsl(210 40% 96% / 0.14) 50%,
-    hsl(210 40% 96% / 0) 62%,
+    hsl(0 0% 96% / 0) 38%,
+    hsl(0 0% 96% / 0.1) 50%,
+    hsl(0 0% 96% / 0) 62%,
     transparent 100%
   );
-}
-
-.cinect-logo-sparkle {
-  pointer-events: none;
-  z-index: 3;
-  animation: cinect-logo-sparkle 2.2s ease-in-out infinite;
 }

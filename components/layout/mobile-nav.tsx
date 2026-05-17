@@ -83,7 +83,7 @@ export function MobileNav() {
         {/* ─── Header ─── */}
         <SheetHeader className="bg-muted/30 border-b px-5 py-4">
           <SheetTitle className="flex items-center gap-2.5 text-left">
-            <CinectBrandLogo size="sm" />
+            <CinectBrandLogo size="md" />
             <span className="sr-only">CiNect</span>
           </SheetTitle>
         </SheetHeader>
@@ -126,7 +126,7 @@ export function MobileNav() {
 
         {/* ─── Quick Book CTA ─── */}
         <div className="px-5 pt-4">
-          <Button className="w-full gap-2" asChild>
+          <Button variant="cta" className="w-full gap-2" asChild>
             <Link href="/showtimes" onClick={() => setOpen(false)}>
               <Ticket className="h-4 w-4" />
               {t("bookNow")}

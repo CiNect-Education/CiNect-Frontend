@@ -13,6 +13,12 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "var(--font-inter)", "system-ui", "sans-serif"],
+      },
+      boxShadow: {
+        soft: "var(--shadow-soft)",
+        cta: "var(--shadow-cta)",
+        purple: "var(--shadow-purple)",
       },
       colors: {
         background: "hsl(var(--background))",
