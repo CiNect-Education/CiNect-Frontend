@@ -88,6 +88,12 @@ export interface MovieListItem {
   genres: Genre[];
   ageRating: AgeRating;
   formats: RoomFormat[];
+  language?: string;
+  trailerUrl?: string;
+  originalTitle?: string;
+  description?: string;
+  director?: string;
+  subtitles?: string;
   rating?: number;
   status: MovieStatus;
 }

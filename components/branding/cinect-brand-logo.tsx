@@ -10,7 +10,7 @@ const SIZES = {
   md: "h-14",
   lg: "h-[5rem]",
   xl: "h-32",
-  /** Main site header — tall mark like cinestar.com.vn */
+  /** Main site header — tall mark */
   header: "cinect-logo-mark--header h-[4.25rem] w-[11rem] sm:h-[4.5rem] sm:w-[12rem]",
   /** Footer — large, flat (no glow frame) */
   footer: "cinect-logo-mark--footer h-[6.5rem] w-[17rem] sm:h-28 sm:w-[19rem]",

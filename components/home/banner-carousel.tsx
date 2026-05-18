@@ -32,7 +32,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
         {banners.map((banner) => (
           <CarouselItem key={banner.id} className="basis-full pl-0">
             <Link href={banner.linkUrl || "#"} className="block">
-              <div className="cinect-banner-carousel__slide relative aspect-[21/9] w-full overflow-hidden rounded-xl bg-muted md:aspect-[3/1]">
+              <div className="cinect-banner-carousel__slide relative aspect-[21/9] w-full overflow-hidden rounded-xl bg-neutral-900 md:aspect-[3/1]">
                 <RemoteImage
                   src={banner.imageUrl}
                   alt={banner.title ?? "Banner"}

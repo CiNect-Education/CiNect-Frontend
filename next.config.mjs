@@ -23,7 +23,7 @@ const securityHeaders = [
       "font-src 'self' data:",
       // Browser fetch to Nest (3001) / Spring (8081); localhost vs 127.0.0.1 are different origins.
       "connect-src 'self' ws: wss: https: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*",
-      "frame-src 'self' https://www.youtube.com https://youtube.com",
+      "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com",
       "media-src 'self'",
     ].join("; "),
   },

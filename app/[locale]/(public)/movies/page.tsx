@@ -187,6 +187,7 @@ function MoviesContent() {
 }
 
 function MovieCard({ movie }: { movie: MovieListItem }) {
+  const t = useTranslations("movies");
   const genres =
     movie.genres?.map((g) =>
       typeof g === "object" && g !== null && "name" in g ? g.name : String(g)
@@ -212,12 +213,12 @@ function MovieCard({ movie }: { movie: MovieListItem }) {
           <div className="absolute top-2 left-2 flex flex-wrap gap-1">
             {movie.status === "NOW_SHOWING" && (
               <Badge className="bg-primary text-primary-foreground text-[10px] shadow-sm">
-                Now Showing
+                {t("nowShowing")}
               </Badge>
             )}
             {movie.status === "COMING_SOON" && (
               <Badge className="bg-black/75 text-[10px] text-white shadow-sm">
-                Coming Soon
+                {t("comingSoon")}
               </Badge>
             )}
             {movie.ageRating && (

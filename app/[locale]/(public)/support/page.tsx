@@ -13,14 +13,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Mail, Phone, MapPin } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { contactFormSchema, type ContactFormInput } from "@/lib/schemas/common";
-import { useSubmitContactForm, useSupportChatbot } from "@/hooks/queries/use-support";
+import { CinectContactSection } from "@/components/support/cinect-contact-section";
+import { useSupportChatbot } from "@/hooks/queries/use-support";
 
 const FAQ_KEYS = [
   { q: "faqBookingQ" as const, a: "faqBookingA" as const },
@@ -34,27 +29,11 @@ export default function SupportPage() {
   const t = useTranslations("support");
   const tNav = useTranslations("nav");
   const locale = useLocale();
-  const submitForm = useSubmitContactForm();
   const supportBot = useSupportChatbot();
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState<
     { role: "user" | "assistant"; text: string }[]
   >([]);
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<ContactFormInput>({
-    resolver: zodResolver(contactFormSchema),
-  });
-
-  function onSubmit(data: ContactFormInput) {
-    submitForm.mutate(data, {
-      onSuccess: () => reset(),
-    });
-  }
 
   function onAskBot() {
     const content = chatInput.trim();
@@ -82,14 +61,14 @@ export default function SupportPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 lg:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
       <PageHeader
         title={t("title")}
         breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("title") }]}
       />
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-        <div>
+      <div className="space-y-10">
+        <div className="max-w-4xl">
           <h2 className="mb-4 text-xl font-semibold">{t("faq")}</h2>
           <Accordion type="single" collapsible className="w-full">
             {FAQ_KEYS.map((item, i) => (
@@ -150,90 +129,7 @@ export default function SupportPage() {
           </Card>
         </div>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t("contact")}</CardTitle>
-            </CardHeader>
-            <CardContent className="text-muted-foreground space-y-3 text-sm">
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                support@cinect.vn
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                1900 0000
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                {t("officeAddress")}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t("contactForm")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div>
-                  <Label htmlFor="name">{t("name")}</Label>
-                  <Input
-                    id="name"
-                    placeholder={t("placeholderYourName")}
-                    {...register("name")}
-                    className="mt-1"
-                  />
-                  {errors.name && (
-                    <p className="text-destructive mt-1 text-xs">{errors.name.message}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="email">{t("email")}</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder={t("placeholderEmail")}
-                    {...register("email")}
-                    className="mt-1"
-                  />
-                  {errors.email && (
-                    <p className="text-destructive mt-1 text-xs">{errors.email.message}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="subject">{t("subject")}</Label>
-                  <Input
-                    id="subject"
-                    placeholder={t("placeholderSubject")}
-                    {...register("subject")}
-                    className="mt-1"
-                  />
-                  {errors.subject && (
-                    <p className="text-destructive mt-1 text-xs">{errors.subject.message}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="message">{t("message")}</Label>
-                  <Textarea
-                    id="message"
-                    placeholder={t("placeholderMessage")}
-                    rows={4}
-                    {...register("message")}
-                    className="mt-1"
-                  />
-                  {errors.message && (
-                    <p className="text-destructive mt-1 text-xs">{errors.message.message}</p>
-                  )}
-                </div>
-                <Button type="submit" className="w-full" disabled={submitForm.isPending}>
-                  {submitForm.isPending ? t("sending") : t("sendMessage")}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+        <CinectContactSection />
       </div>
     </div>
   );

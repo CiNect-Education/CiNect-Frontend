@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 type LocaleId = "vi" | "en";
 
-/** Same assets as cinestar.com.vn header/footer language switcher */
+/** Locale flag icons (remote assets from reference site) */
 const FLAG_SRC: Record<LocaleId, string> = {
   vi: "https://cinestar.com.vn/assets/images/footer-vietnam.svg",
   en: "https://cinestar.com.vn/assets/images/footer-america.webp",

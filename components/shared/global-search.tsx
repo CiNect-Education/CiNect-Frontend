@@ -162,7 +162,7 @@ function SearchResultsPanel({
   );
 }
 
-/** Cinestar: desktop = inline white pill + live results; mobile = icon opens bar below header */
+/** Desktop = inline white pill + live results; mobile = icon opens bar below header */
 export function GlobalSearch({ variant = "icon", className }: GlobalSearchProps) {
   const t = useTranslations("globalSearch");
   const tCommon = useTranslations("common");

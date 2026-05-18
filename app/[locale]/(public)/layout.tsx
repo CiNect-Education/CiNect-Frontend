@@ -1,4 +1,5 @@
 import { Header } from "@/components/layout/header";
+import { CinectAmbientBg } from "@/components/layout/cinect-ambient-bg";
 import { Footer } from "@/components/layout/footer";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { PwaInstallPrompt } from "@/components/shared/pwa-install-prompt";
@@ -8,11 +9,12 @@ import { ClientOnly } from "@/components/system/client-only";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="cinect-page-bg flex min-h-screen flex-col">
+    <div className="cinect-page-bg isolate flex min-h-screen flex-col">
+      <CinectAmbientBg />
       <PwaInstallPrompt />
       <MaintenanceBanner />
       <Header />
-      <main className="flex-1 pb-16 md:pb-0">{children}</main>
+      <main className="cinect-app-main flex-1 pb-16 md:pb-0">{children}</main>
       <Footer />
       <BottomNav />
       <ClientOnly>
