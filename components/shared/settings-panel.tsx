@@ -35,7 +35,11 @@ function toList<T>(v: unknown): T[] {
   return Array.isArray(arr) ? arr : [];
 }
 
-export function SettingsPanel() {
+type SettingsPanelProps = {
+  triggerClassName?: string;
+};
+
+export function SettingsPanel({ triggerClassName }: SettingsPanelProps = {} as SettingsPanelProps) {
   const t = useTranslations("nav");
   const { setTheme, theme } = useTheme();
   const locale = useLocale();
@@ -113,7 +117,11 @@ export function SettingsPanel() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn("h-8 w-8 text-inherit hover:bg-white/10", triggerClassName)}
+        >
           <Settings className="h-4 w-4" />
           <span className="sr-only">{t("settings")}</span>
         </Button>

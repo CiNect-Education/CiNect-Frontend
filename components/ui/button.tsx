@@ -9,7 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "cinect-btn-cta",
+        default: "cinect-btn-cta !rounded-[0.4rem]",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-soft",
         outline:
@@ -18,9 +18,10 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:brightness-110 shadow-purple",
         ghost: "hover:bg-muted hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        cta: "cinect-btn-cta uppercase tracking-wide",
-        purple: "cinect-btn-purple uppercase tracking-wide",
-        outlineLight: "cinect-btn-outline-light uppercase tracking-wide",
+        cta: "cinect-btn-cta !rounded-[0.4rem] uppercase tracking-wide",
+        purple: "cinect-btn-purple !rounded-[0.4rem] uppercase tracking-wide",
+        outlineLight: "cinect-btn-outline-light !rounded-[0.4rem] uppercase tracking-wide",
+        fab: "border-0 bg-transparent p-0 text-inherit shadow-none hover:bg-transparent [&_svg]:size-auto",
       },
       size: {
         default: "h-10 px-4 py-2",

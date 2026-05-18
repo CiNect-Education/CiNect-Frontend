@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
-import { useLocale } from "next-intl";
 import { useSearchParams } from "next/navigation";
+import { normalizeLocalizedPath } from "@/lib/locale-path";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -42,7 +42,6 @@ function resolvePostLoginPath(role: UserRole | undefined, returnTo: string): str
 export function AuthLoginForm() {
   const t = useTranslations("auth");
   const router = useRouter();
-  const locale = useLocale();
   const searchParams = useSearchParams();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -65,33 +64,33 @@ export function AuthLoginForm() {
     [t]
   );
 
-  const returnTo = useMemo(() => {
+  const returnToRef = useRef("/");
+
+  useEffect(() => {
     const queryReturnTo = searchParams.get("returnTo");
     if (queryReturnTo) {
-      return queryReturnTo.startsWith(`/${locale}/`)
-        ? queryReturnTo.replace(`/${locale}`, "")
-        : queryReturnTo;
+      returnToRef.current = normalizeLocalizedPath(queryReturnTo);
+      return;
     }
 
-    if (typeof window !== "undefined") {
-      try {
-        const ref = document.referrer ? new URL(document.referrer) : null;
-        const sameOrigin = ref && ref.origin === window.location.origin;
-        const path = ref ? `${ref.pathname}${ref.search}` : "";
-        const isAuthPage = /^\/(vi|en)\/(login|register|forgot-password|reset-password|callback)/.test(
-          path
-        );
+    try {
+      const ref = document.referrer ? new URL(document.referrer) : null;
+      const sameOrigin = ref && ref.origin === window.location.origin;
+      const path = ref ? `${ref.pathname}${ref.search}` : "";
+      const isAuthPage = /^\/(vi|en)\/(login|register|forgot-password|reset-password|callback)/.test(
+        path
+      );
 
-        if (sameOrigin && path && !isAuthPage) {
-          return path.startsWith(`/${locale}/`) ? path.replace(`/${locale}`, "") : path;
-        }
-      } catch {
-        // Ignore malformed referrer URL and fallback to home page.
+      if (sameOrigin && path && !isAuthPage) {
+        returnToRef.current = normalizeLocalizedPath(path);
+        return;
       }
+    } catch {
+      // Ignore malformed referrer URL and fallback to home page.
     }
 
-    return "/";
-  }, [locale, searchParams]);
+    returnToRef.current = "/";
+  }, [searchParams]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -109,6 +108,13 @@ export function AuthLoginForm() {
     }
   }, [form]);
 
+  useEffect(() => {
+    const oauthError = searchParams.get("error");
+    if (oauthError === "google_auth_failed" || oauthError === "oauth_failed") {
+      toast.error(t("googleLoginFailed"));
+    }
+  }, [searchParams, t]);
+
   function onInvalidSubmit() {
     toast.error(t("validationCheckLoginForm"));
   }
@@ -122,7 +128,7 @@ export function AuthLoginForm() {
         else localStorage.removeItem(REMEMBER_EMAIL_KEY);
       }
       const user = await login({ email, password: data.password });
-      router.push(resolvePostLoginPath(user?.role, returnTo));
+      router.push(resolvePostLoginPath(user?.role, returnToRef.current));
     } catch {
       // Error toast already shown in AuthProvider
     } finally {
@@ -133,7 +139,12 @@ export function AuthLoginForm() {
   return (
     <div className="space-y-5">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit, onInvalidSubmit)} className="space-y-4">
+        <form
+          onSubmit={form.handleSubmit(onSubmit, onInvalidSubmit)}
+          className="space-y-4"
+          suppressHydrationWarning
+          autoComplete="on"
+        >
           <FormField
             control={form.control}
             name="email"
@@ -147,6 +158,7 @@ export function AuthLoginForm() {
                       inputMode="email"
                       placeholder={t("loginIdentifierPlaceholder")}
                       className={`${authFieldClass} pr-24`}
+                      suppressHydrationWarning
                       {...field}
                     />
                     {field.value && !field.value.includes("@") ? (
@@ -172,6 +184,7 @@ export function AuthLoginForm() {
                       type={showPassword ? "text" : "password"}
                       placeholder={t("password")}
                       className={`${authFieldClass} pr-10`}
+                      suppressHydrationWarning
                       {...field}
                     />
                     <Button

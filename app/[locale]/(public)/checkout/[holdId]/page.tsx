@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams, useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "@/i18n/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,11 +45,6 @@ export default function CheckoutPage() {
   const tBookingFlow = useTranslations("bookingFlow");
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
-  const toLocalePath = useCallback(
-    (path: string) => `/${locale}${path.startsWith("/") ? "" : "/"}${path}`,
-    [locale]
-  );
-
   const dateFnsLocale = locale.startsWith("vi") ? viDateLocale : enUS;
   const formatShowtimeWhen = (iso: string) =>
     `${format(new Date(iso), "PPP", { locale: dateFnsLocale })} · ${format(new Date(iso), "p", { locale: dateFnsLocale })}`;
@@ -69,8 +65,8 @@ export default function CheckoutPage() {
     if (authLoading || isAuthenticated) return;
     const query = searchParams.toString();
     const returnTo = `${pathname}${query ? `?${query}` : ""}`;
-    router.replace(`/${locale}/login?returnTo=${encodeURIComponent(returnTo)}`);
-  }, [authLoading, isAuthenticated, locale, pathname, router, searchParams]);
+    router.replace(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+  }, [authLoading, isAuthenticated, pathname, router, searchParams]);
 
   const { data: holdRes, isLoading: holdLoading, error: holdError } = useHold(holdId);
   const hold = holdRes?.data as import("@/types/domain").HoldDetails | undefined;
@@ -228,19 +224,19 @@ export default function CheckoutPage() {
             transactionId: finalTransactionId,
             success: true,
           });
-          router.push(toLocalePath(`/payment/callback?transactionId=${finalTransactionId}`));
+          router.push(`/payment/callback?transactionId=${finalTransactionId}`);
         } else if (paymentUrl) {
           window.location.href = paymentUrl;
         } else if (finalTransactionId) {
-          router.push(toLocalePath(`/payment/callback?transactionId=${finalTransactionId}`));
+          router.push(`/payment/callback?transactionId=${finalTransactionId}`);
         } else {
-          router.push(toLocalePath(`/tickets/${bookingId}`));
+          router.push(`/tickets/${bookingId}`);
         }
       } catch {
         // Error handled by mutation
       }
     },
-    [bookingId, initiatePaymentMutation, router, toLocalePath]
+    [bookingId, initiatePaymentMutation, router]
   );
   const selectedSnackDetails = selectedSnacks
     .map((s) => ({

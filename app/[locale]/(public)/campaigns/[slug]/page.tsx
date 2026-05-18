@@ -12,7 +12,7 @@ import { useCampaign } from "@/hooks/queries/use-campaigns";
 import { Link } from "@/i18n/navigation";
 import { Tag, Film, Calendar } from "lucide-react";
 import { format } from "date-fns";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 
 function toObj<T>(v: unknown): T | null {
   if (!v) return null;
@@ -96,7 +96,7 @@ export default function CampaignPage() {
       {(campaign.bannerUrl || campaign.imageUrl) && (
         <div className="mb-8 overflow-hidden rounded-lg">
           <div className="bg-muted relative aspect-[21/9] w-full">
-            <Image
+            <RemoteImage
               src={campaign.bannerUrl ?? campaign.imageUrl ?? ""}
               alt={campaign.title}
               fill
@@ -146,7 +146,7 @@ export default function CampaignPage() {
                     <div className="bg-muted aspect-[2/3]">
                       {movie.posterUrl ? (
                         <div className="relative h-full w-full">
-                          <Image
+                          <RemoteImage
                             src={movie.posterUrl}
                             alt={movie.title}
                             fill

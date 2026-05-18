@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -95,7 +95,7 @@ export default function GiftDetailPage() {
         {/* Image */}
         <div className="from-primary/20 to-primary/5 relative aspect-video overflow-hidden rounded-lg bg-gradient-to-br">
           {giftCard.imageUrl ? (
-            <Image src={giftCard.imageUrl} alt={giftCard.title} fill className="object-cover" />
+            <RemoteImage src={giftCard.imageUrl} alt={giftCard.title} fill className="object-cover" />
           ) : (
             <div className="flex h-full items-center justify-center">
               <Gift className="text-primary/30 h-24 w-24" />

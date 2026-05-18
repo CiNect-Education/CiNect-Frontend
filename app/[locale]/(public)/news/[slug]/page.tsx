@@ -12,7 +12,7 @@ import { ApiErrorState } from "@/components/system/api-error-state";
 import { useNewsArticle, useNews } from "@/hooks/queries/use-news";
 import { Calendar, User, Newspaper, Tag } from "lucide-react";
 import type { NewsArticle } from "@/types/domain";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -132,7 +132,7 @@ export default function NewsArticlePage() {
         {article.imageUrl && (
           <div className="bg-muted mb-8 aspect-video overflow-hidden rounded-lg">
             <div className="relative h-full w-full">
-              <Image
+              <RemoteImage
                 src={article.imageUrl}
                 alt={article.title}
                 fill
@@ -183,7 +183,7 @@ export default function NewsArticlePage() {
                     {a.imageUrl ? (
                       <div className="bg-muted h-20 w-24 shrink-0 overflow-hidden rounded">
                         <div className="relative h-full w-full">
-                          <Image
+                          <RemoteImage
                             src={a.imageUrl}
                             alt={a.title}
                             fill

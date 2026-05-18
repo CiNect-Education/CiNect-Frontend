@@ -21,7 +21,7 @@ import {
 import { Clock, Star, Calendar, Film, ChevronLeft, ChevronRight } from "lucide-react";
 import type { MovieListItem } from "@/types/domain";
 import type { PaginationMeta } from "@/types/api";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { ClientOnly } from "@/components/system/client-only";
 
 const SORT_OPTIONS = [
@@ -196,7 +196,7 @@ function MovieCard({ movie }: { movie: MovieListItem }) {
       <Card className="group hover:shadow-primary/20 h-full overflow-hidden transition-all hover:shadow-lg">
         <div className="bg-muted relative aspect-[2/3] overflow-hidden">
           {movie.posterUrl ? (
-            <Image
+            <RemoteImage
               src={movie.posterUrl}
               alt={movie.title}
               fill

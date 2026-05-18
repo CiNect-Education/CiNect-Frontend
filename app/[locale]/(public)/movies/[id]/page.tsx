@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -192,7 +192,7 @@ export default function MovieDetailPage() {
       <div className="from-muted to-background relative h-[400px] overflow-hidden bg-gradient-to-b lg:h-[500px]">
         {movie.bannerUrl ? (
           <>
-            <Image
+            <RemoteImage
               src={movie.bannerUrl}
               alt={movie.title}
               fill
@@ -211,7 +211,7 @@ export default function MovieDetailPage() {
               {/* Poster */}
               <div className="border-background relative aspect-[2/3] w-48 shrink-0 overflow-hidden rounded-lg border-4 shadow-2xl lg:w-56">
                 {movie.posterUrl ? (
-                  <Image
+                  <RemoteImage
                     src={movie.posterUrl}
                     alt={movie.title}
                     fill
@@ -360,7 +360,7 @@ export default function MovieDetailPage() {
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                     {movie.galleryUrls.map((url, i) => (
                       <div key={i} className="relative aspect-video overflow-hidden rounded-lg">
-                        <Image
+                        <RemoteImage
                           src={url}
                           alt={t("galleryImageAlt", { index: i + 1 })}
                           fill
@@ -385,7 +385,7 @@ export default function MovieDetailPage() {
                         <div className="hover:border-primary/60 group overflow-hidden rounded-lg border transition">
                           <div className="bg-muted relative aspect-[2/3]">
                             {rm.posterUrl ? (
-                              <Image
+                              <RemoteImage
                                 src={rm.posterUrl}
                                 alt={rm.title}
                                 fill
@@ -419,7 +419,7 @@ export default function MovieDetailPage() {
                     {movie.cast.map((member, i) => (
                       <div key={i} className="flex items-center gap-3 rounded-lg border p-3">
                         {member.avatarUrl ? (
-                          <Image
+                          <RemoteImage
                             src={member.avatarUrl}
                             alt={member.name}
                             width={48}

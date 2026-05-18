@@ -20,7 +20,8 @@ export interface Banner {
   imageUrl: string;
   linkUrl: string;
   position: string;
-  priority: number;
+  sortOrder?: number;
+  priority?: number;
   title?: string;
 }
 

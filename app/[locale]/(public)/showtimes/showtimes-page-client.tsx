@@ -13,7 +13,7 @@ import { ApiErrorState } from "@/components/system/api-error-state";
 import { useShowtimes, useCinemas, useProvincesLegacy, useProvincesNew } from "@/hooks/queries/use-cinemas";
 import { Calendar, MapPin, Clock, Film, Ticket } from "lucide-react";
 import type { Showtime } from "@/types/domain";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -573,11 +573,10 @@ export default function ShowtimesPageClient() {
                         <div className="flex min-w-0 flex-1 items-center gap-4">
                           <div className="bg-muted relative h-20 w-14 shrink-0 overflow-hidden rounded-md">
                             {st.moviePosterUrl ? (
-                              <Image
+                              <RemoteImage
                                 src={st.moviePosterUrl}
                                 alt={st.movieTitle || t("movieFallback")}
                                 fill
-                                sizes="56px"
                                 className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
                               />
                             ) : (

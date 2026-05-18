@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { SnackItem } from "@/types/domain";
 import { Minus, Plus } from "lucide-react";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 
 interface SnacksStepProps {
   snacks: SnackItem[];
@@ -29,8 +29,6 @@ export function SnacksStep({
 }: SnacksStepProps) {
   const t = useTranslations("checkout");
   const locale = useLocale();
-  const isSvgLikeRemote = (url: string) => url.includes("placehold.co");
-
   const toNumber = (v: unknown): number => {
     if (typeof v === "number") return Number.isFinite(v) ? v : 0;
     if (typeof v === "string") {
@@ -61,13 +59,12 @@ export function SnacksStep({
               <div className="flex gap-4">
                 {snack.imageUrl && (
                   <div className="bg-muted relative h-20 w-20 shrink-0 overflow-hidden rounded-md">
-                    <Image
+                    <RemoteImage
                       src={snack.imageUrl}
                       alt={snack.name}
                       fill
                       sizes="80px"
                       className="object-cover"
-                      unoptimized={isSvgLikeRemote(snack.imageUrl)}
                     />
                   </div>
                 )}

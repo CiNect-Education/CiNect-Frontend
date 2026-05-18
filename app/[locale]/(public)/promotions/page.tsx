@@ -16,7 +16,7 @@ import { apiClient } from "@/lib/api-client";
 import { Tag, Copy, Check, ChevronLeft, ChevronRight, TicketPercent } from "lucide-react";
 import type { Promotion } from "@/types/domain";
 import { toast } from "sonner";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -47,8 +47,6 @@ export default function PromotionsPage() {
   const meta = data?.meta as { page?: number; totalPages?: number; total?: number } | undefined;
   const totalPages = meta?.totalPages ?? 1;
   const currentPage = meta?.page ?? page;
-
-  const isSvgLikeRemote = (url: string) => url.includes("placehold.co");
 
   function goToPage(p: number) {
     const params = new URLSearchParams(searchParams.toString());
@@ -131,13 +129,12 @@ export default function PromotionsPage() {
               <div className="bg-muted flex gap-4 p-4">
                 {voucherLookup.imageUrl && (
                   <div className="bg-muted relative h-20 w-28 shrink-0 overflow-hidden rounded">
-                    <Image
+                    <RemoteImage
                       src={voucherLookup.imageUrl}
                       alt={voucherLookup.title}
                       fill
                       sizes="112px"
                       className="object-cover"
-                      unoptimized={isSvgLikeRemote(voucherLookup.imageUrl)}
                     />
                   </div>
                 )}
@@ -197,13 +194,12 @@ export default function PromotionsPage() {
                 <div className="bg-muted aspect-video overflow-hidden">
                   {promo.imageUrl ? (
                     <div className="relative h-full w-full">
-                      <Image
+                      <RemoteImage
                         src={promo.imageUrl}
                         alt={promo.title}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover"
-                        unoptimized={isSvgLikeRemote(promo.imageUrl)}
                       />
                       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
                     </div>
@@ -274,13 +270,12 @@ export default function PromotionsPage() {
                 {selectedPromo.imageUrl && (
                   <div className="bg-muted aspect-video overflow-hidden rounded-lg">
                     <div className="relative h-full w-full">
-                      <Image
+                      <RemoteImage
                         src={selectedPromo.imageUrl}
                         alt={selectedPromo.title}
                         fill
                         sizes="(max-width: 768px) 100vw, 512px"
                         className="object-cover"
-                        unoptimized={isSvgLikeRemote(selectedPromo.imageUrl)}
                       />
                       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
                     </div>

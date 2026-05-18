@@ -13,7 +13,7 @@ import { useNews } from "@/hooks/queries/use-news";
 import { Newspaper, ChevronLeft, ChevronRight } from "lucide-react";
 import type { NewsArticle } from "@/types/domain";
 import type { NewsCategory } from "@/types/domain";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 
 const CATEGORIES: NewsCategory[] = ["REVIEWS", "TRAILERS", "PROMOTIONS", "GUIDES", "GENERAL"];
 
@@ -119,7 +119,7 @@ export default function NewsPage() {
                   <div className="bg-muted aspect-video overflow-hidden">
                     {article.imageUrl ? (
                       <div className="relative h-full w-full">
-                        <Image
+                        <RemoteImage
                           src={article.imageUrl}
                           alt={article.title}
                           fill

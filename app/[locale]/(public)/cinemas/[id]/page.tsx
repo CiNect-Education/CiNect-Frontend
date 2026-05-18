@@ -13,7 +13,7 @@ import { ApiErrorState } from "@/components/system/api-error-state";
 import { useCinema, useCinemaShowtimes } from "@/hooks/queries/use-cinemas";
 import { MapPin, Phone, Mail, Film, ExternalLink, Calendar } from "lucide-react";
 import type { Showtime } from "@/types/domain";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import {
   buildGoogleMapsDirectionsUrl,
   buildGoogleMapsPlaceUrl,
@@ -163,10 +163,10 @@ export default function CinemaDetailPage() {
         ]}
       />
 
-      <div className="bg-muted mb-6 aspect-video max-w-2xl overflow-hidden rounded-lg">
+      <div className="bg-muted relative mb-6 aspect-video max-w-2xl overflow-hidden rounded-lg">
         {cinema.imageUrl ? (
-          <div className="relative h-full w-full">
-            <Image
+          <>
+            <RemoteImage
               src={cinema.imageUrl}
               alt={cinema.name}
               fill
@@ -175,7 +175,7 @@ export default function CinemaDetailPage() {
               priority
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
-          </div>
+          </>
         ) : (
           <div className="flex h-full w-full items-center justify-center">
             <Film className="text-muted-foreground h-24 w-24" />
@@ -281,7 +281,7 @@ export default function CinemaDetailPage() {
                       <div className="bg-muted relative h-16 w-12 overflow-hidden rounded">
                         {group.moviePosterUrl ? (
                           <div className="relative h-full w-full">
-                            <Image
+                            <RemoteImage
                               src={group.moviePosterUrl}
                               alt={group.movieTitle}
                               fill

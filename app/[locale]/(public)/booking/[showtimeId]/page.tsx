@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
-import { useParams, useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "@/i18n/navigation";
 import { SeatMap } from "@/components/booking/seat-map";
 import { CountdownTimer } from "@/components/booking/countdown-timer";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,7 @@ import type { Seat } from "@/types/domain";
 import { useSeatRealtime } from "@/hooks/use-seat-realtime";
 import { useShowtime } from "@/hooks/queries/use-cinemas";
 import { Separator } from "@/components/ui/separator";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import { vi as viDateLocale } from "date-fns/locale";
@@ -92,8 +93,8 @@ export default function BookingPage() {
     if (authLoading || isAuthenticated) return;
     const query = searchParams.toString();
     const returnTo = `${pathname}${query ? `?${query}` : ""}`;
-    router.replace(`/${locale}/login?returnTo=${encodeURIComponent(returnTo)}`);
-  }, [authLoading, isAuthenticated, locale, pathname, router, searchParams]);
+    router.replace(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+  }, [authLoading, isAuthenticated, pathname, router, searchParams]);
 
   const { data: showtimeRes } = useShowtime(showtimeId);
   const showtime = (showtimeRes?.data ?? showtimeRes) as unknown as {
@@ -155,8 +156,7 @@ export default function BookingPage() {
       setExpiresAt(normalizeIsoDate(expiresAtVal));
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
-        const returnTo = `/${locale}/booking/${showtimeId}`;
-        router.push(`/${locale}/login?returnTo=${encodeURIComponent(returnTo)}`);
+        router.push(`/login?returnTo=${encodeURIComponent(`/booking/${showtimeId}`)}`);
         return;
       }
       const failed = extractConflictedSeatIds(err);
@@ -196,7 +196,7 @@ export default function BookingPage() {
 
   const handleProceed = () => {
     if (!holdId) return;
-    router.push(`/${locale}/checkout/${holdId}`);
+    router.push(`/checkout/${holdId}`);
   };
 
   // Intentionally avoid releasing on unmount.
@@ -345,11 +345,10 @@ export default function BookingPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-black via-background to-background" />
         {showtime?.moviePosterUrl ? (
           <div className="absolute inset-0 opacity-25 blur-[2px]">
-            <Image
+            <RemoteImage
               src={showtime.moviePosterUrl}
               alt=""
               fill
-              sizes="100vw"
               className="object-cover"
               priority
             />
@@ -366,11 +365,10 @@ export default function BookingPage() {
             <Card className="overflow-hidden">
               <div className="bg-muted relative aspect-[2/3]">
                 {showtime?.moviePosterUrl ? (
-                  <Image
+                  <RemoteImage
                     src={showtime.moviePosterUrl}
                     alt={showtime?.movieTitle ?? tb("moviePosterAlt")}
                     fill
-                    sizes="240px"
                     className="object-cover"
                     priority
                   />

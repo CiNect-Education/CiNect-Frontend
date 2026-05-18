@@ -280,22 +280,274 @@
     border-color: hsl(var(--border) / 0.6);
   }
 
-  .cinect-header-main {
-    background: linear-gradient(
-      180deg,
-      hsl(var(--header-main)) 0%,
-      hsl(var(--surface-1)) 100%
-    );
-    border-color: hsl(var(--border) / 0.65);
-    box-shadow: var(--shadow-soft);
+  .cinect-header-shell {
+    --cinect-header-height: 4.25rem;
+    color: hsl(0 0% 98%);
   }
 
-  .dark .cinect-header-main {
-    background: linear-gradient(
-      180deg,
-      hsl(var(--header-main)) 0%,
-      hsl(248 38% 14%) 100%
-    );
+  @media (min-width: 640px) {
+    .cinect-header-shell {
+      --cinect-header-height: 4.5rem;
+    }
+  }
+
+  .cinect-header-main {
+    background: hsl(235 48% 8%);
+    border-color: hsl(0 0% 100% / 0.08);
+    box-shadow: 0 4px 24px hsl(235 50% 4% / 0.45);
+  }
+
+  .cinect-header-sub {
+    background: hsl(235 44% 10%);
+    color: hsl(0 0% 98% / 0.92);
+  }
+
+  .cinect-header-sub-link {
+    color: hsl(0 0% 98% / 0.9);
+    transition: color 0.25s ease;
+  }
+
+  @media (hover: hover) {
+    .cinect-header-sub-link:hover {
+      color: #f3ea28;
+    }
+
+    .cinect-header-auth:hover {
+      color: #f3ea28;
+    }
+  }
+
+  .cinect-header-auth {
+    color: hsl(0 0% 100%);
+  }
+
+  /* Cinestar header language (select-location-header / hd-regi-list pattern) */
+  .cinect-lg-action {
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .cinect-lg-trigger {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    color: #f8fafc;
+    cursor: pointer;
+    display: flex;
+    gap: 0.5rem;
+    outline: none;
+    padding: 0;
+  }
+
+  @media (min-width: 640px) {
+    .cinect-lg-trigger {
+      gap: 0.8rem;
+    }
+  }
+
+  .cinect-lg-option {
+    align-items: center;
+    display: inline-flex;
+    flex-shrink: 0;
+    font-size: 0.875rem;
+    gap: 0 0.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .cinect-lg-option {
+      font-size: 0.9375rem;
+      gap: 0 0.8rem;
+    }
+  }
+
+  .cinect-lg-option--trigger {
+    display: inline-flex;
+  }
+
+  .cinect-lg-image {
+    border-radius: 100rem;
+    display: inline-block;
+    flex-shrink: 0;
+    height: 2.4rem;
+    overflow: hidden;
+    width: 2.4rem;
+  }
+
+  .cinect-lg-image img {
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+  }
+
+  .cinect-lg-txt {
+    background: transparent;
+    color: #f8fafc;
+    font-size: inherit;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    padding: 0;
+    position: relative;
+    text-transform: uppercase;
+    top: 0.2rem;
+    transition: color 0.3s ease;
+  }
+
+  .cinect-lg-arr {
+    color: #f8fafc;
+    flex-shrink: 0;
+    height: 1rem;
+    transition: color 0.3s ease, transform 0.2s ease;
+    width: 1rem;
+  }
+
+  /* Dropdown: hd-regi-list.--second — 2 rows (VN / EN), opens on hover like Cinestar */
+  .cinect-lg-action-popup {
+    background-color: #0f172a;
+    border: 0.1rem solid rgba(248, 250, 252, 0.1);
+    border-radius: 0.4rem;
+    left: auto;
+    min-width: 11.5rem;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.4rem);
+    transform: translateY(0.5rem);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    visibility: hidden;
+    z-index: 80;
+  }
+
+  .cinect-lg-action-popup::before {
+    content: "";
+    height: 0.6rem;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: -0.6rem;
+  }
+
+  .cinect-lg-popup {
+    align-items: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+  }
+
+  .cinect-lg-popup-item {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    outline: none;
+    padding: 0.8rem 1rem;
+    text-align: left;
+    transition: color 0.3s ease;
+    white-space: nowrap;
+    width: 100%;
+  }
+
+  .cinect-lg-popup-item + .cinect-lg-popup-item {
+    border-top: 0.1rem solid rgba(248, 250, 252, 0.08);
+  }
+
+  .cinect-lg-txt--popup {
+    color: rgba(248, 250, 252, 0.92);
+    font-weight: 600;
+    top: 0.15rem;
+  }
+
+  .cinect-lg-popup-item.is-active .cinect-lg-txt--popup {
+    color: #f3ea28;
+  }
+
+  @media (hover: hover) {
+    .cinect-lg-action:hover .cinect-lg-txt,
+    .cinect-lg-action:hover .cinect-lg-arr,
+    .cinect-lg-action.is-open .cinect-lg-txt,
+    .cinect-lg-action.is-open .cinect-lg-arr {
+      color: #f3ea28;
+    }
+
+    .cinect-lg-action:hover .cinect-lg-action-popup,
+    .cinect-lg-action.is-open .cinect-lg-action-popup {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+      visibility: visible;
+    }
+
+    .cinect-lg-popup-item:hover .cinect-lg-txt--popup {
+      color: #f3ea28;
+    }
+  }
+
+  .cinect-lg-action.is-open .cinect-lg-action-popup {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    visibility: visible;
+  }
+
+  .cinect-lg-action.is-open .cinect-lg-txt,
+  .cinect-lg-action.is-open .cinect-lg-arr {
+    color: #f3ea28;
+  }
+
+  .cinect-lg-action.is-open .cinect-lg-arr {
+    transform: rotate(180deg);
+  }
+
+  .cinect-hd-search-wr input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(49 90% 55% / 0.35);
+  }
+
+  .cinect-hd-search-panel {
+    max-height: min(24rem, 70vh);
+    overflow-y: auto;
+  }
+
+  .cinect-search-results {
+    max-height: inherit;
+  }
+
+  @media (hover: hover) {
+    .cinect-search-result-item:hover {
+      background-color: #f8fafc;
+    }
+  }
+
+  .cinect-hd-search-icon {
+    transition: color 0.3s ease, border-color 0.3s ease;
+  }
+
+  @media (hover: hover) {
+    .cinect-hd-search-icon:hover {
+      border-color: #f3ea28;
+      color: #f3ea28;
+    }
+  }
+
+  .cinect-hd-search-block {
+    animation: cinect-search-slide 0.3s ease-in-out;
+  }
+
+  @keyframes cinect-search-slide {
+    from {
+      opacity: 0;
+      transform: translateY(-0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .cinect-header-nav {
@@ -516,89 +768,219 @@
   }
 }
 
-/* CTA buttons — outside @layer so hover wins over Tailwind utilities */
+/* CTA buttons — Cinestar wipe hover (btn--pri / btn--second) */
 .cinect-press {
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
-    filter 0.2s ease,
-    background 0.2s ease,
-    border-color 0.2s ease;
+    filter 0.2s ease;
 }
 
-.cinect-press:hover:not(.cinect-btn-cta):not(.cinect-btn-purple):not(.cinect-btn-outline-light) {
+.cinect-press:hover:not(.cinect-btn-cta):not(.cinect-btn-purple):not(.cinect-btn-outline-light):not(
+    .cinect-chatbot-launcher
+  ) {
   filter: brightness(1.05);
 }
 
-.cinect-press:active:not(.cinect-btn-cta):not(.cinect-btn-purple):not(.cinect-btn-outline-light) {
+.cinect-press:active:not(.cinect-btn-cta):not(.cinect-btn-purple):not(.cinect-btn-outline-light):not(
+    .cinect-chatbot-launcher
+  ) {
   transform: scale(0.98);
 }
 
-.cinect-btn-cta {
-  border: 1px solid hsl(44 80% 42% / 0.4);
-  background: linear-gradient(180deg, hsl(var(--cta-from)) 0%, hsl(var(--cta-to)) 100%);
-  color: hsl(var(--primary-foreground));
-  box-shadow: var(--shadow-cta);
+/* Shared: pseudo-layer wipe (cinestar.com.vn .btn--pri / .btn--second) */
+.cinect-btn-cta,
+.cinect-btn-purple,
+.cinect-btn-outline-light {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  border: none;
+  background: transparent;
   font-weight: 700;
+  letter-spacing: 0.05em;
+  transition: color 0.3s ease-in-out;
+}
+
+.cinect-btn-cta::before,
+.cinect-btn-cta::after,
+.cinect-btn-purple::before,
+.cinect-btn-purple::after,
+.cinect-btn-outline-light::before,
+.cinect-btn-outline-light::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  height: 100%;
+  transition: width 0.4s ease-in-out;
+}
+
+.cinect-btn-cta > *,
+.cinect-btn-purple > *,
+.cinect-btn-outline-light > * {
+  position: relative;
+  z-index: 1;
+}
+
+.cinect-btn-cta svg,
+.cinect-btn-purple svg,
+.cinect-btn-outline-light svg {
+  transition: filter 0.3s ease-in-out;
+}
+
+/* Đặt Vé Ngay — .btn--pri */
+.cinect-btn-cta {
+  color: hsl(222 47% 11%);
+  box-shadow: none;
+}
+
+.cinect-btn-cta::before {
+  right: 0;
+  width: 100%;
+  background: #f3ea28;
+  z-index: -2;
+}
+
+.cinect-btn-cta::after {
+  left: 0;
+  bottom: 0;
+  width: 0;
+  background: linear-gradient(106deg, #663399, #3366cc 102.69%);
+  z-index: -1;
+}
+
+/* Đặt Bắp Nước — .btn--second */
+.cinect-btn-purple {
+  color: hsl(210 40% 98%);
+  box-shadow: none;
+}
+
+.cinect-btn-purple::before {
+  right: 0;
+  width: 100%;
+  background: #663399;
+  z-index: -2;
+}
+
+.cinect-btn-purple::after {
+  left: 0;
+  bottom: 0;
+  width: 0;
+  background: linear-gradient(90deg, #ff6d00, #ffc107);
+  z-index: -1;
+}
+
+/* Footer outline gift — .btn--outline */
+.cinect-btn-outline-light {
+  color: #f3ea28;
+  border: 1px solid #f3ea28;
+}
+
+.cinect-btn-outline-light::before {
+  right: 0;
+  width: 100%;
+  background: transparent;
+  z-index: -2;
+}
+
+.cinect-btn-outline-light::after {
+  left: 0;
+  bottom: 0;
+  width: 0;
+  background: linear-gradient(90deg, #ff6d00, #ffc107);
+  z-index: -1;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .cinect-btn-cta:hover {
-    transform: translateY(-3px) scale(1.02);
-    border-color: hsl(44 78% 36% / 0.6);
-    background: linear-gradient(180deg, hsl(52 94% 74%) 0%, hsl(44 98% 60%) 100%);
-    box-shadow: 0 8px 26px hsl(44 88% 32% / 0.58);
-    filter: none;
-  }
-
-  .cinect-btn-purple:hover {
-    transform: translateY(-3px) scale(1.02);
-    border-color: hsl(0 0% 100% / 0.72);
-    background: linear-gradient(180deg, hsl(272 62% 54%) 0%, hsl(285 58% 48%) 100%);
-    box-shadow: 0 8px 26px hsl(272 58% 24% / 0.65);
-    filter: none;
-  }
-
+  .cinect-btn-cta:hover,
+  .cinect-btn-purple:hover,
   .cinect-btn-outline-light:hover {
-    transform: translateY(-3px) scale(1.02);
-    border-color: hsl(0 0% 100% / 0.82);
-    background: hsl(0 0% 100% / 0.14);
-    box-shadow: 0 8px 22px hsl(248 50% 6% / 0.45);
     color: hsl(0 0% 100%);
     filter: none;
   }
+
+  .cinect-btn-cta:hover::before,
+  .cinect-btn-purple:hover::before,
+  .cinect-btn-outline-light:hover::before {
+    width: 0;
+  }
+
+  .cinect-btn-cta:hover::after,
+  .cinect-btn-purple:hover::after,
+  .cinect-btn-outline-light:hover::after {
+    width: 100%;
+  }
+
+  .cinect-btn-cta:hover svg,
+  .cinect-btn-purple:hover svg,
+  .cinect-btn-outline-light:hover svg {
+    filter: brightness(0) saturate(100%) invert(100%) sepia(0) saturate(7487%)
+      hue-rotate(198deg) brightness(105%) contrast(101%);
+  }
 }
 
-.cinect-btn-cta:active {
-  transform: translateY(0) scale(0.98);
-  background: linear-gradient(180deg, hsl(44 94% 54%) 0%, hsl(42 92% 48%) 100%);
-  box-shadow: 0 2px 10px hsl(44 85% 34% / 0.4);
+@media (hover: none) {
+  .cinect-btn-cta:active,
+  .cinect-btn-purple:active,
+  .cinect-btn-outline-light:active {
+    color: hsl(0 0% 100%);
+    transform: scale(0.98);
+  }
+
+  .cinect-btn-cta:active::before,
+  .cinect-btn-purple:active::before,
+  .cinect-btn-outline-light:active::before {
+    width: 0;
+  }
+
+  .cinect-btn-cta:active::after,
+  .cinect-btn-purple:active::after,
+  .cinect-btn-outline-light:active::after {
+    width: 100%;
+  }
+
+  .cinect-btn-cta:active svg,
+  .cinect-btn-purple:active svg,
+  .cinect-btn-outline-light:active svg {
+    filter: brightness(0) saturate(100%) invert(100%) sepia(0) saturate(7487%)
+      hue-rotate(198deg) brightness(105%) contrast(101%);
+  }
 }
 
-.cinect-btn-purple {
-  border: 1.5px solid hsl(0 0% 100% / 0.38);
-  background: linear-gradient(180deg, hsl(272 52% 44%) 0%, hsl(285 50% 38%) 100%);
-  color: hsl(0 0% 100%);
-  box-shadow: var(--shadow-purple);
-  font-weight: 700;
+@keyframes cinect-chatbot-wave {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-22deg);
+  }
+  75% {
+    transform: rotate(16deg);
+  }
 }
 
-.cinect-btn-purple:active {
-  transform: translateY(0) scale(0.98);
-  background: linear-gradient(180deg, hsl(272 48% 38%) 0%, hsl(285 46% 34%) 100%);
-  box-shadow: 0 2px 10px hsl(272 55% 28% / 0.45);
+@keyframes cinect-chatbot-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
 }
 
-.cinect-btn-outline-light {
-  border: 1.5px solid hsl(0 0% 100% / 0.42);
-  background: transparent;
-  color: hsl(0 0% 100%);
-  font-weight: 700;
+.cinect-chatbot-launcher:hover .cinect-chatbot-mascot {
+  animation: cinect-chatbot-bob 0.55s ease-in-out infinite;
 }
 
-.cinect-btn-outline-light:active {
-  transform: translateY(0) scale(0.98);
-  background: hsl(0 0% 100% / 0.06);
+.cinect-chatbot-arm {
+  transform-box: fill-box;
+  transform-origin: 46px 40px;
+}
+
+.cinect-chatbot-launcher:hover .cinect-chatbot-arm {
+  animation: cinect-chatbot-wave 0.45s ease-in-out infinite;
 }
 
 @keyframes tier-glow {
@@ -685,7 +1067,7 @@
   overflow: visible;
 }
 
-/* Footer: large mark, no glow frame */
+/* Footer: large mark, left-aligned inside wide brand column */
 .cinect-logo-mark--footer .cinect-logo-img {
   width: 100%;
   height: 100%;
@@ -696,6 +1078,7 @@
 }
 
 .cinect-logo-mark--footer {
+  justify-content: flex-start;
   overflow: visible;
 }
 

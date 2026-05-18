@@ -12,7 +12,7 @@ import { ApiErrorState } from "@/components/system/api-error-state";
 import { useCinemas, useProvincesLegacy, useProvincesNew } from "@/hooks/queries/use-cinemas";
 import { Building2, MapPin, Film } from "lucide-react";
 import type { CinemaListItem } from "@/types/domain";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { Separator } from "@/components/ui/separator";
 import {
   BookingAddressModeSegment,
@@ -276,10 +276,10 @@ export default function CinemasPage() {
           {cinemas.map((cinema) => (
             <Link key={cinema.id} href={`/cinemas/${cinema.slug || cinema.id}`}>
               <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
-                <div className="bg-muted aspect-video overflow-hidden">
+                <div className="bg-muted relative aspect-video overflow-hidden">
                   {cinema.imageUrl ? (
-                    <div className="relative h-full w-full">
-                      <Image
+                    <>
+                      <RemoteImage
                         src={cinema.imageUrl}
                         alt={cinema.name}
                         fill
@@ -287,7 +287,7 @@ export default function CinemasPage() {
                         className="object-cover"
                       />
                       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
-                    </div>
+                    </>
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
                       <Film className="text-muted-foreground h-16 w-16" />

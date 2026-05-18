@@ -13,13 +13,31 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, ShoppingBag, Crown, Bell, LogOut, Shield } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export function UserMenu() {
+type UserMenuProps = {
+  variant?: "default" | "header";
+};
+
+export function UserMenu({ variant = "default" }: UserMenuProps) {
   const t = useTranslations("nav");
   const tAccount = useTranslations("account");
   const { isAuthenticated, user, logout } = useAuth();
 
   if (!isAuthenticated) {
+    if (variant === "header") {
+      return (
+        <Link
+          href="/login"
+          className={cn(
+            "cinect-header-auth flex items-center gap-2 text-sm font-semibold whitespace-nowrap transition-colors"
+          )}
+        >
+          <User className="h-5 w-5 shrink-0" strokeWidth={1.75} />
+          <span className="hidden md:inline">{t("login")}</span>
+        </Link>
+      );
+    }
     return (
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" asChild className="font-semibold">
@@ -35,7 +53,14 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn(
+            "h-9 w-9 rounded-full",
+            variant === "header" && "text-white hover:bg-white/10 hover:text-[#f3ea28]"
+          )}
+        >
           <Avatar className="h-8 w-8">
             <AvatarFallback className="bg-primary/20 text-primary text-xs">
               {user?.fullName

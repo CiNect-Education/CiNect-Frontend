@@ -20,7 +20,7 @@ import { BannerCarousel } from "@/components/home/banner-carousel";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -99,7 +99,7 @@ export default function HomePage() {
     position: string;
     priority: number;
     title?: string;
-  }>(bannersRes?.data ?? bannersRes);
+  }>(bannersRes?.data ?? bannersRes).filter((b) => Boolean(b.imageUrl?.trim()));
   const trendingPromos = toList<{
     id: string;
     title: string;
@@ -108,8 +108,6 @@ export default function HomePage() {
     discountType: string;
     imageUrl?: string;
   }>(trendingRes?.data ?? trendingRes);
-
-  const isSvgLikeRemote = (url: string) => url.includes("placehold.co");
 
   return (
     <div className="flex flex-col">
@@ -249,13 +247,12 @@ export default function HomePage() {
                   <div className="bg-muted aspect-video overflow-hidden">
                     {promo.imageUrl ? (
                       <div className="relative h-full w-full">
-                        <Image
+                        <RemoteImage
                           src={promo.imageUrl}
                           alt={promo.title}
                           fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                           className="object-cover"
-                          unoptimized={isSvgLikeRemote(promo.imageUrl)}
                         />
                         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                       </div>
@@ -305,13 +302,12 @@ export default function HomePage() {
                   {promo.imageUrl && (
                     <div className="bg-muted aspect-video overflow-hidden">
                       <div className="relative h-full w-full">
-                        <Image
+                        <RemoteImage
                           src={promo.imageUrl}
                           alt={promo.title}
                           fill
                           sizes="256px"
                           className="object-cover"
-                          unoptimized={isSvgLikeRemote(promo.imageUrl)}
                         />
                         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
                       </div>
@@ -365,7 +361,7 @@ export default function HomePage() {
                   <div className="bg-muted aspect-video overflow-hidden">
                     {article.imageUrl ? (
                       <div className="relative h-full w-full">
-                        <Image
+                        <RemoteImage
                           src={article.imageUrl}
                           alt={article.title}
                           fill

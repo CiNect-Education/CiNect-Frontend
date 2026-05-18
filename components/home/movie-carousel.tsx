@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, Star, Calendar } from "lucide-react";
 import type { MovieListItem } from "@/types/domain";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 
 interface MovieCarouselProps {
   movies: MovieListItem[];
@@ -32,7 +32,7 @@ export function MovieCarousel({ movies, title, viewAllHref }: MovieCarouselProps
             <Card className="group hover:shadow-primary/20 overflow-hidden transition-all hover:shadow-lg">
               <div className="bg-muted relative aspect-[2/3] overflow-hidden">
                 {movie.posterUrl ? (
-                  <Image
+                  <RemoteImage
                     src={movie.posterUrl}
                     alt={movie.title}
                     fill

@@ -14,24 +14,38 @@ type Msg = { role: "user" | "assistant"; text: string };
 
 function MascotChatIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
+    <svg
+      viewBox="0 0 64 64"
+      className={cn("cinect-chatbot-mascot block", className)}
+      aria-hidden="true"
+    >
       <defs>
-        <linearGradient id="bot-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id="cinect-bot-bg" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#22d3ee" />
           <stop offset="100%" stopColor="#8b5cf6" />
         </linearGradient>
       </defs>
-      <circle cx="32" cy="32" r="31" fill="url(#bot-bg)" />
-      <rect x="15" y="16" rx="12" ry="12" width="34" height="26" fill="#ffffff" fillOpacity="0.96" />
+      <circle cx="32" cy="32" r="31" fill="url(#cinect-bot-bg)" />
+      <rect x="15" y="16" width="34" height="26" rx="12" ry="12" fill="#ffffff" fillOpacity="0.96" />
       <circle cx="26" cy="29" r="3.4" fill="#0f172a" />
       <circle cx="38" cy="29" r="3.4" fill="#0f172a" />
-      <path d="M24 36c2 2 4.8 3 8 3s6-1 8-3" stroke="#0f172a" strokeWidth="2.4" strokeLinecap="round" />
+      <path
+        d="M24 36c2 2 4.8 3 8 3s6-1 8-3"
+        stroke="#0f172a"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
       <rect x="21" y="44" width="22" height="10" rx="4" fill="#ffffff" fillOpacity="0.96" />
       <rect x="24" y="46.5" width="4" height="5" rx="1" fill="#22d3ee" />
       <rect x="30" y="46.5" width="4" height="5" rx="1" fill="#60a5fa" />
       <rect x="36" y="46.5" width="4" height="5" rx="1" fill="#8b5cf6" />
       <circle cx="32" cy="13.5" r="2.6" fill="#ffffff" />
       <rect x="30.9" y="10.5" width="2.2" height="4" rx="1" fill="#ffffff" />
+      <g className="cinect-chatbot-arm">
+        <circle cx="46" cy="40" r="4.5" fill="#ffffff" fillOpacity="0.96" />
+        <rect x="44" y="28" width="5" height="14" rx="2.5" fill="#ffffff" fillOpacity="0.96" />
+        <circle cx="46.5" cy="26" r="3.2" fill="#ffffff" fillOpacity="0.96" />
+      </g>
     </svg>
   );
 }
@@ -74,21 +88,27 @@ export function ChatbotWidget() {
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
+            type="button"
+            variant="fab"
             size="icon"
             className={cn(
-              "pointer-events-auto relative h-16 w-16 overflow-hidden rounded-full border-0 p-0 shadow-xl",
+              "cinect-chatbot-launcher group pointer-events-auto relative !h-16 !w-16 shrink-0",
+              "overflow-visible rounded-full border-0 p-0 shadow-xl",
               "bg-gradient-to-br from-cyan-400 via-sky-500 to-violet-600",
-              "ring-cyan-200/40 dark:ring-violet-300/20 ring-4",
-              "transition-all duration-300 ease-out hover:scale-105 hover:shadow-2xl",
-              open && "scale-105 ring-8 shadow-2xl"
+              "ring-4 ring-cyan-200/40 dark:ring-violet-300/20",
+              "transition-[transform,box-shadow,ring-width] duration-300 ease-out",
+              "hover:scale-105 hover:shadow-2xl hover:brightness-100",
+              open && "scale-105 shadow-2xl ring-8"
             )}
             aria-label={t("chatbotLauncherAria")}
           >
-            <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_45%)]" />
+            <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-full">
+              <span className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_45%)]" />
+            </span>
             {open ? (
               <X className="relative z-10 !h-6 !w-6 text-white" />
             ) : (
-              <MascotChatIcon className="relative z-10 !h-12 !w-12" />
+              <MascotChatIcon className="relative z-10 !h-[3.25rem] !w-[3.25rem]" />
             )}
           </Button>
         </PopoverTrigger>

@@ -25,7 +25,7 @@ const SOCIAL_LINKS = [
 
 function FooterColumn({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div>
+    <div className="min-w-[8.5rem]">
       <h4 className="cinect-footer-heading">{title}</h4>
       <ul className="space-y-0.5">{children}</ul>
     </div>
@@ -48,7 +48,7 @@ function FooterCinemaList() {
   const cinemas = (data?.data ?? data ?? []) as CinemaListItem[];
 
   return (
-    <div className="xl:col-span-3">
+    <div className="min-w-[11rem] sm:col-span-2 lg:col-span-1">
       <h4 className="cinect-footer-heading">{t("cinemaSystem")}</h4>
       {isLoading ? (
         <p className="text-sm text-white/60">{t("cinemasLoading")}</p>
@@ -87,9 +87,9 @@ export function Footer() {
   return (
     <footer className="cinect-footer border-t border-white/10">
       <div className="mx-auto max-w-7xl px-4 py-12 lg:px-6 lg:py-14">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-12 xl:gap-8">
-          <div className="space-y-5 sm:col-span-2 xl:col-span-3">
-            <Link href="/" className="inline-flex">
+        <div className="flex flex-col gap-10 xl:flex-row xl:items-start xl:gap-x-10 2xl:gap-x-12">
+          <div className="shrink-0 space-y-5 sm:max-w-md xl:w-[20rem] xl:max-w-[20rem] xl:pr-4">
+            <Link href="/" className="block w-fit">
               <CinectBrandLogo size="footer" surface="on-dark" plain />
               <span className="sr-only">CiNect</span>
             </Link>
@@ -139,6 +139,7 @@ export function Footer() {
                 <button
                   key={id}
                   type="button"
+                  suppressHydrationWarning
                   onClick={() => router.replace(pathname, { locale: id })}
                   className={cn(
                     "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors",
@@ -154,6 +155,7 @@ export function Footer() {
             </div>
           </div>
 
+          <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 sm:gap-x-8 lg:grid-cols-5 lg:gap-x-8">
           <FooterColumn title={t("account")}>
             {isAuthenticated ? (
               <>
@@ -192,6 +194,7 @@ export function Footer() {
           </FooterColumn>
 
           <FooterCinemaList />
+          </div>
         </div>
 
         <Separator className="my-8 bg-white/15" />

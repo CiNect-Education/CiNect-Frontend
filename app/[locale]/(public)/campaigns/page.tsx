@@ -9,7 +9,7 @@ import { useActiveCampaigns } from "@/hooks/queries/use-campaigns";
 import { Link } from "@/i18n/navigation";
 import { Tag, Calendar } from "lucide-react";
 import { format } from "date-fns";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -75,7 +75,7 @@ export default function CampaignsPage() {
                 <div className="bg-muted aspect-video overflow-hidden">
                   {campaign.imageUrl ? (
                     <div className="relative h-full w-full">
-                      <Image
+                      <RemoteImage
                         src={campaign.imageUrl}
                         alt={campaign.title}
                         fill

@@ -22,7 +22,7 @@ export function useNowShowingMovies(limit = 12) {
   return useApiQuery<MovieListItem[]>(
     ["movies", "now-showing", String(limit)],
     "/movies",
-    { nowShowing: true, limit },
+    { status: "NOW_SHOWING", nowShowing: true, limit, sort: "releaseDate:desc" },
     { schema: z.array(movieListItemSchema) as unknown as z.ZodType<MovieListItem[]> }
   );
 }
@@ -31,7 +31,7 @@ export function useComingSoonMovies(limit = 12) {
   return useApiQuery<MovieListItem[]>(
     ["movies", "coming-soon", String(limit)],
     "/movies",
-    { comingSoon: true, limit },
+    { status: "COMING_SOON", comingSoon: true, limit, sort: "releaseDate:asc" },
     { schema: z.array(movieListItemSchema) as unknown as z.ZodType<MovieListItem[]> }
   );
 }
