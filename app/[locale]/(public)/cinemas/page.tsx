@@ -26,6 +26,7 @@ import {
   getCurrentPositionCoords,
   haversineKm,
 } from "@/lib/maps";
+import { CinemaVietnamMap } from "@/components/cinemas/cinema-vietnam-map";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -249,6 +250,10 @@ export default function CinemasPage() {
           </>
         )}
       </div>
+
+      {!isLoading && !error && cinemas.length > 0 ? (
+        <CinemaVietnamMap cinemas={cinemas} />
+      ) : null}
 
       {/* Cinema Grid */}
       {isLoading ? (

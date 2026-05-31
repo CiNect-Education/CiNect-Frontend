@@ -68,13 +68,15 @@ export function CinectContactSection() {
                 rel="noreferrer"
                 aria-label="Facebook"
               >
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src={`${ASSET}/ct-1.webp`}
                   alt=""
                   width={180}
                   height={120}
-                  className="h-auto w-full max-w-[18rem] object-contain sm:max-w-[14rem]"
+                  className="ct-social-link__img"
                   loading="lazy"
+                  decoding="async"
                 />
                 <span className="txt">{t("contactFacebook")}</span>
               </a>
@@ -85,13 +87,15 @@ export function CinectContactSection() {
                 rel="noreferrer"
                 aria-label="Zalo"
               >
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src={`${ASSET}/ct-2.webp`}
                   alt=""
                   width={180}
                   height={120}
-                  className="h-auto w-full max-w-[18rem] object-contain sm:max-w-[14rem]"
+                  className="ct-social-link__img"
                   loading="lazy"
+                  decoding="async"
                 />
                 <span className="txt">{t("contactZalo")}</span>
               </a>

@@ -27,9 +27,12 @@ import { parseYoutubeVideoId } from "@/lib/youtube";
 import { localizeAudioLabel } from "@/lib/showtime-display";
 import { cn } from "@/lib/utils";
 
+export type HomeMovieCardVariant = "nowShowing" | "comingSoon";
+
 interface HomeMovieCardProps {
   movie: MovieListItem;
   className?: string;
+  variant?: HomeMovieCardVariant;
 }
 
 function genreNames(movie: MovieListItem): string[] {
@@ -56,7 +59,12 @@ function HoverMetaRow({
 }
 
 /** Movie card: poster + hover info, title & trailer/book actions below. */
-export function HomeMovieCard({ movie, className }: HomeMovieCardProps) {
+export function HomeMovieCard({
+  movie,
+  className,
+  variant = "nowShowing",
+}: HomeMovieCardProps) {
+  const isComingSoon = variant === "comingSoon";
   const [trailerOpen, setTrailerOpen] = useState(false);
   const locale = useLocale();
   const tHome = useTranslations("home");
@@ -86,8 +94,7 @@ export function HomeMovieCard({ movie, className }: HomeMovieCardProps) {
   return (
     <article
       className={cn(
-        "flex h-full flex-col overflow-hidden rounded-md bg-[#3f4296] shadow-sm",
-        "ring-1 ring-border/40 transition-shadow hover:shadow-lg",
+        "flex h-full flex-col overflow-hidden rounded-md border-0 bg-transparent shadow-none",
         className,
       )}
     >
@@ -117,11 +124,11 @@ export function HomeMovieCard({ movie, className }: HomeMovieCardProps) {
               {fmt}
             </Badge>
           ))}
-          {movie.status === "COMING_SOON" && (
+          {movie.status === "COMING_SOON" && !isComingSoon ? (
             <Badge className="bg-black/75 text-[10px] text-white shadow-sm">
               {tMovies("comingSoon")}
             </Badge>
-          )}
+          ) : null}
           {movie.ageRating ? (
             <Badge className="bg-black/70 text-[10px] text-white shadow-sm backdrop-blur">
               {movie.ageRating}
@@ -132,7 +139,7 @@ export function HomeMovieCard({ movie, className }: HomeMovieCardProps) {
         <div
           className={cn(
             "absolute inset-0 z-20 flex flex-col overflow-hidden p-3 sm:p-3.5",
-            "bg-gradient-to-b from-[#1b1548]/97 via-[#231a5c]/96 to-[#1b1548]/97 text-white",
+            "bg-black/78 text-white backdrop-blur-[1px]",
             "opacity-0 transition-opacity duration-300",
             "group-hover:opacity-100 group-focus-within:opacity-100 group-active:opacity-100",
           )}
@@ -196,38 +203,82 @@ export function HomeMovieCard({ movie, className }: HomeMovieCardProps) {
         </div>
       </div>
 
-      <div className="flex min-h-[5.25rem] flex-1 flex-col px-2.5 pt-2 pb-2.5 text-white">
-        <Link
-          href={`/movies/${movie.slug}`}
-          className="mb-2 line-clamp-2 text-center text-[11px] leading-snug font-bold tracking-wide uppercase hover:underline sm:text-xs"
-        >
-          {movie.title}
-        </Link>
-
-        <div className="mt-auto flex items-center justify-between gap-2">
-          {youtubeId ? (
-            <button
-              type="button"
-              onClick={() => setTrailerOpen(true)}
-              className="inline-flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 text-left text-[11px] text-white underline decoration-white/70 underline-offset-2 hover:decoration-white sm:text-xs"
-              aria-label={tHome("watchTrailer")}
+      <div
+        className={cn(
+          "flex flex-1 flex-col bg-transparent px-2.5 pt-2 pb-2.5",
+          isComingSoon ? "min-h-[6.75rem] gap-3" : "min-h-[5.25rem]",
+        )}
+      >
+        {isComingSoon ? (
+          <>
+            {releaseLabel ? (
+              <p className="text-center text-[11px] leading-snug text-white/78 sm:text-xs">
+                {tHome("premiereDate")}: {releaseLabel}
+              </p>
+            ) : null}
+            <Link
+              href={`/movies/${movie.slug}`}
+              className="line-clamp-2 text-center text-[11px] leading-snug font-semibold tracking-wide text-white uppercase hover:underline sm:text-xs"
             >
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/80">
-                <Play className="h-2.5 w-2.5 fill-white text-white" />
-              </span>
-              <span className="truncate">{tHome("watchTrailer")}</span>
-            </button>
-          ) : (
-            <span className="flex-1" />
-          )}
-
-          <Link
-            href={`/showtimes?movie=${movie.id}`}
-            className="shrink-0 rounded-sm bg-[#f3ea28] px-2.5 py-1.5 text-[10px] font-extrabold tracking-wide text-black uppercase transition-colors hover:bg-[#ffe94a] sm:px-3 sm:text-[11px]"
-          >
-            {tHome("bookTicketShort")}
-          </Link>
-        </div>
+              {movie.title}
+            </Link>
+            <div className="mt-auto flex items-center justify-between gap-2">
+              {youtubeId ? (
+                <button
+                  type="button"
+                  onClick={() => setTrailerOpen(true)}
+                  className="inline-flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 text-left text-[11px] text-white/95 underline decoration-white/60 underline-offset-2 hover:decoration-white sm:text-xs"
+                  aria-label={tHome("watchTrailer")}
+                >
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/80">
+                    <Play className="h-2.5 w-2.5 fill-white text-white" />
+                  </span>
+                  <span className="truncate">{tHome("watchTrailer")}</span>
+                </button>
+              ) : (
+                <span className="flex-1" />
+              )}
+              <Link
+                href={`/movies/${movie.slug}`}
+                className="shrink-0 rounded-sm bg-[#f3ea28] px-2.5 py-1.5 text-[10px] font-extrabold tracking-wide text-black uppercase transition-colors hover:bg-[#ffe94a] sm:px-3 sm:text-[11px]"
+              >
+                {tMovies("learnMore")}
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <Link
+              href={`/movies/${movie.slug}`}
+              className="mb-2 line-clamp-2 text-center text-[11px] leading-snug font-bold tracking-wide text-[#f3ea28] uppercase hover:underline sm:text-xs"
+            >
+              {movie.title}
+            </Link>
+            <div className="mt-auto flex items-center justify-between gap-2">
+              {youtubeId ? (
+                <button
+                  type="button"
+                  onClick={() => setTrailerOpen(true)}
+                  className="inline-flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 text-left text-[11px] text-white/95 underline decoration-white/60 underline-offset-2 hover:decoration-white sm:text-xs"
+                  aria-label={tHome("watchTrailer")}
+                >
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/80">
+                    <Play className="h-2.5 w-2.5 fill-white text-white" />
+                  </span>
+                  <span className="truncate">{tHome("watchTrailer")}</span>
+                </button>
+              ) : (
+                <span className="flex-1" />
+              )}
+              <Link
+                href={`/showtimes?movie=${movie.id}`}
+                className="shrink-0 rounded-sm bg-[#f3ea28] px-2.5 py-1.5 text-[10px] font-extrabold tracking-wide text-black uppercase transition-colors hover:bg-[#ffe94a] sm:px-3 sm:text-[11px]"
+              >
+                {tHome("bookTicketShort")}
+              </Link>
+            </div>
+          </>
+        )}
       </div>
 
       {youtubeId ? (

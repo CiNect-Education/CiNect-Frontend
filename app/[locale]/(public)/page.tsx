@@ -143,7 +143,7 @@ export default function HomePage() {
           {banners.length > 0 ? (
             <BannerCarousel banners={banners} />
           ) : loadingNow ? (
-            <div className="bg-muted aspect-[21/9] w-full animate-pulse rounded-lg md:aspect-[3/1]" />
+            <div className="bg-muted cinect-banner-carousel__slide w-full animate-pulse rounded-lg" />
           ) : errorNow ? (
             <ApiErrorState error={errorNow} onRetry={refetchNow} compact />
           ) : nowShowing.length > 0 ? (
@@ -174,12 +174,13 @@ export default function HomePage() {
       <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         {loadingNow ? (
           <div className="space-y-4">
-            <Skeleton className="h-8 w-48" />
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="aspect-[2/3] rounded-lg" />
+            <Skeleton className="mx-auto h-8 w-56" />
+            <div className="flex gap-3 overflow-hidden sm:gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-[2/3] w-[41.6667%] shrink-0 rounded-lg md:w-[37.5%] xl:w-1/4" />
               ))}
             </div>
+            <Skeleton className="mx-auto h-10 w-40" />
           </div>
         ) : errorNow ? (
           <ApiErrorState error={errorNow} onRetry={refetchNow} />
@@ -203,12 +204,13 @@ export default function HomePage() {
       <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         {loadingComing ? (
           <div className="space-y-4">
-            <Skeleton className="h-8 w-48" />
-            <div className="flex gap-4 overflow-hidden">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-80 w-40 shrink-0 rounded-lg" />
+            <Skeleton className="mx-auto h-8 w-56" />
+            <div className="flex gap-3 overflow-hidden sm:gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-[2/3] w-[41.6667%] shrink-0 rounded-lg md:w-[37.5%] xl:w-1/4" />
               ))}
             </div>
+            <Skeleton className="mx-auto h-10 w-40" />
           </div>
         ) : errorComing ? (
           <ApiErrorState error={errorComing} onRetry={refetchComing} compact />
@@ -222,15 +224,11 @@ export default function HomePage() {
       </section>
 
       {/* Promotions Section */}
-      <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-balance">
-            {t("promotionsTitle")}
-          </h2>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/promotions">{t("viewAllArrow")}</Link>
-          </Button>
-        </div>
+      <section className="cinect-promotions-section mx-auto w-full max-w-7xl space-y-6 px-4 py-12 sm:px-6 lg:px-8">
+        <h2 className="font-display text-2xl font-bold tracking-wide text-white uppercase">
+          {t("promotions")}
+        </h2>
+        <div className="mt-6 sm:mt-8">
         {loadingPromo ? (
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -281,14 +279,15 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="from-primary/10 to-primary/5 rounded-lg border bg-gradient-to-r p-8 text-center">
-            <p className="text-muted-foreground mb-6 text-pretty">
-              {t("promotionsDesc")}
-            </p>
-            <Button size="lg" asChild>
-              <Link href="/promotions">{t("viewPromotions")}</Link>
-            </Button>
+            <p className="text-muted-foreground text-pretty">{t("promotionsDesc")}</p>
           </div>
         )}
+        </div>
+        <div className="flex justify-center pt-2">
+          <Link href="/promotions" className="cinect-section-more-btn cinect-section-more-btn--yellow">
+            {t("allOffers")}
+          </Link>
+        </div>
       </section>
 
       {/* Trending Now Section */}

@@ -94,6 +94,8 @@
     "srOnlyMorePages": "More pages",
     "srOnlyPreviousSlide": "Previous slide",
     "srOnlyNextSlide": "Next slide",
+    "carouselPagination": "Carousel position",
+    "srOnlyGoToSlide": "Go to slide page {page}",
     "toggleTheme": "Toggle theme",
     "changeLanguage": "Change language",
     "localeVi": "Tiếng Việt",
@@ -275,6 +277,7 @@
     "noCinemasInCity": "No cinemas in this city",
     "browseMovies": "Browse Movies",
     "watchTrailer": "Watch Trailer",
+    "premiereDate": "Premiere",
     "bookTicketShort": "Book tickets",
     "noMovies": "No movies currently showing",
     "promotionsDesc": "Check out our latest deals and exclusive offers",
@@ -282,10 +285,17 @@
     "welcomeBack": "Welcome back!",
     "welcomeBackWithName": "Welcome back, {name}!",
     "percentOff": "{value}% off",
-    "viewAllArrow": "View all →"
+    "viewAllArrow": "View all →",
+    "seeMore": "See more",
+    "allOffers": "All offers"
   },
   "movies": {
     "title": "Movies",
+    "bookingLanding": "Quick booking",
+    "catalogTitle": "Movie catalog",
+    "bookNowSubmit": "Book now",
+    "browseCatalog": "Browse full catalog",
+    "noShowtimes": "No showtimes",
     "filters": "Filters",
     "genre": "Genre",
     "language": "Language",
@@ -409,7 +419,14 @@
     "locating": "Locating...",
     "locationUnavailable": "Could not get your location. Please check browser location permission.",
     "distanceFromYou": "{distance} away from you",
-    "directionsFromMe": "Directions from my location"
+    "directionsFromMe": "Directions from my location",
+    "mapTitle": "OUR CINEMA NETWORK",
+    "mapDescription": "Explore CiNect cinema locations across Vietnam. Tap a marker for details and open directions in Google Maps.",
+    "mapRoomCount": "{count, plural, one {# screen} other {# screens}}",
+    "mapViewDetail": "Cinema details",
+    "mapClose": "Close",
+    "mapLoading": "Loading map…",
+    "mapLoadError": "Could not load the map (network or script blocking). You can still use the cinema list on the right."
   },
   "booking": {
     "selectSeats": "Select Seats",
