@@ -1,11 +1,12 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
+@import "./cinect-cinema-detail.css";
 @config "../tailwind.config.ts";
 
 @utility text-balance {
   text-wrap: balance;
 }
 
-/* ─── CiNect design tokens (dark theme; light = adapted) ─── */
+/* â”€â”€â”€ CiNect design tokens (dark theme; light = adapted) â”€â”€â”€ */
 @layer base {
   :root {
     --background: 228 32% 97%;
@@ -85,7 +86,7 @@
   }
 
   .dark {
-    /* cinestar.com.vn — base #0f172a, plum #4a3375 / rgb(45,37,80), glow #48479a */
+    /* cinestar.com.vn â€” base #0f172a, plum #4a3375 / rgb(45,37,80), glow #48479a */
     --cinect-bg: #0f172a;
     --cinect-plum: #4a3375;
     --cinect-plum-mid: rgb(45 37 80);
@@ -463,7 +464,7 @@
     width: 1rem;
   }
 
-  /* Dropdown: hd-regi-list.--second — 2 rows (VN / EN), opens on hover */
+  /* Dropdown: hd-regi-list.--second â€” 2 rows (VN / EN), opens on hover */
   .cinect-lg-action-popup {
     background-color: #0f172a;
     border: 0.1rem solid rgba(248, 250, 252, 0.1);
@@ -747,7 +748,7 @@
       0 0 24px hsl(272 50% 40% / 0.15);
   }
 
-  /* Auth panel (always light card — fixed brand colors, not theme tokens) */
+  /* Auth panel (always light card â€” fixed brand colors, not theme tokens) */
   .cinect-auth-tab-inactive {
     background-color: hsl(262 32% 25%);
     color: hsl(0 0% 100%);
@@ -790,7 +791,7 @@
     transform: scale(0.98);
   }
 
-  /* Auth login/register — soft blur + plum tint like cinestar.com.vn/login */
+  /* Auth login/register â€” soft blur + plum tint like cinestar.com.vn/login */
   .cinect-auth-bg-layer {
     position: absolute;
     inset: 0;
@@ -830,7 +831,7 @@
   }
 }
 
-/* CTA buttons — wipe hover (btn--pri / btn--second) */
+/* CTA buttons â€” wipe hover (btn--pri / btn--second) */
 .cinect-press {
   transition:
     transform 0.2s ease,
@@ -890,7 +891,7 @@
   transition: filter 0.3s ease-in-out;
 }
 
-/* Đặt Vé Ngay — .btn--pri */
+/* Äáº·t VÃ© Ngay â€” .btn--pri */
 .cinect-btn-cta {
   color: hsl(222 47% 11%);
   box-shadow: none;
@@ -911,7 +912,7 @@
   z-index: -1;
 }
 
-/* Đặt Bắp Nước — .btn--second */
+/* Äáº·t Báº¯p NÆ°á»›c â€” .btn--second */
 .cinect-btn-purple {
   color: hsl(210 40% 98%);
   box-shadow: none;
@@ -932,7 +933,7 @@
   z-index: -1;
 }
 
-/* Footer outline gift — .btn--outline */
+/* Footer outline gift â€” .btn--outline */
 .cinect-btn-outline-light {
   color: #f3ea28;
   border: 1px solid #f3ea28;
@@ -1115,7 +1116,7 @@
   transition: filter 0.35s ease;
 }
 
-/* Header: zoom past PNG padding — match cinestar.com.vn prominence */
+/* Header: zoom past PNG padding â€” match cinestar.com.vn prominence */
 .cinect-logo-mark--header .cinect-logo-img {
   width: 100%;
   height: 100%;
@@ -1229,7 +1230,7 @@
   );
 }
 
-/* Contact block — tokens from cinestar.com.vn (html 10px → 1rem = 10px there) */
+/* Contact block â€” tokens from cinestar.com.vn (html 10px â†’ 1rem = 10px there) */
 .cinect-contact {
   --ct-base: 10px;
   box-sizing: border-box;
@@ -1404,7 +1405,7 @@
   }
 }
 
-/* rem on Cinestar .txt uses html 10px — use --ct-base, not em (parent link is 36px) */
+/* rem on Cinestar .txt uses html 10px â€” use --ct-base, not em (parent link is 36px) */
 .cinect-contact .ct-social-link .txt {
   --mn: calc(6 * var(--ct-base));
   display: inline-block;
@@ -1659,7 +1660,7 @@
   margin: calc(-0.4 * var(--ct-base)) 0 0;
 }
 
-/* Cinemas page — OpenStreetMap (Leaflet) */
+/* Cinemas page â€” OpenStreetMap (Leaflet) */
 .cinect-cinema-map__canvas-wrap {
   background: radial-gradient(ellipse at 50% 45%, rgb(72 71 154 / 0.25), transparent 68%);
 }
@@ -1738,7 +1739,7 @@
   }
 }
 
-/* Homepage movie rows — Cinestar .arrow-btn-prev / .arrow-btn-next */
+/* Homepage movie rows â€” Cinestar .arrow-btn-prev / .arrow-btn-next */
 .cinect-movie-row-carousel .cinect-movie-row-carousel__nav {
   align-items: center;
   background: transparent;
@@ -1784,7 +1785,7 @@
   }
 }
 
-/* Movie row pagination — Cinestar swiper bullets */
+/* Movie row pagination â€” Cinestar swiper bullets */
 .cinect-carousel-pagination__dot {
   border: 0;
   cursor: pointer;
@@ -1811,7 +1812,7 @@
   margin-top: 0.4rem;
 }
 
-/* Section footer CTA — Cinestar "Xem thêm" / "Tất cả ưu đãi" */
+/* Section footer CTA â€” Cinestar "Xem thÃªm" / "Táº¥t cáº£ Æ°u Ä‘Ã£i" */
 .cinect-section-more-btn {
   align-items: center;
   display: inline-flex;
@@ -1862,7 +1863,7 @@
   color: #000;
 }
 
-/* Homepage banner — Cinestar bannerslider ~1920×578 (padding-top ~28.8%) */
+/* Homepage banner â€” Cinestar bannerslider ~1920Ã—578 (padding-top ~28.8%) */
 .cinect-banner-carousel__slide {
   aspect-ratio: 1920 / 578;
   position: relative;
@@ -1878,7 +1879,7 @@
   width: 100%;
 }
 
-/* Homepage banner / hero — same Cinestar arrow style */
+/* Homepage banner / hero â€” same Cinestar arrow style */
 .cinect-banner-carousel .cinect-banner-carousel__nav {
   align-items: center;
   background: transparent;
@@ -1934,7 +1935,8 @@
   }
 }
 
-/* Movies page — quick book strip (cinestar.com.vn/movie/) */
+
+/* Movies page â€” quick book strip (cinestar.com.vn/movie/) */
 .cinect-movie-quick-book {
   background: #ecf2ff;
   width: 100%;

@@ -1,0 +1,397 @@
+/* Cinema detail — cinestar.com.vn/book-tickets/{id} (html 10px base) */
+.cinect-cinema-detail {
+  --cd-base: 10px;
+  color: #f8fafc;
+  min-height: 50vh;
+}
+
+/* .hbooking-new */
+.cinect-hbooking-new {
+  display: flex;
+  min-height: calc(15.4 * var(--cd-base));
+  overflow: hidden;
+  width: 100%;
+}
+
+.cinect-hbooking-left {
+  flex: 0 0 38%;
+  max-width: 38%;
+  min-height: calc(15.4 * var(--cd-base));
+  position: relative;
+}
+
+.cinect-hbooking-right {
+  background: linear-gradient(106deg, rgba(102, 51, 153, 0.8), rgba(51, 102, 204, 0.8) 102.69%);
+  flex: 1 1 62%;
+  min-height: calc(15.4 * var(--cd-base));
+}
+
+.cinect-address-box {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.8 * var(--cd-base));
+  height: 100%;
+  justify-content: center;
+  padding: calc(1.6 * var(--cd-base)) calc(2 * var(--cd-base));
+}
+
+.cinect-address-box__title {
+  font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+  font-size: calc(1.8 * var(--cd-base));
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.cinect-address-box__address {
+  align-items: flex-start;
+  color: rgba(255, 255, 255, 0.92);
+  display: inline-flex;
+  font-size: calc(1.4 * var(--cd-base));
+  gap: calc(0.6 * var(--cd-base));
+  line-height: 1.45;
+  text-decoration: none;
+}
+
+.cinect-address-box__address:hover {
+  color: #f3ea28;
+}
+
+@media screen and (max-width: 767px) {
+  .cinect-hbooking-new {
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .cinect-hbooking-left {
+    flex: none;
+    max-width: 100%;
+    min-height: calc(18 * var(--cd-base));
+    width: 100%;
+  }
+
+  .cinect-hbooking-right {
+    flex: none;
+    width: 100%;
+  }
+}
+
+/* .movies-fil sticky */
+.cinect-movies-fil {
+  background: rgba(15, 23, 42, 0.7);
+  margin-bottom: calc(4 * var(--cd-base));
+  padding-top: calc(1 * var(--cd-base));
+  position: sticky;
+  top: calc(11.5 * var(--cd-base));
+  z-index: 20;
+}
+
+.cinect-movies-fil-slider {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(0.4 * var(--cd-base)) calc(2 * var(--cd-base));
+  margin-inline: auto;
+  max-width: 1100px;
+  padding: 0 calc(1.2 * var(--cd-base));
+}
+
+.cinect-movies-fil-btn {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #f8fafc;
+  cursor: pointer;
+  font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+  font-size: calc(1.3 * var(--cd-base));
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: -1px;
+  padding: calc(1.2 * var(--cd-base)) calc(0.4 * var(--cd-base));
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.cinect-movies-fil-btn:hover {
+  color: #f3ea28;
+}
+
+.cinect-movies-fil-btn.is-active {
+  border-bottom-color: #f3ea28;
+  color: #f3ea28;
+}
+
+.cinect-cinema-detail-body {
+  margin-inline: auto;
+  max-width: 1100px;
+  padding: 0 calc(1.2 * var(--cd-base)) calc(4.8 * var(--cd-base));
+}
+
+/* .sec-movies */
+.cinect-sec-movies__title {
+  color: #f8fafc;
+  font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+  font-size: calc(2 * var(--cd-base));
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 calc(2 * var(--cd-base));
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.cinect-movies-age-legend {
+  color: rgba(248, 250, 252, 0.75);
+  display: none;
+  font-size: calc(1.2 * var(--cd-base));
+  gap: calc(0.8 * var(--cd-base));
+  list-style: none;
+  margin: 0 0 calc(1.6 * var(--cd-base));
+  padding: 0;
+}
+
+@media screen and (min-width: 992px) {
+  .cinect-movies-age-legend {
+    display: flex;
+    flex-wrap: wrap;
+  }
+}
+
+.cinect-movies-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 calc(-1.2 * var(--cd-base));
+}
+
+/* .movies-item.col.col-6 */
+.cinect-movies-item {
+  box-sizing: border-box;
+  margin-bottom: calc(2.4 * var(--cd-base));
+  padding: 0 calc(1.2 * var(--cd-base));
+  width: 100%;
+}
+
+@media screen and (min-width: 992px) {
+  .cinect-movies-item {
+    width: 50%;
+  }
+}
+
+.cinect-movies-wr {
+  display: flex;
+  flex-direction: row;
+  gap: calc(1 * var(--cd-base));
+}
+
+.cinect-movies-img {
+  flex: 0 0 46%;
+  max-width: 46%;
+  position: relative;
+}
+
+.cinect-movies-img a {
+  aspect-ratio: 2 / 3;
+  display: block;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.cinect-movies-img__placeholder {
+  aspect-ratio: 2 / 3;
+  background: #1e293b;
+  width: 100%;
+}
+
+.cinect-movies-content {
+  flex: 1 1 54%;
+  min-width: 0;
+}
+
+.cinect-movies-name {
+  font-size: calc(1.8 * var(--cd-base));
+  font-weight: 400;
+  line-height: 1.35;
+  margin: 0 0 calc(0.8 * var(--cd-base));
+  text-transform: uppercase;
+}
+
+.cinect-movies-name a {
+  color: #f8fafc;
+  text-decoration: none;
+}
+
+.cinect-movies-name a:hover {
+  color: #f3ea28;
+}
+
+.cinect-movies-type {
+  color: rgba(248, 250, 252, 0.85);
+  display: flex;
+  flex-direction: column;
+  font-size: calc(1.4 * var(--cd-base));
+  gap: calc(0.4 * var(--cd-base));
+  list-style: none;
+  margin: 0 0 calc(1 * var(--cd-base));
+  padding: 0;
+}
+
+.cinect-movies-rp {
+  margin-top: calc(0.4 * var(--cd-base));
+}
+
+.cinect-movies-rp-day__select {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #f8fafc !important;
+  font-size: calc(1.3 * var(--cd-base)) !important;
+  height: auto !important;
+  padding: calc(0.8 * var(--cd-base)) !important;
+  width: 100% !important;
+}
+
+.cinect-movies-rp-body {
+  padding: 0 calc(0.8 * var(--cd-base)) calc(0.8 * var(--cd-base));
+}
+
+.cinect-movies-rp-title {
+  color: rgba(248, 250, 252, 0.65);
+  font-size: calc(1.1 * var(--cd-base));
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 calc(0.6 * var(--cd-base));
+  text-transform: uppercase;
+}
+
+.cinect-movies-time {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(0.6 * var(--cd-base));
+  margin-bottom: calc(0.8 * var(--cd-base));
+}
+
+.cinect-movies-time-item {
+  border: 1px solid rgba(248, 250, 252, 0.35);
+  border-radius: calc(0.4 * var(--cd-base));
+  color: #f8fafc;
+  font-size: calc(1.3 * var(--cd-base));
+  font-weight: 400;
+  line-height: 1.2;
+  padding: calc(0.6 * var(--cd-base)) calc(1.2 * var(--cd-base));
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cinect-movies-time-item:hover {
+  border-color: #f3ea28;
+  color: #f3ea28;
+}
+
+.cinect-movies-time-item.is-active {
+  border-color: #f3ea28;
+  color: #f3ea28;
+}
+
+.cinect-movies-more {
+  color: #f3ea28;
+  display: inline-block;
+  font-size: calc(1.3 * var(--cd-base));
+  margin-top: calc(0.4 * var(--cd-base));
+  text-decoration: underline;
+}
+
+.cinect-movies-rp-empty,
+.cinect-movies-empty {
+  color: rgba(248, 250, 252, 0.55);
+  font-size: calc(1.4 * var(--cd-base));
+  padding: calc(2 * var(--cd-base)) 0;
+  text-align: center;
+}
+
+.cinect-movies-list--coming .cinect-movies-item--coming {
+  text-align: center;
+  text-decoration: none;
+}
+
+.cinect-movies-item--coming .cinect-movies-img {
+  flex: none;
+  margin-inline: auto;
+  max-width: calc(14 * var(--cd-base));
+  width: 100%;
+}
+
+.cinect-movies-coming-date {
+  color: rgba(248, 250, 252, 0.65);
+  font-size: calc(1.2 * var(--cd-base));
+  margin: calc(0.4 * var(--cd-base)) 0 0;
+}
+
+.cinect-prices-note {
+  color: rgba(248, 250, 252, 0.7);
+  font-size: calc(1.4 * var(--cd-base));
+  margin: 0 0 calc(1.6 * var(--cd-base));
+  text-align: center;
+}
+
+.cinect-prices-table-wrap {
+  overflow-x: auto;
+}
+
+.cinect-prices-table {
+  border-collapse: collapse;
+  color: #f8fafc;
+  font-size: calc(1.4 * var(--cd-base));
+  width: 100%;
+}
+
+.cinect-prices-table th,
+.cinect-prices-table td {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: calc(1.2 * var(--cd-base));
+}
+
+.cinect-prices-table th {
+  background: rgba(102, 51, 153, 0.45);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.cinect-sec-promos {
+  margin-top: calc(4.8 * var(--cd-base));
+}
+
+.cinect-sec-promos__head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(1.2 * var(--cd-base));
+  justify-content: space-between;
+  margin-bottom: calc(1.6 * var(--cd-base));
+}
+
+.cinect-sec-promos__head .cinect-sec-movies__title {
+  margin: 0;
+  text-align: left;
+}
+
+.cinect-sec-promos__all {
+  color: #f3ea28;
+  font-size: calc(1.4 * var(--cd-base));
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cinect-sec-promos__grid {
+  display: grid;
+  gap: calc(1.6 * var(--cd-base));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.cinect-sec-promos__card {
+  aspect-ratio: 16 / 9;
+  border-radius: calc(0.8 * var(--cd-base));
+  overflow: hidden;
+  position: relative;
+}
