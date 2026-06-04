@@ -177,63 +177,124 @@ const CarouselItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLD
 );
 CarouselItem.displayName = "CarouselItem";
 
-const CarouselPrevious = React.forwardRef<HTMLButtonElement, React.ComponentProps<typeof Button>>(
-  ({ className, variant = "outline", size = "icon", ...props }, ref) => {
-    const t = useTranslations("common");
-    const { orientation, scrollPrev, canScrollPrev } = useCarousel();
+const CarouselPrevious = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<typeof Button> & { children?: React.ReactNode }
+>(({ className, variant = "outline", size = "icon", children, ...props }, ref) => {
+  const t = useTranslations("common");
+  const { orientation, scrollPrev, canScrollPrev } = useCarousel();
 
-    return (
-      <Button
-        ref={ref}
-        variant={variant}
-        size={size}
-        className={cn(
-          "absolute h-8 w-8 rounded-full",
-          orientation === "horizontal"
-            ? "top-1/2 -left-12 -translate-y-1/2"
-            : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
-          className
-        )}
-        disabled={!canScrollPrev}
-        onClick={scrollPrev}
-        {...props}
-      >
-        <ArrowLeft className="h-4 w-4" />
-        <span className="sr-only">{t("srOnlyPreviousSlide")}</span>
-      </Button>
-    );
-  }
-);
+  return (
+    <Button
+      ref={ref}
+      variant={variant}
+      size={size}
+      className={cn(
+        "absolute h-8 w-8 rounded-full",
+        orientation === "horizontal"
+          ? "top-1/2 -left-12 -translate-y-1/2"
+          : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
+        className
+      )}
+      disabled={!canScrollPrev}
+      onClick={scrollPrev}
+      {...props}
+    >
+      {children ?? <ArrowLeft className="h-4 w-4" />}
+      <span className="sr-only">{t("srOnlyPreviousSlide")}</span>
+    </Button>
+  );
+});
 CarouselPrevious.displayName = "CarouselPrevious";
 
-const CarouselNext = React.forwardRef<HTMLButtonElement, React.ComponentProps<typeof Button>>(
-  ({ className, variant = "outline", size = "icon", ...props }, ref) => {
-    const t = useTranslations("common");
-    const { orientation, scrollNext, canScrollNext } = useCarousel();
+const CarouselNext = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<typeof Button> & { children?: React.ReactNode }
+>(({ className, variant = "outline", size = "icon", children, ...props }, ref) => {
+  const t = useTranslations("common");
+  const { orientation, scrollNext, canScrollNext } = useCarousel();
 
-    return (
-      <Button
-        ref={ref}
-        variant={variant}
-        size={size}
-        className={cn(
-          "absolute h-8 w-8 rounded-full",
-          orientation === "horizontal"
-            ? "top-1/2 -right-12 -translate-y-1/2"
-            : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
-          className
-        )}
-        disabled={!canScrollNext}
-        onClick={scrollNext}
-        {...props}
-      >
-        <ArrowRight className="h-4 w-4" />
-        <span className="sr-only">{t("srOnlyNextSlide")}</span>
-      </Button>
-    );
-  }
-);
+  return (
+    <Button
+      ref={ref}
+      variant={variant}
+      size={size}
+      className={cn(
+        "absolute h-8 w-8 rounded-full",
+        orientation === "horizontal"
+          ? "top-1/2 -right-12 -translate-y-1/2"
+          : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
+        className
+      )}
+      disabled={!canScrollNext}
+      onClick={scrollNext}
+      {...props}
+    >
+      {children ?? <ArrowRight className="h-4 w-4" />}
+      <span className="sr-only">{t("srOnlyNextSlide")}</span>
+    </Button>
+  );
+});
 CarouselNext.displayName = "CarouselNext";
+
+/** Dot pagination — one dot per Embla scroll snap (use with slidesToScroll: "auto"). */
+const CarouselPagination = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  const t = useTranslations("common");
+  const { api } = useCarousel();
+  const [snapCount, setSnapCount] = React.useState(0);
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!api) return;
+
+    const update = () => {
+      setSnapCount(api.scrollSnapList().length);
+      setSelectedIndex(api.selectedScrollSnap());
+    };
+
+    update();
+    api.on("reInit", update);
+    api.on("select", update);
+
+    return () => {
+      api.off("reInit", update);
+      api.off("select", update);
+    };
+  }, [api]);
+
+  if (snapCount <= 1) return null;
+
+  return (
+    <div
+      ref={ref}
+      role="tablist"
+      aria-label={t("carouselPagination")}
+      className={cn("flex items-center justify-center gap-2", className)}
+      {...props}
+    >
+      {Array.from({ length: snapCount }, (_, index) => (
+        <button
+          key={index}
+          type="button"
+          role="tab"
+          aria-selected={selectedIndex === index}
+          aria-label={t("srOnlyGoToSlide", { page: index + 1 })}
+          className={cn(
+            "cinect-carousel-pagination__dot rounded-full transition-colors",
+            selectedIndex === index
+              ? "cinect-carousel-pagination__dot--active"
+              : "cinect-carousel-pagination__dot--inactive",
+          )}
+          onClick={() => api?.scrollTo(index)}
+        />
+      ))}
+    </div>
+  );
+});
+CarouselPagination.displayName = "CarouselPagination";
 
 export {
   type CarouselApi,
@@ -242,4 +303,5 @@ export {
   CarouselItem,
   CarouselPrevious,
   CarouselNext,
+  CarouselPagination,
 };

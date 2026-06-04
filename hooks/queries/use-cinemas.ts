@@ -127,6 +127,43 @@ export function useCinemaShowtimes(cinemaId: string, date?: string) {
   );
 }
 
+const ticketPriceRowSchema = z.object({
+  id: z.string(),
+  categoryKey: z.string(),
+  slotPrimary: z.string(),
+  slotSecondary: z.string().nullable(),
+  subtitle: z.string().nullable(),
+  adultPrice: z.number(),
+  concessionPrice: z.number(),
+  sortOrder: z.number(),
+});
+
+const cinemaTicketPricesSchema = z.object({
+  cinemaId: z.string(),
+  formats: z.array(
+    z.object({
+      format: z.string(),
+      rows: z.array(ticketPriceRowSchema),
+    }),
+  ),
+});
+
+export type CinemaTicketPricesResponse = z.infer<typeof cinemaTicketPricesSchema>;
+
+export function useCinemaTicketPrices(cinemaId: string) {
+  return useApiQuery<CinemaTicketPricesResponse>(
+    ["cinema-ticket-prices", cinemaId],
+    `/cinemas/${cinemaId}/ticket-prices`,
+    undefined,
+    {
+      schema: cinemaTicketPricesSchema,
+      enabled: !!cinemaId,
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
+    },
+  );
+}
+
 // ─── Seats ─────────────────────────────────────────────────────────
 
 export function useShowtimeSeats(showtimeId: string) {

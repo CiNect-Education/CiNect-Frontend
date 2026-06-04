@@ -1,11 +1,12 @@
 @import "tailwindcss";
+@import "./cinect-cinema-detail.css";
 @config "../tailwind.config.ts";
 
 @utility text-balance {
   text-wrap: balance;
 }
 
-/* ─── Cinestar-inspired design tokens (dark = cinestar.com.vn, light = adapted) ─── */
+/* â”€â”€â”€ CiNect design tokens (dark theme; light = adapted) â”€â”€â”€ */
 @layer base {
   :root {
     --background: 228 32% 97%;
@@ -14,7 +15,7 @@
     --card-foreground: 248 42% 16%;
     --popover: 0 0% 100%;
     --popover-foreground: 248 42% 16%;
-  /* Cinestar gold: #f1e35d / #F7C631 */
+  /* Brand gold: #f1e35d / #F7C631 */
     --primary: 49 90% 60%;
     --primary-foreground: 0 0% 9%;
     --cta-from: 52 88% 67%;
@@ -85,9 +86,15 @@
   }
 
   .dark {
-    /* Cinestar.com.vn: indigo + violet + plum (not flat purple), gold CTA */
-    --background: 235 48% 12%;
-    --foreground: 0 0% 98%;
+    /* cinestar.com.vn â€” base #0f172a, plum #4a3375 / rgb(45,37,80), glow #48479a */
+    --cinect-bg: #0f172a;
+    --cinect-plum: #4a3375;
+    --cinect-plum-mid: rgb(45 37 80);
+    --cinect-glow: #48479a;
+    --cinect-brand-purple: #663399;
+    --cinect-brand-blue: #3366cc;
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
     --card: 248 38% 16%;
     --card-foreground: 0 0% 98%;
     --popover: 248 38% 16%;
@@ -174,21 +181,26 @@
     font-feature-settings: "kern" 1, "liga" 1;
   }
 
+  /* body::before solid #0f172a + ambient blur orbs + 183deg plum gradient */
   .dark body {
-    background-color: hsl(var(--background));
-    background-image:
-      radial-gradient(ellipse 100% 70% at 50% -15%, hsl(272 55% 38% / 0.42) 0%, transparent 55%),
-      radial-gradient(ellipse 65% 50% at 100% 30%, hsl(228 60% 32% / 0.35) 0%, transparent 50%),
-      radial-gradient(ellipse 55% 45% at 0% 70%, hsl(285 48% 32% / 0.22) 0%, transparent 45%),
-      linear-gradient(
-        168deg,
-        hsl(235 50% 13%) 0%,
-        hsl(248 44% 11%) 38%,
-        hsl(272 42% 12%) 62%,
-        hsl(228 48% 10%) 100%
-      );
-    background-attachment: fixed;
+    background-color: var(--cinect-bg);
+    color: #f8fafc;
+    min-height: 100vh;
+    position: relative;
   }
+
+  .dark body::before {
+    background-color: var(--cinect-bg);
+    bottom: 0;
+    content: "";
+    left: 0;
+    pointer-events: none;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: -20;
+  }
+
 
   h1,
   h2,
@@ -264,11 +276,62 @@
   }
 
   .dark .cinect-hero-band {
-    background:
-      radial-gradient(ellipse 95% 65% at 50% -5%, hsl(272 58% 42% / 0.4) 0%, transparent 58%),
-      radial-gradient(ellipse 55% 45% at 95% 15%, hsl(228 62% 38% / 0.28) 0%, transparent 52%),
-      radial-gradient(ellipse 45% 40% at 5% 25%, hsl(285 50% 36% / 0.2) 0%, transparent 48%),
-      linear-gradient(180deg, hsl(248 38% 16% / 0.85) 0%, transparent 72%);
+    background: transparent;
+  }
+
+  .dark .cinect-app-main {
+    position: relative;
+  }
+
+  /* Ambient orb + 183deg plum gradient (above #0f172a base, z-index -3) */
+  .dark .cinect-ambient-bg {
+    background-attachment: fixed;
+    background-image:
+      linear-gradient(rgb(45 37 80 / 0) 20%, var(--cinect-bg) 100%),
+      linear-gradient(var(--cinect-bg) 20%, rgb(45 37 80 / 0) 30%),
+      linear-gradient(
+        183deg,
+        var(--cinect-plum) 13.91%,
+        rgb(45 37 80 / 0) 37.91%,
+        var(--cinect-bg) 57.58%
+      );
+    background-repeat: no-repeat;
+    background-size: cover;
+    z-index: -1;
+  }
+
+  .dark .cinect-ambient-orb {
+    aspect-ratio: 1;
+    display: block;
+    pointer-events: none;
+    position: absolute;
+  }
+
+  .dark .cinect-ambient-orb--primary {
+    background: var(--cinect-glow);
+    border-radius: 50%;
+    filter: blur(10rem);
+    left: 10%;
+    top: min(60rem, 42vh);
+    width: min(75rem, 1200px);
+  }
+
+  .dark .cinect-ambient-orb--plum-left {
+    background: rgb(45 37 80 / 0.45);
+    border-radius: 50%;
+    filter: blur(8rem);
+    left: -8%;
+    top: 52%;
+    width: min(55vw, 42rem);
+  }
+
+  .dark .cinect-ambient-orb--blue-right {
+    background: color-mix(in srgb, var(--cinect-brand-blue) 35%, transparent);
+    border-radius: 50%;
+    filter: blur(7rem);
+    right: -5%;
+    top: 38%;
+    width: min(48vw, 36rem);
   }
 
   .cinect-header-top {
@@ -282,12 +345,47 @@
 
   .cinect-header-shell {
     --cinect-header-height: 4.25rem;
+    --cinect-header-sub-height: 0px;
+    --cinect-header-total-height: var(--cinect-header-height);
     color: hsl(0 0% 98%);
   }
 
   @media (min-width: 640px) {
     .cinect-header-shell {
       --cinect-header-height: 4.5rem;
+      --cinect-header-total-height: var(--cinect-header-height);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .cinect-header-shell {
+      --cinect-header-sub-height: 2.5rem;
+      --cinect-header-total-height: calc(
+        var(--cinect-header-height) + var(--cinect-header-sub-height)
+      );
+    }
+  }
+
+  /* Sticky offsets (header is sibling of main — mirror heights on page shell) */
+  .cinect-page-bg {
+    --cinect-header-height: 4.25rem;
+    --cinect-header-sub-height: 0px;
+    --cinect-header-total-height: var(--cinect-header-height);
+  }
+
+  @media (min-width: 640px) {
+    .cinect-page-bg {
+      --cinect-header-height: 4.5rem;
+      --cinect-header-total-height: var(--cinect-header-height);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .cinect-page-bg {
+      --cinect-header-sub-height: 2.5rem;
+      --cinect-header-total-height: calc(
+        var(--cinect-header-height) + var(--cinect-header-sub-height)
+      );
     }
   }
 
@@ -321,7 +419,7 @@
     color: hsl(0 0% 100%);
   }
 
-  /* Cinestar header language (select-location-header / hd-regi-list pattern) */
+  /* Header language (select-location-header / hd-regi-list pattern) */
   .cinect-lg-action {
     flex-shrink: 0;
     position: relative;
@@ -401,7 +499,7 @@
     width: 1rem;
   }
 
-  /* Dropdown: hd-regi-list.--second — 2 rows (VN / EN), opens on hover like Cinestar */
+  /* Dropdown: hd-regi-list.--second â€” 2 rows (VN / EN), opens on hover */
   .cinect-lg-action-popup {
     background-color: #0f172a;
     border: 0.1rem solid rgba(248, 250, 252, 0.1);
@@ -685,7 +783,7 @@
       0 0 24px hsl(272 50% 40% / 0.15);
   }
 
-  /* Auth panel (always light card — fixed Cinestar colors, not theme tokens) */
+  /* Auth panel (always light card â€” fixed brand colors, not theme tokens) */
   .cinect-auth-tab-inactive {
     background-color: hsl(262 32% 25%);
     color: hsl(0 0% 100%);
@@ -728,7 +826,7 @@
     transform: scale(0.98);
   }
 
-  /* Auth login/register — soft blur + plum tint like cinestar.com.vn/login */
+  /* Auth login/register â€” soft blur + plum tint like cinestar.com.vn/login */
   .cinect-auth-bg-layer {
     position: absolute;
     inset: 0;
@@ -768,7 +866,7 @@
   }
 }
 
-/* CTA buttons — Cinestar wipe hover (btn--pri / btn--second) */
+/* CTA buttons â€” wipe hover (btn--pri / btn--second) */
 .cinect-press {
   transition:
     transform 0.2s ease,
@@ -828,7 +926,7 @@
   transition: filter 0.3s ease-in-out;
 }
 
-/* Đặt Vé Ngay — .btn--pri */
+/* Äáº·t VÃ© Ngay â€” .btn--pri */
 .cinect-btn-cta {
   color: hsl(222 47% 11%);
   box-shadow: none;
@@ -849,7 +947,7 @@
   z-index: -1;
 }
 
-/* Đặt Bắp Nước — .btn--second */
+/* Äáº·t Báº¯p NÆ°á»›c â€” .btn--second */
 .cinect-btn-purple {
   color: hsl(210 40% 98%);
   box-shadow: none;
@@ -870,7 +968,7 @@
   z-index: -1;
 }
 
-/* Footer outline gift — .btn--outline */
+/* Footer outline gift â€” .btn--outline */
 .cinect-btn-outline-light {
   color: #f3ea28;
   border: 1px solid #f3ea28;
@@ -1053,7 +1151,7 @@
   transition: filter 0.35s ease;
 }
 
-/* Header: zoom past PNG padding — match cinestar.com.vn prominence */
+/* Header: zoom past PNG padding â€” match cinestar.com.vn prominence */
 .cinect-logo-mark--header .cinect-logo-img {
   width: 100%;
   height: 100%;
@@ -1165,4 +1263,861 @@
     hsl(0 0% 96% / 0) 62%,
     transparent 100%
   );
+}
+
+/* Contact block â€” tokens from cinestar.com.vn (html 10px â†’ 1rem = 10px there) */
+.cinect-contact {
+  --ct-base: 10px;
+  box-sizing: border-box;
+  color: #f8fafc;
+  font-size: var(--ct-base);
+  margin-top: calc(2.4 * var(--ct-base));
+  max-width: 100%;
+  overflow-x: clip;
+  width: 100%;
+}
+
+.cinect-contact__grid {
+  align-items: stretch;
+  display: grid;
+  gap: calc(2.4 * var(--ct-base));
+  grid-template-columns: 1fr 1fr;
+  min-width: 0;
+  width: 100%;
+}
+
+.cinect-contact .ct-left,
+.cinect-contact .ct-right {
+  min-width: 0;
+  width: 100%;
+}
+
+@media screen and (max-width: 1279px) {
+  .cinect-contact__grid {
+    gap: calc(2 * var(--ct-base));
+    grid-template-columns: 1fr;
+  }
+
+  .cinect-contact .ct-left-inner {
+    padding: calc(2 * var(--ct-base)) 0 calc(1.2 * var(--ct-base));
+  }
+
+  .cinect-contact .sec-heading {
+    margin-bottom: calc(1.6 * var(--ct-base));
+  }
+
+  .cinect-contact .ct-social {
+    margin-inline: auto;
+    max-width: calc(40 * var(--ct-base));
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 1023px) {
+  .cinect-contact .ct-box {
+    padding: calc(2.4 * var(--ct-base));
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .cinect-contact__grid {
+    gap: calc(1.6 * var(--ct-base));
+  }
+
+  .cinect-contact .ct-social {
+    max-width: calc(25 * var(--ct-base));
+    width: calc(25 * var(--ct-base));
+  }
+}
+
+.cinect-contact .heading {
+  color: #f8fafc;
+  font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+  font-size: calc(4 * var(--ct-base));
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+@media screen and (max-width: 1200px) {
+  .cinect-contact .heading {
+    font-size: calc(3.2 * var(--ct-base));
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .cinect-contact .heading {
+    font-size: calc(2.4 * var(--ct-base));
+  }
+}
+
+.cinect-contact .ct-left-inner {
+  padding: calc(4 * var(--ct-base)) 0;
+}
+
+.cinect-contact .sec-heading {
+  display: flex;
+  flex-direction: column;
+  gap: calc(1.6 * var(--ct-base));
+  margin: calc(3.2 * var(--ct-base)) 0;
+}
+
+.cinect-contact .sec-heading .heading {
+  margin-bottom: calc(1.2 * var(--ct-base));
+}
+
+.cinect-contact .ct-social {
+  display: flex;
+  flex-direction: column;
+  gap: calc(2.4 * var(--ct-base));
+  margin: 0 auto;
+  max-width: calc(47 * var(--ct-base));
+  width: 100%;
+}
+
+.cinect-contact .ct-social-link {
+  align-items: center;
+  color: #f8fafc;
+  display: flex;
+  font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+  font-size: calc(3.6 * var(--ct-base));
+  font-weight: 700;
+  letter-spacing: calc(0.18 * var(--ct-base));
+  max-height: calc(9 * var(--ct-base));
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+@media only screen and (max-width: 1200px) {
+  .cinect-contact .ct-social-link {
+    font-size: calc(3.1 * var(--ct-base));
+  }
+}
+
+@media only screen and (max-width: 800px) {
+  .cinect-contact .ct-social-link {
+    font-size: calc(2.6 * var(--ct-base));
+  }
+}
+
+@media screen and (max-width: 1199px) {
+  .cinect-contact .ct-social-link {
+    font-size: 3.5vw;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .cinect-contact .ct-social-link {
+    font-size: calc(1.6 * var(--ct-base));
+  }
+}
+
+.cinect-contact .ct-social-link img,
+.cinect-contact .ct-social-link__img {
+  display: block;
+  flex-shrink: 0;
+  height: auto !important;
+  max-height: calc(9 * var(--ct-base));
+  max-width: calc(18 * var(--ct-base));
+  object-fit: contain;
+  width: auto !important;
+}
+
+@media screen and (max-width: 1199px) {
+  .cinect-contact .ct-social-link img,
+  .cinect-contact .ct-social-link__img {
+    max-width: 15vw;
+    width: 15vw !important;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .cinect-contact .ct-social-link img,
+  .cinect-contact .ct-social-link__img {
+    max-width: calc(7 * var(--ct-base));
+    width: calc(7 * var(--ct-base)) !important;
+  }
+}
+
+/* rem on Cinestar .txt uses html 10px â€” use --ct-base, not em (parent link is 36px) */
+.cinect-contact .ct-social-link .txt {
+  --mn: calc(6 * var(--ct-base));
+  display: inline-block;
+  flex: 1 1 0%;
+  letter-spacing: calc(0.18 * var(--ct-base));
+  padding: calc(2.4 * var(--ct-base));
+  position: relative;
+  text-align: center;
+}
+
+@media screen and (max-width: 1199px) {
+  .cinect-contact .ct-social-link .txt {
+    padding: 1.3888888889vw;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .cinect-contact .ct-social-link .txt {
+    --mn: calc(3 * var(--ct-base));
+    flex: unset;
+    padding: calc(1 * var(--ct-base)) calc(3 * var(--ct-base));
+  }
+}
+
+.cinect-contact .ct-social-link .txt::before {
+  background: linear-gradient(106deg, #663399, #3366cc 102.69%);
+  border-radius: calc(0.8 * var(--ct-base));
+  content: "";
+  height: 100%;
+  left: calc(var(--mn) * -1);
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: -1;
+}
+
+.cinect-contact .ct-social-link:nth-child(2n) {
+  flex-direction: row-reverse;
+}
+
+.cinect-contact .ct-social-link:nth-child(2n) .txt::before {
+  left: 0;
+  right: calc(var(--mn) * -1);
+}
+
+.cinect-contact .ct-box {
+  background: rgba(51, 102, 204, 0.8);
+  border-radius: calc(0.5 * var(--ct-base));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: calc(1.2 * var(--ct-base));
+  height: 100%;
+  max-width: 100%;
+  padding: calc(4 * var(--ct-base));
+}
+
+@media screen and (max-width: 767px) {
+  .cinect-contact .ct-box {
+    padding: calc(2.4 * var(--ct-base)) calc(1.6 * var(--ct-base));
+  }
+}
+
+.cinect-contact .ct-box .heading {
+  font-size: calc(2.4 * var(--ct-base));
+}
+
+@media only screen and (max-width: 1200px) {
+  .cinect-contact .ct-box .heading {
+    font-size: calc(2 * var(--ct-base));
+  }
+}
+
+@media only screen and (max-width: 800px) {
+  .cinect-contact .ct-box .heading {
+    font-size: calc(1.7 * var(--ct-base));
+  }
+}
+
+.cinect-contact .ct-tt {
+  display: flex;
+  flex-direction: column;
+  gap: calc(1.2 * var(--ct-base));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cinect-contact .ct-tt li {
+  align-items: flex-start;
+  display: flex;
+  font-size: calc(1.6 * var(--ct-base));
+  gap: calc(1 * var(--ct-base));
+}
+
+.cinect-contact .ct-tt li img {
+  flex-shrink: 0;
+  height: auto;
+  width: calc(2.4 * var(--ct-base));
+}
+
+.cinect-contact .ct-tt li a {
+  color: #f8fafc;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+  word-break: break-word;
+}
+
+.cinect-contact .ct-tt li a:hover {
+  text-decoration: underline;
+}
+
+.cinect-contact .ct-form {
+  display: flex;
+  flex-direction: column;
+  gap: calc(1.2 * var(--ct-base));
+  margin-top: calc(2.4 * var(--ct-base));
+}
+
+.cinect-contact .re-input {
+  background-color: #fff;
+  border: none;
+  border-radius: calc(0.4 * var(--ct-base));
+  box-sizing: border-box;
+  color: #475569;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: calc(1.6 * var(--ct-base));
+  line-height: 1.55;
+  max-width: 100%;
+  outline: none;
+  padding: calc(1.4 * var(--ct-base));
+  width: 100%;
+}
+
+.cinect-contact .re-input--area {
+  min-height: calc(27.6 * var(--ct-base));
+  resize: vertical;
+}
+
+.cinect-contact .re-input::placeholder {
+  color: #94a3b8;
+}
+
+.cinect-contact .cs-btn {
+  align-items: center;
+  border: none;
+  border-radius: calc(0.4 * var(--ct-base));
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+  font-size: calc(1.6 * var(--ct-base));
+  font-weight: 700;
+  justify-content: center;
+  letter-spacing: calc(0.08 * var(--ct-base));
+  outline: none;
+  overflow: hidden;
+  padding: calc(0.8 * var(--ct-base)) calc(1.2 * var(--ct-base));
+  text-align: center;
+  text-transform: uppercase;
+  width: auto;
+}
+
+.cinect-contact .ct-form .cs-btn {
+  align-self: flex-start;
+  margin-top: calc(2.4 * var(--ct-base));
+  min-width: calc(23 * var(--ct-base));
+}
+
+@media screen and (max-width: 767px) {
+  .cinect-contact .ct-form .cs-btn {
+    margin-inline: auto;
+  }
+}
+
+@media screen and (max-width: 479px) {
+  .cinect-contact .heading {
+    font-size: calc(2 * var(--ct-base));
+  }
+
+  .cinect-contact .ct-box .heading {
+    font-size: calc(1.5 * var(--ct-base));
+  }
+
+  .cinect-contact .ct-box {
+    padding: calc(1.6 * var(--ct-base)) calc(1.2 * var(--ct-base));
+  }
+
+  .cinect-contact .ct-social-link .txt {
+    padding: calc(0.8 * var(--ct-base)) calc(1.2 * var(--ct-base));
+  }
+
+  .cinect-contact .ct-tt li {
+    font-size: calc(1.4 * var(--ct-base));
+  }
+}
+
+.cinect-contact .cs-btn--pri {
+  color: #0f172a;
+  position: relative;
+  transition: all 0.3s ease-in-out;
+  z-index: 1;
+}
+
+.cinect-contact .cs-btn--pri::before,
+.cinect-contact .cs-btn--pri::after {
+  content: "";
+  height: 100%;
+  position: absolute;
+  transition: all 0.4s ease-in-out;
+  width: 0.1rem;
+}
+
+.cinect-contact .cs-btn--pri::before {
+  background: #f3ea28;
+  right: 0;
+  top: 0;
+  width: 100%;
+  z-index: -2;
+}
+
+.cinect-contact .cs-btn--pri::after {
+  background: linear-gradient(106deg, #663399, #3366cc 102.69%);
+  bottom: 0;
+  height: 100%;
+  left: 0;
+  width: 0;
+  z-index: -1;
+}
+
+.cinect-contact .cs-btn--pri:hover:not(:disabled) {
+  color: #fff;
+}
+
+.cinect-contact .cs-btn--pri:hover:not(:disabled)::before {
+  width: 0;
+}
+
+.cinect-contact .cs-btn--pri:hover:not(:disabled)::after {
+  width: 100%;
+}
+
+.cinect-contact .cs-btn--pri:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.cinect-contact__error {
+  color: #fca5a5;
+  font-size: calc(1.2 * var(--ct-base));
+  margin: calc(-0.4 * var(--ct-base)) 0 0;
+}
+
+/* Cinemas page â€” OpenStreetMap (Leaflet) */
+.cinect-cinema-map__canvas-wrap {
+  background: radial-gradient(ellipse at 50% 45%, rgb(72 71 154 / 0.25), transparent 68%);
+}
+
+.cinect-cinema-map__leaflet {
+  isolation: isolate;
+}
+
+.cinect-cinema-map__leaflet .leaflet-container {
+  background: rgb(15 23 42 / 0.85);
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+/* Map marker: teardrop location pin with cinema photo in the head */
+.cinect-cinema-marker-pin-wrap {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.cinect-cinema-marker-pin-svg {
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 3px 8px rgb(0 0 0 / 0.45));
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.cinect-cinema-marker-pin-svg__shape {
+  fill: #e53935;
+  fill-rule: evenodd;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.cinect-cinema-marker-pin-svg__ring {
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.cinect-cinema-marker-pin-wrap--active .cinect-cinema-marker-pin-svg,
+.cinect-cinema-marker-pin-wrap:hover .cinect-cinema-marker-pin-svg {
+  transform: scale(1.1) translateY(-3px);
+  filter: drop-shadow(0 0 10px rgb(243 234 40 / 0.75)) drop-shadow(0 5px 12px rgb(0 0 0 / 0.5));
+}
+
+.cinect-cinema-marker-pin-wrap--active .cinect-cinema-marker-pin-svg__shape,
+.cinect-cinema-marker-pin-wrap:hover .cinect-cinema-marker-pin-svg__shape {
+  fill: #c62828;
+  stroke: #f3ea28;
+  stroke-width: 2.5;
+}
+
+.cinect-cinema-marker-pin-wrap--active .cinect-cinema-marker-pin-svg__ring,
+.cinect-cinema-marker-pin-wrap:hover .cinect-cinema-marker-pin-svg__ring {
+  stroke: #f3ea28;
+  stroke-width: 2.5;
+}
+
+.cinect-osm-popup__thumb {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  height: 7rem;
+  margin: 0 0 0.5rem;
+  border-radius: 0.375rem;
+  object-fit: cover;
+}
+
+.cinect-osm-popup-wrap .leaflet-popup-content-wrapper {
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.35);
+}
+
+.cinect-osm-popup-wrap .leaflet-popup-content {
+  margin: 0.65rem 0.85rem;
+  min-width: 10rem;
+}
+
+.cinect-osm-popup__title {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.35rem;
+}
+
+.cinect-osm-popup__meta,
+.cinect-osm-popup__addr,
+.cinect-osm-popup__city {
+  font-size: 0.7rem;
+  line-height: 1.35;
+  color: #475569;
+  margin: 0.15rem 0;
+}
+
+.cinect-osm-popup__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.cinect-osm-popup__link {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #3366cc;
+  text-decoration: underline;
+}
+
+.cinect-osm-popup__link--primary {
+  background: #f3ea28;
+  border-radius: 0.25rem;
+  color: #0f172a;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  text-decoration: none;
+}
+
+.cinect-osm-popup__link--primary:hover {
+  filter: brightness(0.95);
+}
+
+.cinect-cinema-map__list {
+  scrollbar-color: rgb(51 102 204 / 0.6) transparent;
+  scrollbar-width: thin;
+}
+
+@media screen and (max-width: 1023px) {
+  .cinect-cinema-map__list {
+    max-height: 16rem;
+  }
+}
+
+/* Homepage movie rows â€” Cinestar .arrow-btn-prev / .arrow-btn-next */
+.cinect-movie-row-carousel .cinect-movie-row-carousel__nav {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #f8fafc;
+  height: 4rem;
+  justify-content: center;
+  top: 38%;
+  transform: translateY(-50%);
+  width: 4rem;
+  z-index: 10;
+}
+
+.cinect-movie-row-carousel .cinect-movie-row-carousel__nav--prev {
+  left: 0;
+}
+
+.cinect-movie-row-carousel .cinect-movie-row-carousel__nav--next {
+  right: 0;
+}
+
+.cinect-movie-row-carousel .cinect-movie-row-carousel__nav:hover:not(:disabled) {
+  background: transparent;
+  color: #f3ea28;
+}
+
+.cinect-movie-row-carousel .cinect-movie-row-carousel__nav:disabled {
+  color: #64748b;
+  opacity: 1;
+}
+
+.cinect-movie-row-carousel .cinect-movie-row-carousel__chevron {
+  height: 2.4rem;
+  width: 2.4rem;
+}
+
+@media screen and (min-width: 1280px) {
+  .cinect-movie-row-carousel .cinect-movie-row-carousel__chevron {
+    height: 2.8rem;
+    width: 2.8rem;
+  }
+}
+
+/* Movie row pagination â€” Cinestar swiper bullets */
+.cinect-carousel-pagination__dot {
+  border: 0;
+  cursor: pointer;
+  height: 0.5rem;
+  padding: 0;
+  width: 0.5rem;
+}
+
+.cinect-carousel-pagination__dot--active {
+  background: #fff;
+  opacity: 1;
+}
+
+.cinect-carousel-pagination__dot--inactive {
+  background: #fff;
+  opacity: 0.35;
+}
+
+.cinect-carousel-pagination__dot--inactive:hover {
+  opacity: 0.55;
+}
+
+.cinect-movie-row-carousel__pagination {
+  margin-top: 0.4rem;
+}
+
+/* Section footer CTA â€” Cinestar "Xem thÃªm" / "Táº¥t cáº£ Æ°u Ä‘Ã£i" */
+.cinect-section-more-btn {
+  align-items: center;
+  display: inline-flex;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  justify-content: center;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  min-width: 11rem;
+  padding: 0.7rem 2.5rem;
+  text-transform: uppercase;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+@media screen and (min-width: 640px) {
+  .cinect-section-more-btn {
+    font-size: 0.875rem;
+    min-width: 14rem;
+    padding: 0.75rem 3rem;
+  }
+}
+
+.cinect-section-more-btn--outline {
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  border-radius: 0.25rem;
+  color: #fff;
+}
+
+.cinect-section-more-btn--outline:hover {
+  border-color: #f3ea28;
+  color: #f3ea28;
+}
+
+.cinect-section-more-btn--yellow {
+  background: #f3ea28;
+  border: 1px solid #f3ea28;
+  border-radius: 0.25rem;
+  color: #000;
+}
+
+.cinect-section-more-btn--yellow:hover {
+  background: #ffe94a;
+  border-color: #ffe94a;
+  color: #000;
+}
+
+/* Homepage banner â€” Cinestar bannerslider ~1920Ã—578 (padding-top ~28.8%) */
+.cinect-banner-carousel__slide {
+  aspect-ratio: 1920 / 578;
+  position: relative;
+}
+
+.cinect-banner-carousel__slide img {
+  height: 100%;
+  left: 0;
+  object-fit: cover;
+  object-position: center;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+/* Homepage banner / hero â€” same Cinestar arrow style */
+.cinect-banner-carousel .cinect-banner-carousel__nav {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #f8fafc;
+  height: 4rem;
+  justify-content: center;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4rem;
+  z-index: 10;
+}
+
+.cinect-banner-carousel .cinect-banner-carousel__nav--prev {
+  left: 0.75rem;
+}
+
+.cinect-banner-carousel .cinect-banner-carousel__nav--next {
+  right: 0.75rem;
+}
+
+@media screen and (min-width: 768px) {
+  .cinect-banner-carousel .cinect-banner-carousel__nav--prev {
+    left: 1rem;
+  }
+
+  .cinect-banner-carousel .cinect-banner-carousel__nav--next {
+    right: 1rem;
+  }
+}
+
+.cinect-banner-carousel .cinect-banner-carousel__nav:hover:not(:disabled) {
+  background: transparent;
+  color: #f3ea28;
+}
+
+.cinect-banner-carousel .cinect-banner-carousel__nav:disabled {
+  color: #64748b;
+  opacity: 1;
+}
+
+.cinect-banner-carousel .cinect-banner-carousel__chevron {
+  height: 2.4rem;
+  width: 2.4rem;
+}
+
+@media screen and (min-width: 1280px) {
+  .cinect-banner-carousel .cinect-banner-carousel__chevron {
+    height: 3.2rem;
+    width: 3.2rem;
+  }
+}
+
+
+/* Movies page â€” quick book strip (cinestar.com.vn/movie/) */
+.cinect-movie-quick-book {
+  background: #ecf2ff;
+  width: 100%;
+}
+
+.cinect-movie-quick-book__inner {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin-inline: auto;
+  max-width: 1400px;
+  padding: 20px 30px;
+}
+
+.cinect-movie-quick-book__title {
+  color: #0f172a;
+  font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  margin: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.cinect-movie-quick-book__fields {
+  display: flex;
+  flex: 1 1 520px;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+
+.cinect-movie-quick-book__select {
+  background: #fff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  color: #334155 !important;
+  font-size: 0.875rem !important;
+  height: 2.75rem !important;
+  min-width: 0;
+  width: min(100%, 12.5rem);
+}
+
+.cinect-movie-quick-book__submit {
+  background: linear-gradient(106deg, #663399, #3366cc 102.69%);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-left: auto;
+  min-height: 2.75rem;
+  padding: 0 1.5rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.cinect-movie-quick-book__submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.cinect-movie-quick-book__submit:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+@media screen and (max-width: 1023px) {
+  .cinect-movie-quick-book__inner {
+    padding: 16px 20px;
+  }
+
+  .cinect-movie-quick-book__title {
+    width: 100%;
+  }
+
+  .cinect-movie-quick-book__fields {
+    flex-basis: 100%;
+  }
+
+  .cinect-movie-quick-book__select {
+    flex: 1 1 calc(50% - 5px);
+    width: auto;
+  }
+
+  .cinect-movie-quick-book__submit {
+    margin-left: 0;
+    width: 100%;
+  }
 }

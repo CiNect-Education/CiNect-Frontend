@@ -1,4 +1,4 @@
-import type { HoldDetails } from "@/types/domain";
+import type { HoldDetails, HoldTicketLine, TicketProductCode } from "@/types/domain";
 
 function num(v: unknown): number | undefined {
   if (v == null) return undefined;
@@ -12,6 +12,30 @@ function num(v: unknown): number | undefined {
     return Number.isFinite(n) ? n : undefined;
   }
   return undefined;
+}
+
+function mapTicketLines(raw: unknown): HoldTicketLine[] | undefined {
+  if (!Array.isArray(raw) || raw.length === 0) return undefined;
+  const lines = raw
+    .map((item) => {
+      if (item == null || typeof item !== "object") return null;
+      const x = item as Record<string, unknown>;
+      const productCode = String(x.productCode ?? "") as TicketProductCode;
+      const quantity = Number(x.quantity ?? 0);
+      const unitPrice = num(x.unitPrice) ?? 0;
+      if (!productCode || quantity <= 0) return null;
+      return {
+        productCode,
+        quantity,
+        unitPrice,
+        labelVi: x.labelVi != null ? String(x.labelVi) : undefined,
+        labelEn: x.labelEn != null ? String(x.labelEn) : undefined,
+        subLabelVi: x.subLabelVi != null ? String(x.subLabelVi) : null,
+        subLabelEn: x.subLabelEn != null ? String(x.subLabelEn) : null,
+      } satisfies HoldTicketLine;
+    })
+    .filter((l): l is HoldTicketLine => l != null);
+  return lines.length > 0 ? lines : undefined;
 }
 
 /**
@@ -63,7 +87,8 @@ export function normalizeHoldDetails(raw: unknown): HoldDetails | null {
       };
     }
 
-    return { holdId, showtimeId, expiresAt, seats, showtime };
+    const ticketLines = mapTicketLines(o.ticketLines);
+    return { holdId, showtimeId, expiresAt, seats, showtime, ticketLines };
   }
 
   const holdSeats = Array.isArray(o.holdSeats) ? o.holdSeats : [];
@@ -95,5 +120,6 @@ export function normalizeHoldDetails(raw: unknown): HoldDetails | null {
     };
   }
 
-  return { holdId, showtimeId, expiresAt, seats, showtime };
+  const ticketLines = mapTicketLines(o.ticketLines);
+  return { holdId, showtimeId, expiresAt, seats, showtime, ticketLines };
 }

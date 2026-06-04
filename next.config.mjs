@@ -17,13 +17,13 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline'",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://unpkg.com",
+      "style-src 'self' 'unsafe-inline' https://unpkg.com",
       "img-src 'self' data: https: blob:",
       "font-src 'self' data:",
       // Browser fetch to Nest (3001) / Spring (8081); localhost vs 127.0.0.1 are different origins.
       "connect-src 'self' ws: wss: https: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*",
-      "frame-src 'self' https://www.youtube.com https://youtube.com",
+      "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com",
       "media-src 'self'",
     ].join("; "),
   },
@@ -51,6 +51,12 @@ const nextConfig = {
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
+  },
+  async redirects() {
+    return [
+      { source: "/movie", destination: "/movies", permanent: true },
+      { source: "/:locale/movie", destination: "/:locale/movies", permanent: true },
+    ];
   },
   turbopack: {
     root: __dirname,

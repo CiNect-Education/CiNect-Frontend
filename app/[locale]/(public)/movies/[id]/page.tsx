@@ -190,16 +190,16 @@ export default function MovieDetailPage() {
 
       {/* Hero Section */}
       <div className="from-muted to-background relative h-[400px] overflow-hidden bg-gradient-to-b lg:h-[500px]">
-        {movie.bannerUrl ? (
+        {(movie.bannerUrl || movie.posterUrl) ? (
           <>
             <RemoteImage
-              src={movie.bannerUrl}
+              src={movie.bannerUrl || movie.posterUrl}
               alt={movie.title}
               fill
-              className="object-cover opacity-30"
+              className="object-cover object-center opacity-55"
               priority
             />
-            <div className="from-background via-background/50 absolute inset-0 bg-gradient-to-t to-transparent" />
+            <div className="from-background via-background/60 absolute inset-0 bg-gradient-to-t to-transparent" />
           </>
         ) : (
           <div className="from-primary/10 to-background absolute inset-0 bg-gradient-to-b" />

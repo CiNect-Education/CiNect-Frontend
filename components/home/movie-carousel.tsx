@@ -1,12 +1,7 @@
 "use client";
 
-import { Link } from "@/i18n/navigation";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Clock, Star, Calendar } from "lucide-react";
 import type { MovieListItem } from "@/types/domain";
-import { RemoteImage } from "@/components/shared/remote-image";
+import { HomeMovieRowCarousel } from "@/components/home/home-movie-row-carousel";
 
 interface MovieCarouselProps {
   movies: MovieListItem[];
@@ -14,116 +9,14 @@ interface MovieCarouselProps {
   viewAllHref?: string;
 }
 
+/** Now showing — horizontal scroll row (Cinestar-style). */
 export function MovieCarousel({ movies, title, viewAllHref }: MovieCarouselProps) {
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-balance">{title}</h2>
-        {viewAllHref && (
-          <Button variant="ghost" asChild>
-            <Link href={viewAllHref}>View All →</Link>
-          </Button>
-        )}
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {movies.map((movie) => (
-          <Link key={movie.id} href={`/movies/${movie.slug}`}>
-            <Card className="group hover:shadow-primary/20 overflow-hidden transition-all hover:shadow-lg">
-              <div className="bg-muted relative aspect-[2/3] overflow-hidden">
-                {movie.posterUrl ? (
-                  <RemoteImage
-                    src={movie.posterUrl}
-                    alt={movie.title}
-                    fill
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
-                  />
-                ) : (
-                  <div className="text-muted-foreground flex h-full items-center justify-center">
-                    No Image
-                  </div>
-                )}
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/45 to-transparent" />
-
-                {/* Status, age rating, formats */}
-                <div className="absolute top-2 left-2 flex flex-wrap gap-1">
-                  {movie.status === "NOW_SHOWING" && (
-                    <Badge className="bg-primary text-primary-foreground text-[10px] shadow-sm">
-                      Now Showing
-                    </Badge>
-                  )}
-                  {movie.status === "COMING_SOON" && (
-                    <Badge className="bg-black/75 text-[10px] text-white shadow-sm">
-                      Coming Soon
-                    </Badge>
-                  )}
-                  {movie.ageRating && (
-                    <Badge className="bg-black/70 text-[10px] text-white shadow-sm backdrop-blur">
-                      {movie.ageRating}
-                    </Badge>
-                  )}
-                </div>
-
-                {movie.formats && movie.formats.length > 0 && (
-                  <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-1">
-                    {movie.formats.slice(0, 3).map((fmt) => (
-                      <Badge
-                        key={fmt}
-                        className="bg-black/65 text-[10px] text-white shadow-sm backdrop-blur"
-                      >
-                        {fmt}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-
-                {movie.rating != null && Number(movie.rating) > 0 && (
-                  <Badge className="absolute top-2 right-2 bg-black/80 text-[10px] text-white shadow-sm">
-                    {movie.rating}
-                  </Badge>
-                )}
-              </div>
-              <CardContent className="p-4">
-                <h3 className="mb-2 line-clamp-1 font-semibold text-balance">{movie.title}</h3>
-                <div className="flex flex-wrap gap-2 text-sm text-foreground/75">
-                  {movie.genres && movie.genres.length > 0 && (
-                    <span className="line-clamp-1">
-                      {movie.genres
-                        .map((g) =>
-                          typeof g === "object" && g !== null && "name" in g
-                            ? (g as { name: string }).name
-                            : String(g)
-                        )
-                        .join(", ")}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-2 flex items-center gap-3 text-xs text-foreground/70">
-                  {movie.duration && (
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {movie.duration}m
-                    </span>
-                  )}
-                  {movie.rating != null && Number(movie.rating) > 0 && (
-                    <span className="flex items-center gap-1">
-                      <Star className="fill-primary text-primary h-3 w-3" />
-                      {movie.rating}
-                    </span>
-                  )}
-                  {movie.releaseDate && (
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {new Date(movie.releaseDate).getFullYear()}
-                    </span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
-    </section>
+    <HomeMovieRowCarousel
+      movies={movies}
+      title={title}
+      viewAllHref={viewAllHref}
+      variant="nowShowing"
+    />
   );
 }

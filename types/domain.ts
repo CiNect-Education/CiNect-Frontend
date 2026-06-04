@@ -88,6 +88,12 @@ export interface MovieListItem {
   genres: Genre[];
   ageRating: AgeRating;
   formats: RoomFormat[];
+  language?: string;
+  trailerUrl?: string;
+  originalTitle?: string;
+  description?: string;
+  director?: string;
+  subtitles?: string;
   rating?: number;
   status: MovieStatus;
 }
@@ -137,14 +143,43 @@ export interface Room {
   updatedAt: string;
 }
 
+export type TicketProductCode =
+  | "ADULT_SINGLE"
+  | "CONCESSION_SINGLE"
+  | "ADULT_DOUBLE";
+
+export interface TicketProduct {
+  code: TicketProductCode;
+  labelVi: string;
+  labelEn: string;
+  subLabelVi?: string | null;
+  subLabelEn?: string | null;
+  seatsPerUnit: number;
+  unitPrice: number;
+}
+
 export interface Seat {
   id: string;
   roomId: string;
   row: string;
   number: number;
+  gridCol?: number | null;
   type: SeatType;
   status: SeatStatus;
   price?: number;
+  pairId?: string | null;
+  isAisle?: boolean;
+}
+
+export interface ShowtimeSeatsPayload {
+  showtime?: { id: string; basePrice?: number };
+  room?: {
+    id: string;
+    name?: string;
+    layoutTemplate?: string;
+    aisleAfterCol?: number | null;
+  };
+  seats: Seat[];
 }
 
 export interface Showtime {
@@ -168,11 +203,22 @@ export interface Showtime {
 }
 
 /** GET /holds/:id — normalized for checkout (Nest/Spring + legacy Prisma shape). */
+export interface HoldTicketLine {
+  productCode: TicketProductCode;
+  quantity: number;
+  unitPrice: number;
+  labelVi?: string;
+  labelEn?: string;
+  subLabelVi?: string | null;
+  subLabelEn?: string | null;
+}
+
 export interface HoldDetails {
   holdId: string;
   showtimeId: string;
   expiresAt: string;
   seats: Array<{ id: string; row: string; number: number; type: string; price?: number }>;
+  ticketLines?: HoldTicketLine[];
   showtime?: {
     movieTitle?: string;
     cinemaName?: string;

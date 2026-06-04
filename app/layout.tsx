@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f4f3fa" },
-    { media: "(prefers-color-scheme: dark)", color: "#1a1f4a" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -45,7 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#1a1f4a" />
+        <meta name="theme-color" content="#0f172a" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png?v=5" />
         <link rel="icon" href="/favicon.png?v=5" type="image/png" sizes="32x32" />
         <link rel="icon" href="/favicon-48.png?v=5" type="image/png" sizes="48x48" />

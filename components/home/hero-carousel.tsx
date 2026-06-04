@@ -2,6 +2,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -31,14 +32,14 @@ export function HeroCarousel({ movies }: HeroCarouselProps) {
           const heroImage = movie.bannerUrl || movie.posterUrl;
           return (
             <CarouselItem key={movie.id} className="basis-full pl-0">
-              <div className="cinect-banner-carousel__slide relative aspect-[21/9] w-full overflow-hidden rounded-xl bg-neutral-900 md:aspect-[3/1]">
+              <div className="cinect-banner-carousel__slide relative w-full overflow-hidden rounded-lg bg-neutral-900">
                 {heroImage ? (
                   <RemoteImage
                     src={heroImage}
                     alt={movie.title}
                     fill
                     sizes="100vw"
-                    className="object-cover"
+                    className="object-cover object-center"
                     priority
                   />
                 ) : (
@@ -81,8 +82,12 @@ export function HeroCarousel({ movies }: HeroCarouselProps) {
           );
         })}
       </CarouselContent>
-      <CarouselPrevious className="cinect-carousel-nav cinect-carousel-nav--prev left-3 top-1/2 -translate-y-1/2 border-0 bg-black/45 text-white hover:bg-black/65 md:left-4" />
-      <CarouselNext className="cinect-carousel-nav cinect-carousel-nav--next right-3 top-1/2 -translate-y-1/2 border-0 bg-black/45 text-white hover:bg-black/65 md:right-4" />
+      <CarouselPrevious variant="ghost" className="cinect-banner-carousel__nav cinect-banner-carousel__nav--prev">
+        <ChevronLeft className="cinect-banner-carousel__chevron" strokeWidth={2.25} aria-hidden />
+      </CarouselPrevious>
+      <CarouselNext variant="ghost" className="cinect-banner-carousel__nav cinect-banner-carousel__nav--next">
+        <ChevronRight className="cinect-banner-carousel__chevron" strokeWidth={2.25} aria-hidden />
+      </CarouselNext>
     </Carousel>
   );
 }

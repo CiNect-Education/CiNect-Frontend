@@ -10,7 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { useCinemas, useProvincesLegacy, useProvincesNew } from "@/hooks/queries/use-cinemas";
-import { Building2, MapPin, Film } from "lucide-react";
+import { Building2, MapPin, Film, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { CinemaListItem } from "@/types/domain";
 import { RemoteImage } from "@/components/shared/remote-image";
 import { Separator } from "@/components/ui/separator";
@@ -26,6 +28,7 @@ import {
   getCurrentPositionCoords,
   haversineKm,
 } from "@/lib/maps";
+import { CinemaVietnamMap } from "@/components/cinemas/cinema-vietnam-map";
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -43,6 +46,7 @@ export default function CinemasPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [addressMode, setAddressMode] = useState<"new" | "legacy">("new");
+  const [showAllCinemas, setShowAllCinemas] = useState(false);
 
   const city = normalizeBookingCityId(searchParams.get("city") || "");
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -117,6 +121,10 @@ export default function CinemasPage() {
       setAddressMode("new");
     }
   }, [city, provincesLegacy, provincesNew]);
+
+  useEffect(() => {
+    setShowAllCinemas(false);
+  }, [city, amenities.join(",")]);
 
   function setCity(c: string) {
     const normalized = normalizeBookingCityId(c);
@@ -250,9 +258,118 @@ export default function CinemasPage() {
         )}
       </div>
 
-      {/* Cinema Grid */}
-      {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {!isLoading && !error && cinemas.length > 0 ? (
+        <CinemaVietnamMap cinemas={cinemas} />
+      ) : null}
+
+      {/* Cinema grid — collapsed until user expands */}
+      {error ? (
+        <ApiErrorState error={error} onRetry={refetch} className="mt-8" />
+      ) : !isLoading && cinemas.length === 0 ? (
+        <div className="mt-8 flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
+          <Building2 className="text-muted-foreground mb-3 h-12 w-12" />
+          <h3 className="mb-2 text-lg font-semibold">{t("emptyState")}</h3>
+          <p className="text-muted-foreground text-sm">{tCommon("tryAdjustFilters")}</p>
+        </div>
+      ) : !isLoading && cinemas.length > 0 ? (
+        <section className="mt-8" aria-label={t("allCinemas")}>
+          <div className="flex justify-center">
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="min-w-[min(100%,20rem)] border-white/20 bg-white/5 font-semibold text-white hover:bg-white/10 hover:text-[#f3ea28]"
+              aria-expanded={showAllCinemas}
+              onClick={() => setShowAllCinemas((open) => !open)}
+            >
+              {showAllCinemas
+                ? t("hideAllCinemas")
+                : t("showAllCinemas", { count: cinemas.length })}
+              <ChevronDown
+                className={cn("ml-2 h-5 w-5 shrink-0 transition-transform", showAllCinemas && "rotate-180")}
+                aria-hidden
+              />
+            </Button>
+          </div>
+
+          {showAllCinemas ? (
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {cinemas.map((cinema) => (
+                <Link key={cinema.id} href={`/cinemas/${cinema.slug || cinema.id}`}>
+                  <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
+                    <div className="bg-muted relative aspect-video overflow-hidden">
+                      {cinema.imageUrl ? (
+                        <>
+                          <RemoteImage
+                            src={cinema.imageUrl}
+                            alt={cinema.name}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover"
+                          />
+                          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
+                        </>
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <Film className="text-muted-foreground h-16 w-16" />
+                        </div>
+                      )}
+                    </div>
+                    <CardContent className="p-4">
+                      <h3 className="mb-2 font-semibold">{cinema.name}</h3>
+                      <div className="text-muted-foreground mb-2 flex items-center gap-1 text-sm">
+                        <MapPin className="h-3.5 w-3.5 shrink-0" />
+                        <span className="line-clamp-1">{cinema.address}</span>
+                      </div>
+                      <p className="text-muted-foreground mb-3 text-xs">{cinema.city}</p>
+                      {userCoords && cinema.latitude != null && cinema.longitude != null ? (
+                        <p className="text-primary mb-3 text-xs font-medium">
+                          {t("distanceFromYou", {
+                            distance: formatDistanceKm(
+                              haversineKm(userCoords, {
+                                lat: cinema.latitude,
+                                lng: cinema.longitude,
+                              })
+                            ),
+                          })}
+                        </p>
+                      ) : null}
+                      {cinema.amenities?.length ? (
+                        <div className="flex flex-wrap gap-1">
+                          {cinema.amenities.slice(0, 4).map((a) => (
+                            <Badge key={a} variant="secondary" className="text-xs">
+                              {a}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : null}
+                      <div className="mt-3 flex items-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className="cursor-pointer"
+                          onClick={(e) => openPlaceMap(e, cinema)}
+                        >
+                          {t("openInMaps")}
+                        </Badge>
+                        {userCoords ? (
+                          <Badge
+                            variant="secondary"
+                            className="cursor-pointer"
+                            onClick={(e) => openDirections(e, cinema)}
+                          >
+                            {t("directionsFromMe")}
+                          </Badge>
+                        ) : null}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          ) : null}
+        </section>
+      ) : isLoading && showAllCinemas ? (
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i} className="overflow-hidden">
               <Skeleton className="aspect-video w-full" />
@@ -263,89 +380,7 @@ export default function CinemasPage() {
             </Card>
           ))}
         </div>
-      ) : error ? (
-        <ApiErrorState error={error} onRetry={refetch} />
-      ) : cinemas.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-          <Building2 className="text-muted-foreground mb-3 h-12 w-12" />
-          <h3 className="mb-2 text-lg font-semibold">{t("emptyState")}</h3>
-          <p className="text-muted-foreground text-sm">{tCommon("tryAdjustFilters")}</p>
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {cinemas.map((cinema) => (
-            <Link key={cinema.id} href={`/cinemas/${cinema.slug || cinema.id}`}>
-              <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
-                <div className="bg-muted relative aspect-video overflow-hidden">
-                  {cinema.imageUrl ? (
-                    <>
-                      <RemoteImage
-                        src={cinema.imageUrl}
-                        alt={cinema.name}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover"
-                      />
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
-                    </>
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <Film className="text-muted-foreground h-16 w-16" />
-                    </div>
-                  )}
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="mb-2 font-semibold">{cinema.name}</h3>
-                  <div className="text-muted-foreground mb-2 flex items-center gap-1 text-sm">
-                    <MapPin className="h-3.5 w-3.5 shrink-0" />
-                    <span className="line-clamp-1">{cinema.address}</span>
-                  </div>
-                  <p className="text-muted-foreground mb-3 text-xs">{cinema.city}</p>
-                  {userCoords && cinema.latitude != null && cinema.longitude != null ? (
-                    <p className="text-primary mb-3 text-xs font-medium">
-                      {t("distanceFromYou", {
-                        distance: formatDistanceKm(
-                          haversineKm(userCoords, {
-                            lat: cinema.latitude,
-                            lng: cinema.longitude,
-                          })
-                        ),
-                      })}
-                    </p>
-                  ) : null}
-                  {cinema.amenities?.length ? (
-                    <div className="flex flex-wrap gap-1">
-                      {cinema.amenities.slice(0, 4).map((a) => (
-                        <Badge key={a} variant="secondary" className="text-xs">
-                          {a}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : null}
-                  <div className="mt-3 flex items-center gap-2">
-                    <Badge
-                      variant="outline"
-                      className="cursor-pointer"
-                      onClick={(e) => openPlaceMap(e, cinema)}
-                    >
-                      {t("openInMaps")}
-                    </Badge>
-                    {userCoords ? (
-                      <Badge
-                        variant="secondary"
-                        className="cursor-pointer"
-                        onClick={(e) => openDirections(e, cinema)}
-                      >
-                        {t("directionsFromMe")}
-                      </Badge>
-                    ) : null}
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -42,7 +42,7 @@ export function Header() {
 
           <div className="hidden shrink-0 items-center gap-2 lg:flex">
             <Button asChild variant="cta" size="sm" className="h-9 gap-1.5 px-3.5 text-xs">
-              <Link href="/showtimes">
+              <Link href="/movies">
                 <Ticket className="h-4 w-4" />
                 {t("bookNow")}
               </Link>
@@ -82,7 +82,7 @@ export function Header() {
 
           <div className="flex shrink-0 items-center gap-1.5 lg:hidden">
             <Button asChild variant="cta" size="sm" className="h-8 gap-1 px-2.5 text-[0.65rem]">
-              <Link href="/showtimes">
+              <Link href="/movies">
                 <Ticket className="h-3.5 w-3.5" />
                 <span className="max-[380px]:sr-only">{t("bookNow")}</span>
               </Link>

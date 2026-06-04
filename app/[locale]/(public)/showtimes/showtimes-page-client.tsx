@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { useShowtimes, useCinemas, useProvincesLegacy, useProvincesNew } from "@/hooks/queries/use-cinemas";
+import { useMovie } from "@/hooks/queries/use-movies";
 import { Calendar, MapPin, Clock, Film, Ticket } from "lucide-react";
 import type { Showtime } from "@/types/domain";
 import { RemoteImage } from "@/components/shared/remote-image";
@@ -205,9 +206,28 @@ export default function ShowtimesPageClient() {
 
   const { data: showtimesRes, isLoading, error, refetch } = useShowtimes(apiParams);
   const { data: cinemasRes } = useCinemas({ city: city || undefined });
+  const { data: movieRes, isLoading: movieLoading } = useMovie(movieId);
 
   const showtimes = toList<Showtime & { cinemaName?: string }>(showtimesRes?.data ?? showtimesRes);
   const cinemas = toList<import("@/types/domain").CinemaListItem>(cinemasRes?.data ?? cinemasRes);
+
+  const selectedMovie = useMemo(() => {
+    const fromApi = movieRes?.data;
+    if (fromApi?.title) {
+      return {
+        title: fromApi.title,
+        posterUrl: fromApi.posterUrl,
+        slug: fromApi.slug,
+      };
+    }
+    const first = showtimes.find((st) => st.movieTitle);
+    if (!first?.movieTitle) return null;
+    return {
+      title: first.movieTitle,
+      posterUrl: first.moviePosterUrl,
+      slug: undefined as string | undefined,
+    };
+  }, [movieRes?.data, showtimes]);
 
   function setCity(c: string) {
     const normalized = normalizeBookingCityId(c);
@@ -380,9 +400,56 @@ export default function ShowtimesPageClient() {
         </div>
 
         {movieId && (
-          <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border bg-muted/20 px-3 py-2">
-            <div className="text-muted-foreground text-sm">{t("filterByMovieHint")}</div>
-            <Button size="sm" variant="outline" onClick={() => setFilter("movie", "")}>
+          <div className="mt-3 flex items-center gap-3 rounded-lg border bg-muted/20 px-3 py-2.5">
+            {movieLoading && !selectedMovie ? (
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <Skeleton className="h-[4.5rem] w-12 shrink-0 rounded-md" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Skeleton className="h-3 w-28" />
+                  <Skeleton className="h-5 w-48 max-w-full" />
+                </div>
+              </div>
+            ) : selectedMovie ? (
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <div className="bg-muted relative h-[4.5rem] w-12 shrink-0 overflow-hidden rounded-md shadow-sm">
+                  {selectedMovie.posterUrl ? (
+                    <RemoteImage
+                      src={selectedMovie.posterUrl}
+                      alt={selectedMovie.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <Film className="text-muted-foreground h-6 w-6" />
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+                    {t("filterByMovieLabel")}
+                  </p>
+                  {selectedMovie.slug ? (
+                    <Link
+                      href={`/movies/${selectedMovie.slug}`}
+                      className="hover:text-primary mt-0.5 block truncate text-base font-semibold underline-offset-2 hover:underline"
+                    >
+                      {selectedMovie.title}
+                    </Link>
+                  ) : (
+                    <p className="mt-0.5 truncate text-base font-semibold">{selectedMovie.title}</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="text-muted-foreground min-w-0 flex-1 text-sm">{t("filterByMovieHint")}</p>
+            )}
+            <Button
+              size="sm"
+              variant="outline"
+              className="shrink-0"
+              onClick={() => setFilter("movie", "")}
+            >
               {t("clearMovieFilter")}
             </Button>
           </div>

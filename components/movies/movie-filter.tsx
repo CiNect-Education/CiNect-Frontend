@@ -72,12 +72,15 @@ export function MovieFilter({ onFilterChange, collapsibleOnMobile = true }: Movi
     if (value) params.set(key, value);
     else params.delete(key);
     params.delete("page");
+    if (searchParams.get("view") === "catalog") params.set("view", "catalog");
     router.push(`?${params.toString()}`);
     onFilterChange?.();
   }
 
   function clearAllFilters() {
-    router.push("?");
+    const params = new URLSearchParams();
+    if (searchParams.get("view") === "catalog") params.set("view", "catalog");
+    router.push(params.toString() ? `?${params.toString()}` : "?");
     onFilterChange?.();
   }
 

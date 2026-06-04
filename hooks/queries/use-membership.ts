@@ -93,7 +93,6 @@ export function useClaimDailyCheckin() {
     },
     void
   >("post", "/membership/daily-checkin/claim", {
-    successMessage: "Daily check-in claimed!",
     invalidateKeys: [["membership", "profile"], ["points-history"], ["membership", "daily-checkin", "status"]],
   });
 }

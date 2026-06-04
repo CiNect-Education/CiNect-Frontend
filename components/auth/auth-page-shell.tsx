@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-/** Same assets as cinestar.com.vn login/register (saved under public/auth/). */
+/** Auth page shell (assets under public/auth/). */
 const AUTH_BG_DESKTOP = "/auth/bg-regis.jpg";
 const AUTH_BG_MOBILE = "/auth/bg-regis-mobi.jpg";
 

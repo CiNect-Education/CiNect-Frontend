@@ -127,7 +127,7 @@ export function MobileNav() {
         {/* ─── Quick Book CTA ─── */}
         <div className="px-5 pt-4">
           <Button variant="cta" className="w-full gap-2" asChild>
-            <Link href="/showtimes" onClick={() => setOpen(false)}>
+            <Link href="/movies" onClick={() => setOpen(false)}>
               <Ticket className="h-4 w-4" />
               {t("bookNow")}
             </Link>
