@@ -10,7 +10,7 @@ interface CinemaDetailHeroProps {
   cinema: Cinema;
 }
 
-/** Cinestar .hbooking-new — image left + .address-box gradient right */
+/** Cinestar: .hbooking-new > .hbooking-left + .hbooking-right > .address-box */
 export function CinemaDetailHero({ cinema }: CinemaDetailHeroProps) {
   const mapUrl = buildGoogleMapsPlaceUrl({
     lat: cinema.latitude,
@@ -20,39 +20,35 @@ export function CinemaDetailHero({ cinema }: CinemaDetailHeroProps) {
   });
 
   return (
-    <section className="cinect-hbooking-new" aria-label={cinema.name}>
-      <div className="cinect-hbooking-left">
+    <div className="hbooking-new" aria-label={cinema.name}>
+      <div className="hbooking-left">
         {cinema.imageUrl ? (
-          <RemoteImage
-            src={cinema.imageUrl}
-            alt={cinema.name}
-            fill
-            sizes="(max-width: 1023px) 100vw, 40vw"
-            className="object-cover"
-            priority
-          />
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={cinema.imageUrl} alt={cinema.name} />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-[#1e293b]">
+          <div className="hbooking-left__placeholder">
             <Film className="h-12 w-12 text-white/30" aria-hidden />
           </div>
         )}
       </div>
-      <div className="cinect-hbooking-right">
-        <div className="cinect-address-box">
-          <h4 className="cinect-address-box__title">{cinema.name}</h4>
+      <div className="hbooking-right">
+        <div className="address-box">
+          <h4 className="sub-tittle txt-upper">{cinema.name}</h4>
           {cinema.address ? (
             <a
               href={mapUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="cinect-address-box__address"
+              className="link"
             >
-              <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              <span>{cinema.address}</span>
+              <span className="ic" aria-hidden>
+                <MapPin className="h-4 w-4" />
+              </span>
+              <span className="txt">{cinema.address}</span>
             </a>
           ) : null}
         </div>
       </div>
-    </section>
+    </div>
   );
 }

@@ -5,19 +5,35 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RemoteImage } from "@/components/shared/remote-image";
+import {
+  isLatLngLikelyVietnam,
+  VIETNAM_MAP_BOUNDS,
+  VIETNAM_MAP_DEFAULT_VIEW,
+} from "@/lib/cinema-map-bounds";
 import { buildGoogleMapsPlaceUrl } from "@/lib/maps";
+import {
+  isUsableImageUrl,
+  normalizeRemoteImageSrc,
+  REMOTE_IMAGE_FALLBACK,
+} from "@/lib/remote-image";
 import { cn } from "@/lib/utils";
 import type { CinemaListItem } from "@/types/domain";
 
 type CinemaWithCoords = CinemaListItem & { latitude: number; longitude: number };
 
 /** Leaflet from CDN (no npm install required). */
+type LeafletIcon = {
+  options: { className?: string };
+};
+
 type LeafletGlobal = {
   map: (el: HTMLElement, opts?: Record<string, unknown>) => LeafletMap;
   tileLayer: (url: string, opts?: Record<string, unknown>) => { addTo: (m: LeafletMap) => void };
-  marker: (ll: [number, number]) => LeafletMarker;
+  marker: (ll: [number, number], opts?: { icon?: LeafletIcon }) => LeafletMarker;
   latLng: (lat: number, lng: number) => unknown;
   latLngBounds: (sw: unknown, ne?: unknown) => LeafletBounds;
+  divIcon: (opts: Record<string, unknown>) => LeafletIcon;
   Icon: { Default: { mergeOptions: (o: Record<string, string>) => void } };
 };
 
@@ -35,6 +51,7 @@ type LeafletMarker = {
   on: (ev: string, fn: () => void) => LeafletMarker;
   getLatLng: () => { lat: number; lng: number };
   openPopup: () => LeafletMarker;
+  setIcon: (icon: LeafletIcon) => LeafletMarker;
 };
 
 type LeafletBounds = {
@@ -52,7 +69,73 @@ function getLeaflet(): LeafletGlobal {
 
 const LEAFLET_VER = "1.9.4";
 const LEAFLET_BASE = `https://unpkg.com/leaflet@${LEAFLET_VER}/dist`;
-const LEAFLET_ICON_BASE = `${LEAFLET_BASE}/images`;
+
+function resolveMarkerImageSrc(imageUrl?: string | null): string {
+  if (typeof imageUrl !== "string" || !isUsableImageUrl(imageUrl)) {
+    return REMOTE_IMAGE_FALLBACK;
+  }
+  const normalized = normalizeRemoteImageSrc(imageUrl);
+  if (normalized.startsWith("/") && typeof window !== "undefined") {
+    return `${window.location.origin}${normalized}`;
+  }
+  return normalized;
+}
+
+function buildCinemaMarkerIcon(
+  L: LeafletGlobal,
+  markerId: string,
+  imageUrl: string | undefined,
+  active: boolean
+): LeafletIcon {
+  const src = escapeHtml(resolveMarkerImageSrc(imageUrl));
+  const clipId = `cinect-pin-${markerId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const activeClass = active ? " cinect-cinema-marker-pin-wrap--active" : "";
+  const pinHeadCx = 24;
+  const pinHeadCy = 16.5;
+  const pinHeadR = 16;
+  const photoPad = 1;
+  const photoSize = pinHeadR * 2 + photoPad * 2;
+  const photoX = pinHeadCx - pinHeadR - photoPad;
+  const photoY = pinHeadCy - pinHeadR - photoPad;
+  const holePath = `M${pinHeadCx} ${pinHeadCy} m -${pinHeadR},0 a ${pinHeadR},${pinHeadR} 0 1,0 ${pinHeadR * 2},0 a ${pinHeadR},${pinHeadR} 0 1,0 -${pinHeadR * 2},0 z`;
+  const html = `
+    <svg class="cinect-cinema-marker-pin-svg" viewBox="0 0 48 60" width="48" height="60" aria-hidden="true">
+      <defs>
+        <clipPath id="${clipId}">
+          <circle cx="${pinHeadCx}" cy="${pinHeadCy}" r="${pinHeadR}" />
+        </clipPath>
+      </defs>
+      <path
+        class="cinect-cinema-marker-pin-svg__shape"
+        fill-rule="evenodd"
+        d="M24 3C14.06 3 6 11.06 6 21c0 4.95 2.25 9.35 5.77 12.3L24 57l12.23-23.7C39.75 30.35 42 25.95 42 21 42 11.06 33.94 3 24 3z ${holePath}"
+      />
+      <image
+        href="${src}"
+        x="${photoX}"
+        y="${photoY}"
+        width="${photoSize}"
+        height="${photoSize}"
+        clip-path="url(#${clipId})"
+        preserveAspectRatio="xMidYMid slice"
+      />
+      <circle
+        class="cinect-cinema-marker-pin-svg__ring"
+        cx="${pinHeadCx}"
+        cy="${pinHeadCy}"
+        r="${pinHeadR}"
+        fill="none"
+      />
+    </svg>
+  `;
+  return L.divIcon({
+    className: `cinect-cinema-marker-pin-wrap${activeClass}`,
+    html,
+    iconSize: [48, 60],
+    iconAnchor: [24, 60],
+    popupAnchor: [0, -54],
+  });
+}
 
 function injectLeafletCss() {
   const id = "cinect-leaflet-css";
@@ -111,13 +194,22 @@ export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
           typeof c.latitude === "number" &&
           typeof c.longitude === "number" &&
           !Number.isNaN(c.latitude) &&
-          !Number.isNaN(c.longitude)
+          !Number.isNaN(c.longitude) &&
+          isLatLngLikelyVietnam(c.latitude, c.longitude)
       ),
     [cinemas]
   );
 
+  const cinemaById = useMemo(
+    () => new Map(withCoords.map((c) => [c.id, c])),
+    [withCoords]
+  );
+
   const coordsKey = useMemo(
-    () => withCoords.map((c) => `${c.id}:${c.latitude}:${c.longitude}`).join("|"),
+    () =>
+      withCoords
+        .map((c) => `${c.id}:${c.latitude}:${c.longitude}:${c.imageUrl ?? ""}`)
+        .join("|"),
     [withCoords]
   );
 
@@ -132,18 +224,25 @@ export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
         await loadLeafletScript();
         const L = getLeaflet();
 
-        L.Icon.Default.mergeOptions({
-          iconRetinaUrl: `${LEAFLET_ICON_BASE}/marker-icon-2x.png`,
-          iconUrl: `${LEAFLET_ICON_BASE}/marker-icon.png`,
-          shadowUrl: `${LEAFLET_ICON_BASE}/marker-shadow.png`,
-        });
-
         if (disposed || !containerRef.current) return;
+
+        const vietnamBounds = L.latLngBounds(
+          L.latLng(VIETNAM_MAP_BOUNDS.southWest[0], VIETNAM_MAP_BOUNDS.southWest[1]),
+          L.latLng(VIETNAM_MAP_BOUNDS.northEast[0], VIETNAM_MAP_BOUNDS.northEast[1])
+        );
 
         const map = L.map(containerRef.current, {
           scrollWheelZoom: true,
           attributionControl: true,
-        }).setView([16.2, 106.8], 6);
+          minZoom: 6,
+          maxZoom: 14,
+          maxBounds: vietnamBounds,
+          maxBoundsViscosity: 1,
+        });
+
+        map.setView(VIETNAM_MAP_DEFAULT_VIEW.center, VIETNAM_MAP_DEFAULT_VIEW.zoom, {
+          animate: false,
+        });
 
         if (disposed) {
           map.remove();
@@ -158,12 +257,8 @@ export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
           attribution: `&copy; <a href="https://www.openstreetmap.org/copyright" rel="noreferrer">OpenStreetMap</a>`,
         }).addTo(map);
 
-        let bounds: LeafletBounds | null = null;
-
         for (const c of withCoords) {
           const latlng: [number, number] = [c.latitude, c.longitude];
-          const ll = L.latLng(c.latitude, c.longitude);
-          bounds = bounds == null ? L.latLngBounds(ll, ll) : bounds.extend(ll);
 
           const mapsUrl = buildGoogleMapsPlaceUrl({
             lat: c.latitude,
@@ -179,8 +274,12 @@ export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
               ? `<p class="cinect-osm-popup__meta">${escapeHtml(t("mapRoomCount", { count: c.roomCount }))}</p>`
               : "";
 
+          const thumbSrc = resolveMarkerImageSrc(c.imageUrl);
+          const thumbLine = `<img class="cinect-osm-popup__thumb" src="${escapeHtml(thumbSrc)}" alt="" width="280" height="120" loading="lazy" />`;
+
           const html = `
           <div class="cinect-osm-popup">
+            ${thumbLine}
             <strong class="cinect-osm-popup__title">${escapeHtml(c.name)}</strong>
             ${roomsLine}
             <p class="cinect-osm-popup__addr">${escapeHtml(c.address)}</p>
@@ -192,17 +291,15 @@ export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
           </div>
         `;
 
-          const marker = L.marker(latlng)
+          const marker = L.marker(latlng, {
+            icon: buildCinemaMarkerIcon(L, c.id, c.imageUrl, false),
+          })
             .addTo(map)
             .bindPopup(html, { maxWidth: 300, className: "cinect-osm-popup-wrap" });
           marker.on("click", () => {
             setActiveId(c.id);
           });
           markersRef.current.set(c.id, marker);
-        }
-
-        if (bounds != null && bounds.isValid()) {
-          map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
         }
 
         requestAnimationFrame(() => map.invalidateSize());
@@ -228,14 +325,26 @@ export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
       mapRef.current = null;
       m?.remove();
     };
-  }, [coordsKey, locale]);
+  }, [coordsKey, locale, t]);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const L = (window as unknown as { L?: LeafletGlobal }).L;
+    if (!L) return;
+
+    for (const [id, marker] of markersRef.current) {
+      const cinema = cinemaById.get(id);
+      marker.setIcon(buildCinemaMarkerIcon(L, id, cinema?.imageUrl, id === activeId));
+    }
+  }, [activeId, mapReady, cinemaById]);
 
   useEffect(() => {
     if (!activeId || !mapRef.current) return;
     const marker = markersRef.current.get(activeId);
     if (!marker) return;
     const ll = marker.getLatLng();
-    mapRef.current.setView(ll, Math.max(mapRef.current.getZoom(), 13), { animate: true });
+    const zoom = Math.min(Math.max(mapRef.current.getZoom(), 10), 13);
+    mapRef.current.setView(ll, zoom, { animate: true });
     marker.openPopup();
   }, [activeId]);
 
@@ -289,10 +398,19 @@ export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
                   }
                 }}
                 className={cn(
-                  "w-full cursor-pointer rounded-lg border border-white/10 bg-gradient-to-br from-[#3366cc]/35 to-[#663399]/40 p-3 text-left transition-colors hover:border-[#3366cc]/50",
+                  "flex w-full cursor-pointer gap-3 rounded-lg border border-white/10 bg-gradient-to-br from-[#3366cc]/35 to-[#663399]/40 p-3 text-left transition-colors hover:border-[#3366cc]/50",
                   activeId === cinema.id && "border-[#f3ea28]/60 ring-1 ring-[#f3ea28]/40"
                 )}
               >
+                <div className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-md border border-white/15 bg-slate-900/60 shadow-md">
+                  <RemoteImage
+                    src={cinema.imageUrl}
+                    alt={cinema.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-white">{cinema.name}</p>
                 {cinema.roomCount > 0 ? (
                   <p className="text-muted-foreground mt-1 text-xs">
@@ -325,6 +443,7 @@ export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
                     <ExternalLink className="mr-1 h-3 w-3" />
                     {t("openInMaps")}
                   </Button>
+                </div>
                 </div>
               </div>
             </li>

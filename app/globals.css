@@ -1,4 +1,4 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 @import "./cinect-cinema-detail.css";
 @config "../tailwind.config.ts";
 
@@ -345,12 +345,47 @@
 
   .cinect-header-shell {
     --cinect-header-height: 4.25rem;
+    --cinect-header-sub-height: 0px;
+    --cinect-header-total-height: var(--cinect-header-height);
     color: hsl(0 0% 98%);
   }
 
   @media (min-width: 640px) {
     .cinect-header-shell {
       --cinect-header-height: 4.5rem;
+      --cinect-header-total-height: var(--cinect-header-height);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .cinect-header-shell {
+      --cinect-header-sub-height: 2.5rem;
+      --cinect-header-total-height: calc(
+        var(--cinect-header-height) + var(--cinect-header-sub-height)
+      );
+    }
+  }
+
+  /* Sticky offsets (header is sibling of main — mirror heights on page shell) */
+  .cinect-page-bg {
+    --cinect-header-height: 4.25rem;
+    --cinect-header-sub-height: 0px;
+    --cinect-header-total-height: var(--cinect-header-height);
+  }
+
+  @media (min-width: 640px) {
+    .cinect-page-bg {
+      --cinect-header-height: 4.5rem;
+      --cinect-header-total-height: var(--cinect-header-height);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .cinect-page-bg {
+      --cinect-header-sub-height: 2.5rem;
+      --cinect-header-total-height: calc(
+        var(--cinect-header-height) + var(--cinect-header-sub-height)
+      );
     }
   }
 
@@ -1672,6 +1707,60 @@
 .cinect-cinema-map__leaflet .leaflet-container {
   background: rgb(15 23 42 / 0.85);
   font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+/* Map marker: teardrop location pin with cinema photo in the head */
+.cinect-cinema-marker-pin-wrap {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.cinect-cinema-marker-pin-svg {
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 3px 8px rgb(0 0 0 / 0.45));
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.cinect-cinema-marker-pin-svg__shape {
+  fill: #e53935;
+  fill-rule: evenodd;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.cinect-cinema-marker-pin-svg__ring {
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.cinect-cinema-marker-pin-wrap--active .cinect-cinema-marker-pin-svg,
+.cinect-cinema-marker-pin-wrap:hover .cinect-cinema-marker-pin-svg {
+  transform: scale(1.1) translateY(-3px);
+  filter: drop-shadow(0 0 10px rgb(243 234 40 / 0.75)) drop-shadow(0 5px 12px rgb(0 0 0 / 0.5));
+}
+
+.cinect-cinema-marker-pin-wrap--active .cinect-cinema-marker-pin-svg__shape,
+.cinect-cinema-marker-pin-wrap:hover .cinect-cinema-marker-pin-svg__shape {
+  fill: #c62828;
+  stroke: #f3ea28;
+  stroke-width: 2.5;
+}
+
+.cinect-cinema-marker-pin-wrap--active .cinect-cinema-marker-pin-svg__ring,
+.cinect-cinema-marker-pin-wrap:hover .cinect-cinema-marker-pin-svg__ring {
+  stroke: #f3ea28;
+  stroke-width: 2.5;
+}
+
+.cinect-osm-popup__thumb {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  height: 7rem;
+  margin: 0 0 0.5rem;
+  border-radius: 0.375rem;
+  object-fit: cover;
 }
 
 .cinect-osm-popup-wrap .leaflet-popup-content-wrapper {

@@ -1,68 +1,69 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { RemoteImage } from "@/components/shared/remote-image";
 import { countryLabelForLanguage } from "@/lib/movie-display";
 import { localizeAudioLabel } from "@/lib/showtime-display";
-import { cn } from "@/lib/utils";
+import { ChevronDown, Clock, Film, Globe, Subtitles, Tag, UserCheck } from "lucide-react";
 import type { Showtime } from "@/types/domain";
 import {
+  ageRatingMessageKey,
   formatCinemaDateLabel,
+  formatShowtimeFormatLabel,
   formatShowtimeTime,
+  groupShowtimesByDateBlocks,
   type MovieShowtimeGroup,
 } from "./cinema-detail-utils";
-import { localCalendarDate } from "@/lib/booking-region";
+import { cn } from "@/lib/utils";
 
 interface CinemaDetailMovieRowProps {
   group: MovieShowtimeGroup;
   cinemaId: string;
-  movieDate: string;
   dateOptions: { iso: string; date: Date }[];
-  onDateChange: (iso: string) => void;
+}
+
+function MetaChip({ icon: Icon, children }: { icon: typeof Tag; children: ReactNode }) {
+  return (
+    <li>
+      <Icon className="meta-ic" aria-hidden />
+      <span className="txt">{children}</span>
+    </li>
+  );
 }
 
 export function CinemaDetailMovieRow({
   group,
   cinemaId,
-  movieDate,
   dateOptions,
-  onDateChange,
 }: CinemaDetailMovieRowProps) {
   const locale = useLocale();
   const t = useTranslations("cinemas");
   const tMovies = useTranslations("movies");
   const tShow = useTranslations("showtimeDisplay");
 
-  const showtimesForDate = useMemo(() => {
-    const merged: Showtime[] = [];
-    for (const list of Object.values(group.byFormat)) {
-      for (const st of list) {
-        if (localCalendarDate(new Date(st.startTime)) === movieDate) merged.push(st);
-      }
-    }
-    merged.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-    return merged;
-  }, [group.byFormat, movieDate]);
+  const dateBlocks = useMemo(
+    () => groupShowtimesByDateBlocks(group, dateOptions),
+    [group, dateOptions],
+  );
 
-  const byFormatForDate = useMemo(() => {
-    const out: Record<string, Showtime[]> = {};
-    for (const st of showtimesForDate) {
-      const raw = (st.format || "2D").toUpperCase();
-      const fmt = raw === "2D" ? "STANDARD" : raw;
-      if (!out[fmt]) out[fmt] = [];
-      out[fmt].push(st);
-    }
-    return out;
-  }, [showtimesForDate]);
+  const [expandedDates, setExpandedDates] = useState<Set<string>>(
+    () => new Set(dateBlocks.map((b) => b.dateIso)),
+  );
+
+  useEffect(() => {
+    setExpandedDates(new Set(dateBlocks.map((b) => b.dateIso)));
+  }, [dateBlocks]);
+
+  function toggleDate(iso: string) {
+    setExpandedDates((prev) => {
+      const next = new Set(prev);
+      if (next.has(iso)) next.delete(iso);
+      else next.add(iso);
+      return next;
+    });
+  }
 
   const genres = group.movieGenres?.join(", ") ?? "";
   const country = countryLabelForLanguage(group.movieLanguage ?? undefined, (k) => tMovies(k));
@@ -73,113 +74,119 @@ export function CinemaDetailMovieRow({
     ? localizeAudioLabel(group.movieSubtitles, (k) => tShow(k))
     : null;
   const age = group.movieAgeRating ?? "";
-  const ageDescKey = age
-    ? (`ageRatingDesc.${age}` as "ageRatingDesc.P" | "ageRatingDesc.K" | "ageRatingDesc.C13" | "ageRatingDesc.C16" | "ageRatingDesc.C18")
-    : null;
-  const ageDesc = ageDescKey ? t(ageDescKey) : null;
+  const ageKey = age ? ageRatingMessageKey(age) : null;
+  const ageDesc = ageKey ? t(ageKey) : null;
+  const displayAge =
+    age === "C13" ? "T13" : age === "C16" ? "T16" : age === "C18" ? "T18" : age;
+
+  const desktopMeta = (
+    <ul>
+      {genres ? <MetaChip icon={Tag}>{genres}</MetaChip> : null}
+      {group.movieDuration ? <MetaChip icon={Clock}>{group.movieDuration}</MetaChip> : null}
+      {country ? <MetaChip icon={Globe}>{country}</MetaChip> : null}
+      {audio ? <MetaChip icon={Film}>{audio}</MetaChip> : null}
+      {!audio && subs ? <MetaChip icon={Subtitles}>{subs}</MetaChip> : null}
+      {audio && subs && subs !== audio ? <MetaChip icon={Subtitles}>{subs}</MetaChip> : null}
+      {ageDesc ? <MetaChip icon={UserCheck}>{ageDesc}</MetaChip> : null}
+    </ul>
+  );
+
+  const movieHref = group.movieSlug
+    ? `/movies/${group.movieSlug}`
+    : `/showtimes?cinema=${cinemaId}&movie=${group.movieId}`;
+
+  const seeMoreHref = group.movieSlug
+    ? `/movies/${group.movieSlug}`
+    : `/showtimes?cinema=${cinemaId}&movie=${group.movieId}`;
 
   return (
-    <div className="cinect-movies-item">
-      <div className="cinect-movies-wr">
-        <div className="cinect-movies-img">
-          <Link
-            href={
-              group.movieSlug
-                ? `/movies/${group.movieSlug}`
-                : `/showtimes?cinema=${cinemaId}&movie=${group.movieId}`
-            }
-          >
+    <div className="movies-item col col-6">
+      <div className="movies-wr">
+        <div className="movies-img">
+          <Link href={movieHref} className="inner">
             {group.moviePosterUrl ? (
-              <RemoteImage
-                src={group.moviePosterUrl}
-                alt={group.movieTitle}
-                fill
-                sizes="(max-width: 767px) 120px, 280px"
-                className="object-cover"
-              />
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={group.moviePosterUrl} alt={group.movieTitle} />
             ) : (
-              <div className="cinect-movies-img__placeholder" />
+              <div className="movies-img__placeholder" />
             )}
           </Link>
+          {ageDesc ? (
+            <div className="movies-type is-mobile margin-top movies-type-custom">
+              <ul>
+                <MetaChip icon={UserCheck}>{ageDesc}</MetaChip>
+              </ul>
+            </div>
+          ) : null}
         </div>
 
-        <div className="cinect-movies-content">
-          <h3 className="cinect-movies-name">
-            <Link
-              href={
-                group.movieSlug
-                  ? `/movies/${group.movieSlug}`
-                  : `/showtimes?cinema=${cinemaId}&movie=${group.movieId}`
-              }
-            >
+        <div className="movies-content">
+          <h3 className="movies-name">
+            <Link href={movieHref}>
               {group.movieTitle}
-              {age ? ` (${age})` : ""}
+              {displayAge ? ` (${displayAge})` : ""}
             </Link>
           </h3>
 
-          <ul className="cinect-movies-type">
-            {ageDesc ? <li>{ageDesc}</li> : null}
-            {genres ? <li>{genres}</li> : null}
-            {group.movieDuration ? <li>{group.movieDuration}</li> : null}
-            {country ? <li>{country}</li> : null}
-            {audio ? <li>{audio}</li> : null}
-            {subs ? <li>{subs}</li> : null}
-          </ul>
+          <div className="movies-type is-desktop">{desktopMeta}</div>
 
-          <div className="cinect-movies-rp">
-            <div className="cinect-movies-rp-block is-active">
-              <div className="cinect-movies-rp-day">
-                <Select value={movieDate} onValueChange={onDateChange}>
-                  <SelectTrigger
-                    className="cinect-movies-rp-day__select"
-                    aria-label={t("selectShowtimeDate")}
+          <div className="movies-rp collapseBlockJS">
+            {dateBlocks.length > 0 ? (
+              dateBlocks.map((block) => {
+                const isOpen = expandedDates.has(block.dateIso);
+                return (
+                  <div
+                    key={block.dateIso}
+                    className={cn("movies-rp-block collapseItem", isOpen && "active")}
                   >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dateOptions.map(({ iso, date }) => (
-                      <SelectItem key={iso} value={iso}>
-                        {formatCinemaDateLabel(date, locale)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="cinect-movies-rp-body">
-                {Object.keys(byFormatForDate).length > 0 ? (
-                  Object.entries(byFormatForDate).map(([fmt, times]) => (
-                    <div key={fmt} className="cinect-movies-rp-item">
-                      <p className="cinect-movies-rp-title">{fmt}</p>
-                      <div className="cinect-movies-time">
-                        {times.map((st, idx) => (
-                          <Link
-                            key={st.id}
-                            href={`/booking/${st.id}`}
-                            className={cn(
-                              "cinect-movies-time-item",
-                              idx === 0 && "is-active",
-                            )}
-                          >
-                            {formatShowtimeTime(st, locale)}
-                          </Link>
-                        ))}
-                      </div>
+                    <button
+                      type="button"
+                      className="movies-rp-day collapseHead"
+                      onClick={() => toggleDate(block.dateIso)}
+                      aria-expanded={isOpen}
+                    >
+                      <span className="txt">{formatCinemaDateLabel(block.date, locale)}</span>
+                      <ChevronDown className="collapse-chevron" aria-hidden />
+                    </button>
+                    <div
+                      className="movies-rp-body collapseBody"
+                      style={{ display: isOpen ? "block" : "none" }}
+                    >
+                      {Object.entries(block.byFormat).map(([fmt, times]) => (
+                        <div key={fmt} className="movies-rp-item">
+                          <p className="movies-rp-title">{fmt}</p>
+                          <div className="movies-time">
+                            <div className="movies-time-slider">
+                              {times.map((st: Showtime, idx) => (
+                                <div key={st.id} className="movies-time-slide col">
+                                  <Link
+                                    href={`/booking/${st.id}`}
+                                    className={cn("movies-time-item", idx === 0 && "active")}
+                                  >
+                                    {formatShowtimeTime(st, locale)}
+                                  </Link>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))
-                ) : (
-                  <p className="cinect-movies-rp-empty">{t("noShowtimesOnDate")}</p>
-                )}
-
-                <Link
-                  href={`/showtimes?cinema=${cinemaId}&movie=${group.movieId}&date=${movieDate}`}
-                  className="cinect-movies-more"
-                >
-                  {t("viewMoreShowtimes")}
-                </Link>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="movies-rp-block collapseItem active">
+                <div className="movies-rp-noti">
+                  <p>{t("noShowtimesOnDate")}</p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
+
+          <Link href={seeMoreHref} className="btn-see-more">
+            {t("viewMoreShowtimes")}
+          </Link>
         </div>
       </div>
     </div>

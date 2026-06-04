@@ -2,15 +2,33 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { normalizeHoldDetails } from "@/lib/normalize-hold-details";
 import type { ApiEnvelope } from "@/types/api";
-import type { Seat, Booking, SnackItem, Promotion, HoldDetails } from "@/types/domain";
+import type {
+  Seat,
+  Booking,
+  SnackItem,
+  Promotion,
+  HoldDetails,
+  TicketProduct,
+  TicketProductCode,
+  ShowtimeSeatsPayload,
+} from "@/types/domain";
 import { toast } from "sonner";
 
-// Get showtime seats
+// Get showtime seats (room layout + seat grid)
 export function useShowtimeSeats(showtimeId: string) {
   return useQuery({
     queryKey: ["showtimes", showtimeId, "seats"],
-    queryFn: () => apiClient.get<Seat[]>(`/showtimes/${showtimeId}/seats`),
-    refetchInterval: 10000, // Poll every 10s
+    queryFn: () => apiClient.get<ShowtimeSeatsPayload>(`/showtimes/${showtimeId}/seats`),
+    refetchInterval: 10000,
+  });
+}
+
+export function useShowtimeTicketProducts(showtimeId: string) {
+  return useQuery({
+    queryKey: ["showtimes", showtimeId, "ticket-products"],
+    queryFn: () => apiClient.get<TicketProduct[]>(`/showtimes/${showtimeId}/ticket-products`),
+    enabled: !!showtimeId,
+    staleTime: 60_000,
   });
 }
 
@@ -18,6 +36,7 @@ export function useShowtimeSeats(showtimeId: string) {
 interface HoldSeatsPayload {
   showtimeId: string;
   seatIds: string[];
+  ticketLines?: { productCode: TicketProductCode; quantity: number }[];
 }
 
 interface HoldResponse {

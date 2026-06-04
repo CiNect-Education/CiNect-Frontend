@@ -4,6 +4,12 @@ import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { SeatMap } from "@/components/booking/seat-map";
+import {
+  TicketTypePicker,
+  buildTicketLinesPayload,
+  requiredSeatCountFromTickets,
+  ticketLinesTotal,
+} from "@/components/booking/ticket-type-picker";
 import { CountdownTimer } from "@/components/booking/countdown-timer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,12 +24,17 @@ import {
 } from "@/components/ui/dialog";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useShowtimeSeats, useHoldSeats, useReleaseHold } from "@/hooks/queries/use-booking-flow";
+import {
+  useShowtimeSeats,
+  useShowtimeTicketProducts,
+  useHoldSeats,
+  useReleaseHold,
+} from "@/hooks/queries/use-booking-flow";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ApiError } from "@/lib/api-client";
 import { AlertCircle, Calendar, Clock, MapPin, MonitorPlay, Ticket } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import type { Seat } from "@/types/domain";
+import type { Seat, TicketProduct, TicketProductCode, ShowtimeSeatsPayload } from "@/types/domain";
 import { useSeatRealtime } from "@/hooks/use-seat-realtime";
 import { useShowtime } from "@/hooks/queries/use-cinemas";
 import { Separator } from "@/components/ui/separator";
@@ -81,6 +92,10 @@ export default function BookingPage() {
   const formatPrice = useCallback((amount: number) => formatVnd(amount, locale), [locale]);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
+  const [bookingStep, setBookingStep] = useState<"tickets" | "seats">("tickets");
+  const [ticketQuantities, setTicketQuantities] = useState<
+    Partial<Record<TicketProductCode, number>>
+  >({ ADULT_SINGLE: 1 });
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [holdId, setHoldId] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
@@ -112,12 +127,60 @@ export default function BookingPage() {
     basePrice?: number;
   } | null;
 
+  const { data: ticketProductsRes, isLoading: ticketsLoading } =
+    useShowtimeTicketProducts(showtimeId);
+  const ticketProducts = useMemo(() => {
+    const raw = ticketProductsRes?.data ?? ticketProductsRes;
+    return Array.isArray(raw) ? (raw as TicketProduct[]) : [];
+  }, [ticketProductsRes]);
+
   const { data: seatsData, isLoading, error, refetch } = useShowtimeSeats(showtimeId);
-  const seatsPayload = seatsData?.data ?? (seatsData as unknown);
-  const seats =
-    Array.isArray(seatsPayload)
-      ? (seatsPayload as Seat[])
-      : ((seatsPayload as { seats?: Seat[] } | null)?.seats ?? []);
+  const seatsPayload = (seatsData?.data ?? seatsData) as ShowtimeSeatsPayload | Seat[] | null;
+  const roomMeta =
+    seatsPayload && !Array.isArray(seatsPayload) && typeof seatsPayload === "object"
+      ? seatsPayload.room
+      : undefined;
+  const seats: Seat[] = Array.isArray(seatsPayload)
+    ? seatsPayload
+    : ((seatsPayload as ShowtimeSeatsPayload | null)?.seats ?? []);
+
+  const requiredSeatCount = useMemo(
+    () => requiredSeatCountFromTickets(ticketProducts, ticketQuantities),
+    [ticketProducts, ticketQuantities],
+  );
+  const ticketTotal = useMemo(
+    () => ticketLinesTotal(ticketProducts, ticketQuantities),
+    [ticketProducts, ticketQuantities],
+  );
+
+  const seatArray: Seat[] = useMemo(
+    () =>
+      (Array.isArray(seats) ? seats : []).map((s) => {
+        const anySeat = s as unknown as {
+          row?: string;
+          rowLabel?: string;
+          price?: number | string | null;
+          pairId?: string | null;
+          gridCol?: number | null;
+        };
+        const rawPrice = anySeat.price ?? 0;
+        const price =
+          typeof rawPrice === "string"
+            ? Number(rawPrice)
+            : typeof rawPrice === "number"
+              ? rawPrice
+              : 0;
+        return {
+          ...(s as Seat),
+          row: anySeat.row ?? anySeat.rowLabel ?? (s as Seat).row,
+          price: Number.isFinite(price) ? price : 0,
+          pairId: anySeat.pairId ?? (s as Seat).pairId,
+          gridCol: anySeat.gridCol ?? (s as Seat).gridCol,
+        };
+      }),
+    [seats],
+  );
+
   const holdMutation = useHoldSeats();
   const releaseMutation = useReleaseHold();
   const { conflictedSeatIds: realtimeConflicts, clearConflicts: clearRealtimeConflicts } =
@@ -125,21 +188,56 @@ export default function BookingPage() {
 
   const allConflicts = [...new Set([...conflictedSeatIds, ...realtimeConflicts])];
 
-  const handleSeatClick = (seatId: string) => {
-    setConflictedSeatIds([]);
-    clearRealtimeConflicts();
-    setSelectedSeats((prev) =>
-      prev.includes(seatId) ? prev.filter((id) => id !== seatId) : [...prev, seatId]
-    );
+  const seatById = useMemo(() => new Map(seatArray.map((s) => [s.id, s])), [seatArray]);
+
+  const toggleSeatSelection = useCallback(
+    (seatId: string) => {
+      setConflictedSeatIds([]);
+      clearRealtimeConflicts();
+      const seat = seatById.get(seatId);
+      if (!seat) return;
+
+      setSelectedSeats((prev) => {
+        const ids = new Set(prev);
+        const partnerId =
+          seat.type === "COUPLE" && seat.pairId ? seat.pairId : null;
+
+        if (ids.has(seatId)) {
+          ids.delete(seatId);
+          if (partnerId) ids.delete(partnerId);
+          return [...ids];
+        }
+
+        const addIds = partnerId ? [seatId, partnerId] : [seatId];
+        const cap = requiredSeatCount > 0 ? requiredSeatCount : undefined;
+        if (cap != null && ids.size + addIds.length > cap) {
+          return prev;
+        }
+        for (const id of addIds) ids.add(id);
+        return [...ids];
+      });
+    },
+    [seatById, clearRealtimeConflicts, requiredSeatCount],
+  );
+
+  const handleSeatClick = toggleSeatSelection;
+
+  const handleTicketQtyChange = (code: TicketProductCode, quantity: number) => {
+    setTicketQuantities((prev) => ({ ...prev, [code]: quantity }));
+    setSelectedSeats([]);
+    setHoldId(null);
+    setExpiresAt(null);
   };
 
   const handleHoldSeats = useCallback(async () => {
     if (selectedSeats.length === 0) return;
     setConflictedSeatIds([]);
     try {
+      const ticketLines = buildTicketLinesPayload(ticketQuantities);
       const response = await holdMutation.mutateAsync({
         showtimeId,
         seatIds: selectedSeats,
+        ...(ticketLines.length > 0 ? { ticketLines } : {}),
       });
       const payload = response?.data ?? response;
       const holdIdVal =
@@ -167,7 +265,7 @@ export default function BookingPage() {
         setSelectedSeats([]);
       }
     }
-  }, [selectedSeats, showtimeId, holdMutation, router, locale]);
+  }, [selectedSeats, showtimeId, holdMutation, router, ticketQuantities]);
 
   const handleExpire = useCallback(async () => {
     if (expiringRef.current) return;
@@ -203,23 +301,11 @@ export default function BookingPage() {
   // Holds are time-limited server-side; releasing on unmount can cause loops if the
   // page remounts during dev/hydration transitions.
 
-  const seatArray: Seat[] = (Array.isArray(seats) ? seats : []).map((s) => {
-    const anySeat = s as unknown as {
-      row?: string;
-      rowLabel?: string;
-      price?: number | string | null;
-    };
-    const rawPrice = anySeat.price ?? 0;
-    const price =
-      typeof rawPrice === "string" ? Number(rawPrice) : typeof rawPrice === "number" ? rawPrice : 0;
-    return {
-      ...(s as Seat),
-      row: anySeat.row ?? anySeat.rowLabel ?? (s as Seat).row,
-      price: Number.isFinite(price) ? price : 0,
-    };
-  });
   const selectedSeatDetails = seatArray.filter((s) => selectedSeats.includes(s.id));
-  const totalPrice = selectedSeatDetails.reduce((sum, seat) => sum + (seat.price ?? 0), 0);
+  const totalPrice =
+    ticketProducts.length > 0 && requiredSeatCount > 0
+      ? ticketTotal
+      : selectedSeatDetails.reduce((sum, seat) => sum + (seat.price ?? 0), 0);
 
   const seatTypeStats = useMemo(() => {
     const byType = new Map<string, { count: number; min: number; max: number }>();
@@ -285,7 +371,12 @@ export default function BookingPage() {
       rowSeats.sort((a, b) => a.number - b.number)
     );
 
-    const desiredCount = selectedSeats.length > 0 ? selectedSeats.length : 2;
+    const desiredCount =
+      requiredSeatCount > 0
+        ? requiredSeatCount
+        : selectedSeats.length > 0
+          ? selectedSeats.length
+          : 2;
     let bestGroup: Seat[] | null = null;
     let bestScore = Number.POSITIVE_INFINITY;
 
@@ -314,7 +405,10 @@ export default function BookingPage() {
     }
   };
 
-  if (authLoading || !isAuthenticated || isLoading) {
+  const pageLoading =
+    authLoading || !isAuthenticated || isLoading || (bookingStep === "tickets" && ticketsLoading);
+
+  if (pageLoading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8">
         <Skeleton className="mb-6 h-8 w-48" />
@@ -387,7 +481,7 @@ export default function BookingPage() {
                 <div className="space-y-1">
                   <div className="text-muted-foreground flex items-center gap-2 text-xs font-semibold tracking-[0.22em] uppercase">
                     <MonitorPlay className="h-4 w-4" />
-                    {tb("seatSelectionEyebrow")}
+                    {bookingStep === "tickets" ? tb("ticketStepEyebrow") : tb("seatSelectionEyebrow")}
                   </div>
                   <h1 className="text-2xl font-bold leading-tight sm:text-3xl">
                     {showtime?.movieTitle ?? tb("selectYourSeatsFallback")}
@@ -482,17 +576,33 @@ export default function BookingPage() {
 
         <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <Card className="cinect-glass border-border/60">
-            <CardContent className="pt-6">
-              <SeatMap
-                seats={seatArray}
-                selectedSeats={selectedSeats}
-                onSeatClick={handleSeatClick}
-                disabled={!!holdId}
-                conflictedSeatIds={allConflicts.length > 0 ? allConflicts : undefined}
-              />
-            </CardContent>
-          </Card>
+          {bookingStep === "tickets" ? (
+            <TicketTypePicker
+              products={ticketProducts}
+              quantities={ticketQuantities}
+              onChange={handleTicketQtyChange}
+            />
+          ) : (
+            <Card className="cinect-glass border-border/60">
+              <CardContent className="pt-6">
+                <SeatMap
+                  seats={seatArray}
+                  selectedSeats={selectedSeats}
+                  onSeatClick={handleSeatClick}
+                  disabled={!!holdId}
+                  conflictedSeatIds={allConflicts.length > 0 ? allConflicts : undefined}
+                  layoutTemplate={roomMeta?.layoutTemplate}
+                  aisleAfterCol={roomMeta?.aisleAfterCol}
+                  roomName={
+                    showtime?.roomName
+                      ? localizeRoomName(showtime.roomName, (k, v) => tShow(k, v))
+                      : roomMeta?.name
+                  }
+                  maxSelectable={requiredSeatCount > 0 ? requiredSeatCount : undefined}
+                />
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Sticky sidebar (desktop) */}
@@ -515,26 +625,71 @@ export default function BookingPage() {
                 </Alert>
               )}
 
-              {selectedSeats.length === 0 && !holdId && allConflicts.length === 0 && (
+              {bookingStep === "tickets" && requiredSeatCount === 0 && (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    {tb("selectSeatHint")}
-                  </AlertDescription>
+                  <AlertDescription>{tb("selectSeatHint")}</AlertDescription>
                 </Alert>
               )}
 
-              <Button
-                variant="outline"
-                className="w-full"
-                size="sm"
-                disabled={holdId != null || seatArray.length === 0}
-                onClick={handleAutoPickSeats}
-              >
-                {tb("chooseBestSeats")}
-              </Button>
+              {bookingStep === "seats" &&
+                selectedSeats.length === 0 &&
+                !holdId &&
+                allConflicts.length === 0 && (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {requiredSeatCount > 0
+                        ? tb("seatsRequired", { count: requiredSeatCount })
+                        : tb("selectSeatHint")}
+                    </AlertDescription>
+                  </Alert>
+                )}
 
-              {selectedSeats.length > 0 && (
+              {bookingStep === "seats" && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                  disabled={holdId != null}
+                  onClick={() => {
+                    setBookingStep("tickets");
+                    setSelectedSeats([]);
+                  }}
+                >
+                  {tb("backToTickets")}
+                </Button>
+              )}
+
+              {bookingStep === "seats" && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                  disabled={holdId != null || seatArray.length === 0}
+                  onClick={handleAutoPickSeats}
+                >
+                  {tb("chooseBestSeats")}
+                </Button>
+              )}
+
+              {bookingStep === "tickets" && ticketTotal > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{tb("ticketTotal")}:</span>
+                  <span className="text-lg font-bold tabular-nums">{formatPrice(ticketTotal)}</span>
+                </div>
+              )}
+
+              {bookingStep === "seats" && requiredSeatCount > 0 && (
+                <div className="text-muted-foreground text-sm">
+                  {tb("seatsSelectedOfRequired", {
+                    selected: selectedSeats.length,
+                    required: requiredSeatCount,
+                  })}
+                </div>
+              )}
+
+              {bookingStep === "seats" && selectedSeats.length > 0 && (
                 <>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
@@ -598,11 +753,24 @@ export default function BookingPage() {
                 </>
               )}
 
-              {!holdId ? (
+              {bookingStep === "tickets" ? (
                 <Button
                   className="w-full"
                   size="lg"
-                  disabled={selectedSeats.length === 0 || holdMutation.isPending}
+                  disabled={requiredSeatCount === 0}
+                  onClick={() => setBookingStep("seats")}
+                >
+                  {tb("continueToSeats")}
+                </Button>
+              ) : !holdId ? (
+                <Button
+                  className="w-full"
+                  size="lg"
+                  disabled={
+                    selectedSeats.length === 0 ||
+                    holdMutation.isPending ||
+                    (requiredSeatCount > 0 && selectedSeats.length !== requiredSeatCount)
+                  }
                   onClick={() => void handleHoldSeats()}
                 >
                   {holdMutation.isPending ? tb("holding") : tb("continueBooking")}
@@ -624,16 +792,35 @@ export default function BookingPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <div className="text-sm font-medium">
-                {holdId
-                  ? tb("seatsHeldStatus")
-                  : tb("seatsSelectedCount", { count: selectedSeats.length })}
+                {bookingStep === "tickets"
+                  ? tb("ticketTotal")
+                  : holdId
+                    ? tb("seatsHeldStatus")
+                    : requiredSeatCount > 0
+                      ? tb("seatsSelectedOfRequired", {
+                          selected: selectedSeats.length,
+                          required: requiredSeatCount,
+                        })
+                      : tb("seatsSelectedCount", { count: selectedSeats.length })}
               </div>
               <div className="text-lg font-bold tabular-nums">{formatPrice(totalPrice)}</div>
             </div>
-            {!holdId ? (
+            {bookingStep === "tickets" ? (
               <Button
                 size="lg"
-                disabled={selectedSeats.length === 0 || holdMutation.isPending}
+                disabled={requiredSeatCount === 0}
+                onClick={() => setBookingStep("seats")}
+              >
+                {tb("continueToSeats")}
+              </Button>
+            ) : !holdId ? (
+              <Button
+                size="lg"
+                disabled={
+                  selectedSeats.length === 0 ||
+                  holdMutation.isPending ||
+                  (requiredSeatCount > 0 && selectedSeats.length !== requiredSeatCount)
+                }
                 onClick={() => void handleHoldSeats()}
               >
                 {holdMutation.isPending ? tb("holding") : tb("continueBooking")}
