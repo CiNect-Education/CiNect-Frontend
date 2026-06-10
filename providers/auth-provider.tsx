@@ -6,7 +6,13 @@ import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { User } from "@/types/domain";
-import { setAccessToken, setRefreshToken, clearTokens, hasToken } from "@/lib/auth-storage";
+import {
+  setAccessToken,
+  setRefreshToken,
+  setAuthPersistence,
+  clearTokens,
+  hasToken,
+} from "@/lib/auth-storage";
 import { initApiClient } from "@/lib/api-client";
 import { useCurrentUser, useLogin, useRegister, useLogout } from "@/hooks/queries/use-auth";
 
@@ -14,13 +20,18 @@ interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (credentials: { email: string; password: string }) => Promise<User | null>;
+  login: (credentials: {
+    email: string;
+    password: string;
+    rememberMe?: boolean;
+  }) => Promise<User | null>;
   register: (data: {
     email: string;
     password: string;
     confirmPassword: string;
     fullName: string;
     phone: string;
+    referralCode?: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
   refetchUser: () => void;
@@ -84,9 +95,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [queryClient, router]);
 
   const login = useCallback(
-    async (credentials: { email: string; password: string }) => {
+    async (credentials: { email: string; password: string; rememberMe?: boolean }) => {
       try {
-        const response = await loginMutation.mutateAsync(credentials);
+        const { rememberMe, email, password } = credentials;
+        setAuthPersistence(rememberMe ?? false);
+        const response = await loginMutation.mutateAsync({ email, password });
         // response is ApiEnvelope<{ user, tokens }>
         const { tokens } = response.data;
         setAccessToken(tokens.accessToken);
@@ -97,8 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         toast.success(tToast("welcomeBack"));
         return userResult.data?.data ?? null;
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : tToast("loginFailed");
-        toast.error(message);
+        // Error toast is shown by useApiMutation
         throw error;
       }
     },
@@ -112,13 +124,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       confirmPassword: string;
       fullName: string;
       phone: string;
+      referralCode?: string;
     }) => {
       try {
         await registerMutation.mutateAsync(data);
         toast.success(tToast("accountCreated"));
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : tToast("registerFailed");
-        toast.error(message);
+        // Error toast is shown by useApiMutation
         throw error;
       }
     },

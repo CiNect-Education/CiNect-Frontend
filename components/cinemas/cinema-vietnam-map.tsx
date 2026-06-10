@@ -11,7 +11,8 @@ import {
   VIETNAM_MAP_BOUNDS,
   VIETNAM_MAP_DEFAULT_VIEW,
 } from "@/lib/cinema-map-bounds";
-import { buildGoogleMapsPlaceUrl } from "@/lib/maps";
+import { buildGoogleMapsPlaceUrl, formatDistanceKm, type Coordinates } from "@/lib/maps";
+import { distanceToCinemaKm, sortByDistanceFromUser } from "@/lib/user-location";
 import {
   isUsableImageUrl,
   normalizeRemoteImageSrc,
@@ -177,7 +178,13 @@ function escapeHtml(text: string) {
     .replace(/'/g, "&#039;");
 }
 
-export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
+export function CinemaVietnamMap({
+  cinemas,
+  userCoords = null,
+}: {
+  cinemas: CinemaListItem[];
+  userCoords?: Coordinates | null;
+}) {
   const t = useTranslations("cinemas");
   const locale = useLocale();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -187,18 +194,17 @@ export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState(false);
 
-  const withCoords = useMemo(
-    () =>
-      cinemas.filter(
-        (c): c is CinemaWithCoords =>
-          typeof c.latitude === "number" &&
-          typeof c.longitude === "number" &&
-          !Number.isNaN(c.latitude) &&
-          !Number.isNaN(c.longitude) &&
-          isLatLngLikelyVietnam(c.latitude, c.longitude)
-      ),
-    [cinemas]
-  );
+  const withCoords = useMemo(() => {
+    const filtered = cinemas.filter(
+      (c): c is CinemaWithCoords =>
+        typeof c.latitude === "number" &&
+        typeof c.longitude === "number" &&
+        !Number.isNaN(c.latitude) &&
+        !Number.isNaN(c.longitude) &&
+        isLatLngLikelyVietnam(c.latitude, c.longitude)
+    );
+    return sortByDistanceFromUser(filtered, userCoords);
+  }, [cinemas, userCoords]);
 
   const cinemaById = useMemo(
     () => new Map(withCoords.map((c) => [c.id, c])),
@@ -274,6 +280,12 @@ export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
               ? `<p class="cinect-osm-popup__meta">${escapeHtml(t("mapRoomCount", { count: c.roomCount }))}</p>`
               : "";
 
+          const distanceKm = userCoords ? distanceToCinemaKm(userCoords, c) : null;
+          const distanceLine =
+            distanceKm != null
+              ? `<p class="cinect-osm-popup__distance">${escapeHtml(t("distanceFromYou", { distance: formatDistanceKm(distanceKm) }))}</p>`
+              : "";
+
           const thumbSrc = resolveMarkerImageSrc(c.imageUrl);
           const thumbLine = `<img class="cinect-osm-popup__thumb" src="${escapeHtml(thumbSrc)}" alt="" width="280" height="120" loading="lazy" />`;
 
@@ -282,6 +294,7 @@ export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
             ${thumbLine}
             <strong class="cinect-osm-popup__title">${escapeHtml(c.name)}</strong>
             ${roomsLine}
+            ${distanceLine}
             <p class="cinect-osm-popup__addr">${escapeHtml(c.address)}</p>
             <p class="cinect-osm-popup__city">${escapeHtml(c.city)}</p>
             <div class="cinect-osm-popup__actions">
@@ -325,7 +338,7 @@ export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
       mapRef.current = null;
       m?.remove();
     };
-  }, [coordsKey, locale, t]);
+  }, [coordsKey, locale, t, userCoords?.lat, userCoords?.lng]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -385,7 +398,9 @@ export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
         </div>
 
         <ul className="cinect-cinema-map__list flex max-h-[min(520px,58vh)] flex-col gap-2 overflow-y-auto pr-1">
-          {withCoords.map((cinema) => (
+          {withCoords.map((cinema) => {
+            const distanceKm = userCoords ? distanceToCinemaKm(userCoords, cinema) : null;
+            return (
             <li key={cinema.id}>
               <div
                 role="button"
@@ -418,6 +433,11 @@ export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
                   </p>
                 ) : null}
                 <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{cinema.address}</p>
+                {distanceKm != null ? (
+                  <p className="mt-1 text-xs font-semibold text-[#f3ea28]">
+                    {t("distanceFromYou", { distance: formatDistanceKm(distanceKm) })}
+                  </p>
+                ) : null}
                 <div className="mt-2 flex flex-wrap gap-2">
                   <Button type="button" variant="secondary" size="sm" className="h-7 text-xs" asChild>
                     <Link href={`/cinemas/${cinema.slug || cinema.id}`}>{t("mapViewDetail")}</Link>
@@ -447,7 +467,8 @@ export function CinemaVietnamMap({ cinemas }: { cinemas: CinemaListItem[] }) {
                 </div>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       </div>
     </section>

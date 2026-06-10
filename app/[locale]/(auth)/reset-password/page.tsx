@@ -2,10 +2,12 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,11 +26,17 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useResetPassword } from "@/hooks/queries/use-auth";
 
 type ResetFormValues = { password: string; confirmPassword: string };
 
 export default function ResetPasswordPage() {
   const t = useTranslations("auth");
+  const tToast = useTranslations("toast");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token") ?? "";
+  const resetPassword = useResetPassword();
   const resetSchema = useMemo(
     () =>
       z
@@ -49,7 +57,20 @@ export default function ResetPasswordPage() {
   });
 
   function onSubmit(data: ResetFormValues) {
-    console.log("Reset password:", data);
+    if (!token) {
+      toast.error(t("resetTokenMissing"));
+      return;
+    }
+
+    resetPassword.mutate(
+      { token, newPassword: data.password },
+      {
+        onSuccess: () => {
+          toast.success(tToast("resetPasswordSuccess"));
+          router.push("/login");
+        },
+      }
+    );
   }
 
   return (
@@ -87,8 +108,8 @@ export default function ResetPasswordPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">
-              {t("resetBtn")}
+            <Button type="submit" className="w-full" disabled={resetPassword.isPending || !token}>
+              {resetPassword.isPending ? t("resettingPassword") : t("resetBtn")}
             </Button>
           </form>
         </Form>

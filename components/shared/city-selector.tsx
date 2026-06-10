@@ -67,12 +67,12 @@ export function CitySelector() {
           </span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent align="end" className="cinect-dropdown-panel cinect-dropdown-scroll max-h-60 w-48 overflow-y-auto">
         {cityOptions.map((city) => (
           <DropdownMenuItem
             key={city.id}
             onClick={() => handleSelect(city.id)}
-            className={selectedCity === city.id ? "bg-accent" : ""}
+            className={selectedCity === city.id ? "cinect-dropdown-item--selected" : undefined}
           >
             {city.label}
           </DropdownMenuItem>

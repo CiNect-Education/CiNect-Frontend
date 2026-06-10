@@ -419,10 +419,13 @@
     color: hsl(0 0% 100%);
   }
 
-  /* Header language (select-location-header / hd-regi-list pattern) */
+  /* Header language — Cinestar .lg-action / .lg-option pattern */
   .cinect-lg-action {
     flex-shrink: 0;
     position: relative;
+    display: flex;
+    align-items: center;
+    height: 24px;
   }
 
   .cinect-lg-trigger {
@@ -432,43 +435,34 @@
     color: #f8fafc;
     cursor: pointer;
     display: flex;
-    gap: 0.5rem;
     outline: none;
     padding: 0;
   }
 
-  @media (min-width: 640px) {
-    .cinect-lg-trigger {
-      gap: 0.8rem;
-    }
+  .cinect-lg-popup {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    gap: 0;
   }
 
   .cinect-lg-option {
     align-items: center;
     display: inline-flex;
     flex-shrink: 0;
-    font-size: 0.875rem;
-    gap: 0 0.5rem;
-  }
-
-  @media (min-width: 640px) {
-    .cinect-lg-option {
-      font-size: 0.9375rem;
-      gap: 0 0.8rem;
-    }
-  }
-
-  .cinect-lg-option--trigger {
-    display: inline-flex;
+    font-size: 14px;
+    gap: 8px;
+    height: 24px;
+    line-height: 1;
   }
 
   .cinect-lg-image {
     border-radius: 100rem;
     display: inline-block;
     flex-shrink: 0;
-    height: 2.4rem;
+    height: 24px;
     overflow: hidden;
-    width: 2.4rem;
+    width: 24px;
   }
 
   .cinect-lg-image img {
@@ -480,38 +474,48 @@
   .cinect-lg-txt {
     background: transparent;
     color: #f8fafc;
-    font-size: inherit;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: normal;
     line-height: 1;
     padding: 0;
     position: relative;
-    text-transform: uppercase;
-    top: 0.2rem;
+    text-transform: none;
+    top: 2px;
     transition: color 0.3s ease;
   }
 
   .cinect-lg-arr {
-    color: #f8fafc;
+    display: inline-block;
     flex-shrink: 0;
-    height: 1rem;
-    transition: color 0.3s ease, transform 0.2s ease;
-    width: 1rem;
+    width: 9px;
+    height: 6px;
+    margin-top: 2px;
+    background: currentColor;
+    clip-path: polygon(50% 100%, 0 0, 100% 0);
+    color: #f8fafc;
+    transition:
+      color 0.3s ease,
+      transform 0.2s ease;
   }
 
-  /* Dropdown: hd-regi-list.--second â€” 2 rows (VN / EN), opens on hover */
+  /* Dropdown: Cinestar .lg-action-popup — blur + blue glass, single alternate locale */
   .cinect-lg-action-popup {
-    background-color: #0f172a;
-    border: 0.1rem solid rgba(248, 250, 252, 0.1);
-    border-radius: 0.4rem;
+    backdrop-filter: blur(100px);
+    -webkit-backdrop-filter: blur(100px);
+    background: rgba(51, 102, 204, 0.8);
+    border: 0;
+    border-radius: 8px;
+    box-sizing: border-box;
     left: auto;
-    min-width: 11.5rem;
+    min-width: 100%;
     opacity: 0;
+    padding: 6px 10px;
     pointer-events: none;
     position: absolute;
     right: 0;
-    top: calc(100% + 0.4rem);
-    transform: translateY(0.5rem);
+    top: calc(100% + 4px);
+    transform: translateY(10px);
     transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out, visibility 0.3s ease-in-out;
     visibility: hidden;
     z-index: 80;
@@ -519,19 +523,11 @@
 
   .cinect-lg-action-popup::before {
     content: "";
-    height: 0.6rem;
+    height: 6px;
     left: 0;
     position: absolute;
     right: 0;
-    top: -0.6rem;
-  }
-
-  .cinect-lg-popup {
-    align-items: stretch;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    width: 100%;
+    top: -6px;
   }
 
   .cinect-lg-popup-item {
@@ -540,28 +536,234 @@
     border: 0;
     box-sizing: border-box;
     cursor: pointer;
-    display: flex;
-    flex-direction: row;
-    gap: 1rem;
+    display: inline-flex;
     outline: none;
-    padding: 0.8rem 1rem;
+    padding: 0;
     text-align: left;
     transition: color 0.3s ease;
     white-space: nowrap;
-    width: 100%;
+    width: auto;
   }
 
   .cinect-lg-popup-item + .cinect-lg-popup-item {
-    border-top: 0.1rem solid rgba(248, 250, 252, 0.08);
+    border-top: 0;
   }
 
   .cinect-lg-txt--popup {
-    color: rgba(248, 250, 252, 0.92);
-    font-weight: 600;
-    top: 0.15rem;
+    color: #f8fafc;
+    font-weight: 400;
+    top: 2px;
   }
 
   .cinect-lg-popup-item.is-active .cinect-lg-txt--popup {
+    color: #f8fafc;
+  }
+
+  .cinect-header-auth-lang {
+    align-items: center;
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 1280px) {
+    .cinect-header-auth-lang {
+      gap: 2.5rem;
+    }
+  }
+
+  /* Header notification popover */
+  .cinect-header-notif-panel {
+    overflow: hidden;
+    border-color: rgb(255 255 255 / 0.12);
+    background: linear-gradient(165deg, #1e1b4b 0%, #0f172a 100%);
+    box-shadow:
+      0 18px 40px rgb(0 0 0 / 0.35),
+      0 0 0 1px rgb(255 255 255 / 0.06);
+  }
+
+  .cinect-header-notif-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+    padding: 0.875rem 1rem;
+  }
+
+  .cinect-header-notif-title {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: #f8fafc;
+  }
+
+  .cinect-header-notif-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.375rem;
+    padding: 0 0.5rem;
+    border-radius: 9999px;
+    background: rgb(243 234 40 / 0.16);
+    color: #f3ea28;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .cinect-header-notif-list {
+    margin: 0;
+    padding: 0.375rem 0;
+    list-style: none;
+  }
+
+  .cinect-header-notif-item {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    align-items: start;
+    gap: 0.75rem;
+    min-height: 4.5rem;
+    padding: 0.75rem 1rem;
+    transition: background-color 0.15s ease;
+  }
+
+  .cinect-header-notif-item:hover {
+    background: rgb(255 255 255 / 0.04);
+  }
+
+  .cinect-header-notif-item.is-unread {
+    background: rgb(102 51 153 / 0.12);
+  }
+
+  .cinect-header-notif-item + .cinect-header-notif-item {
+    border-top: 1px solid rgb(255 255 255 / 0.06);
+  }
+
+  .cinect-header-notif-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.625rem;
+    border: 1px solid rgb(255 255 255 / 0.08);
+  }
+
+  .cinect-header-notif-icon svg {
+    width: 1rem;
+    height: 1rem;
+    stroke-width: 2;
+  }
+
+  .cinect-header-notif-icon--booking {
+    background: rgb(102 51 153 / 0.22);
+    color: #e9d5ff;
+  }
+
+  .cinect-header-notif-icon--promo {
+    background: rgb(245 158 11 / 0.14);
+    color: #fcd34d;
+  }
+
+  .cinect-header-notif-icon--membership {
+    background: rgb(56 189 248 / 0.14);
+    color: #7dd3fc;
+  }
+
+  .cinect-header-notif-dot {
+    position: absolute;
+    top: -0.125rem;
+    right: -0.125rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    border: 2px solid #1e1b4b;
+    background: #f3ea28;
+  }
+
+  .cinect-header-notif-body {
+    min-width: 0;
+    padding-top: 0.125rem;
+  }
+
+  .cinect-header-notif-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .cinect-header-notif-item-title {
+    margin: 0;
+    min-width: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: #f8fafc;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .cinect-header-notif-time {
+    flex-shrink: 0;
+    font-size: 0.6875rem;
+    line-height: 1.35;
+    color: rgb(148 163 184 / 0.95);
+    white-space: nowrap;
+  }
+
+  .cinect-header-notif-message {
+    margin: 0.25rem 0 0;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: rgb(203 213 225 / 0.88);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .cinect-header-notif-empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    font-size: 0.8125rem;
+    color: rgb(148 163 184 / 0.95);
+  }
+
+  .cinect-header-notif-footer {
+    border-top: 1px solid rgb(255 255 255 / 0.08);
+    padding: 0.625rem;
+    background: rgb(0 0 0 / 0.12);
+  }
+
+  .cinect-header-notif-view-all {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    width: 100%;
+    min-height: 2.25rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgb(255 255 255 / 0.12);
+    background: rgb(255 255 255 / 0.04);
+    color: #f8fafc;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
+  }
+
+  .cinect-header-notif-view-all:hover {
+    border-color: rgb(243 234 40 / 0.45);
+    background: rgb(243 234 40 / 0.1);
     color: #f3ea28;
   }
 
@@ -583,6 +785,12 @@
 
     .cinect-lg-popup-item:hover .cinect-lg-txt--popup {
       color: #f3ea28;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .cinect-lg-option {
+      gap: 6px;
     }
   }
 
@@ -1782,12 +1990,18 @@
 }
 
 .cinect-osm-popup__meta,
+.cinect-osm-popup__distance,
 .cinect-osm-popup__addr,
 .cinect-osm-popup__city {
   font-size: 0.7rem;
   line-height: 1.35;
   color: #475569;
   margin: 0.15rem 0;
+}
+
+.cinect-osm-popup__distance {
+  color: #663399;
+  font-weight: 700;
 }
 
 .cinect-osm-popup__actions {
@@ -2025,99 +2239,676 @@
 }
 
 
-/* Movies page â€” quick book strip (cinestar.com.vn/movie/) */
+/* Cinestar-style dropdown panels (ant-select-dropdown) */
+.cinect-dropdown-scroll {
+  overflow-y: auto;
+  scrollbar-color: rgb(144 136 136 / 0.55) transparent;
+  scrollbar-width: thin;
+}
+
+.cinect-dropdown-scroll::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.cinect-dropdown-scroll::-webkit-scrollbar-thumb {
+  background: rgb(144 136 136 / 0.55);
+  border-radius: 999px;
+}
+
+.cinect-dropdown-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cinect-dropdown-panel {
+  background: #fff !important;
+  border: 1px solid #908888 !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 12px rgb(15 23 42 / 12%) !important;
+  color: rgba(0, 0, 0, 0.88) !important;
+}
+
+.dark .cinect-dropdown-panel {
+  background: #fff !important;
+  color: rgba(0, 0, 0, 0.88) !important;
+}
+
+.cinect-dropdown-item {
+  border-radius: 4px;
+  color: rgba(0, 0, 0, 0.88);
+  cursor: pointer;
+  outline: none;
+  transition: background-color 0.15s ease;
+}
+
+.cinect-dropdown-item:hover,
+.cinect-dropdown-item[data-highlighted],
+.cinect-dropdown-item:focus-visible,
+.cinect-dropdown-item[data-selected="true"] {
+  background: rgb(0 0 0 / 4%) !important;
+  color: rgba(0, 0, 0, 0.88) !important;
+}
+
+.cinect-dropdown-item--selected,
+.cinect-dropdown-item[data-state="checked"] {
+  background: #e6f4ff !important;
+  color: rgba(0, 0, 0, 0.88) !important;
+  font-weight: 600;
+}
+
+.cinect-select-content [data-radix-select-scroll-up-button],
+.cinect-select-content [data-radix-select-scroll-down-button] {
+  display: none;
+}
+
+.cinect-select-content [data-radix-select-viewport] {
+  max-height: 15rem;
+}
+
+
+/* Quick book strip — CiNect (distinct from Cinestar flat blue) */
 .cinect-movie-quick-book {
-  background: #ecf2ff;
+  background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 4%),
+    0 10px 28px rgb(15 23 42 / 7%);
+  overflow: hidden;
+  position: relative;
   width: 100%;
+}
+
+.cinect-movie-quick-book::before {
+  background: linear-gradient(
+    90deg,
+    #6366f1 0%,
+    #8b5cf6 45%,
+    hsl(var(--primary)) 100%
+  );
+  content: "";
+  height: 3px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 .cinect-movie-quick-book__inner {
   align-items: center;
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px 16px;
+  flex-wrap: nowrap;
+  gap: 0.875rem;
+  justify-content: flex-start;
   margin-inline: auto;
-  max-width: 1400px;
-  padding: 20px 30px;
+  max-width: 100%;
+  padding: 1rem 1.125rem;
 }
 
 .cinect-movie-quick-book__title {
-  color: #0f172a;
+  align-self: center;
+  color: #334155;
+  flex: 0 0 auto;
   font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  line-height: 1.2;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
   margin: 0;
-  text-transform: uppercase;
+  min-width: 5.5rem;
+  text-transform: none;
   white-space: nowrap;
 }
 
 .cinect-movie-quick-book__fields {
   display: flex;
-  flex: 1 1 520px;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
   min-width: 0;
+}
+
+.cinect-movie-quick-book__item {
+  flex: 1 1 0;
+  max-height: 3.125rem;
+  max-width: 10.5rem;
+  min-width: 7.75rem;
+  pointer-events: none;
+}
+
+.cinect-movie-quick-book__fields .cinect-movie-quick-book__item:nth-child(2) {
+  flex: 1.35 1 0;
+  max-width: 13.5rem;
+}
+
+.cinect-movie-quick-book__item--interactive {
+  pointer-events: auto;
 }
 
 .cinect-movie-quick-book__select {
+  align-items: center !important;
   background: #fff !important;
   border: 1px solid #cbd5e1 !important;
-  border-radius: 6px !important;
-  color: #334155 !important;
-  font-size: 0.875rem !important;
-  height: 2.75rem !important;
-  min-width: 0;
-  width: min(100%, 12.5rem);
+  border-radius: 8px !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%) !important;
+  color: #1e293b !important;
+  display: flex !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  gap: 0.35rem !important;
+  height: 2.625rem !important;
+  letter-spacing: normal !important;
+  line-height: 1.25 !important;
+  min-width: 0 !important;
+  opacity: 1 !important;
+  padding: 0 0.65rem 0 0.75rem !important;
+  text-transform: none !important;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+  width: 100% !important;
+}
+
+.cinect-movie-quick-book__select [data-placeholder] {
+  color: #64748b !important;
+}
+
+.cinect-movie-quick-book__select > span {
+  -webkit-line-clamp: unset !important;
+  display: block !important;
+  flex: 1 1 auto !important;
+  line-clamp: unset !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-align: left !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  width: auto !important;
+}
+
+.cinect-movie-quick-book__select svg {
+  color: #6366f1 !important;
+  flex-shrink: 0 !important;
+  height: 1rem !important;
+  opacity: 0.9;
+  width: 1rem !important;
+}
+
+.cinect-movie-quick-book__item--active .cinect-movie-quick-book__select:hover,
+.cinect-movie-quick-book__item--interactive .cinect-movie-quick-book__select:hover {
+  border-color: #818cf8 !important;
+  box-shadow: 0 4px 12px rgb(99 102 241 / 14%) !important;
+  transform: translateY(-1px);
+}
+
+.cinect-movie-quick-book__item--active .cinect-movie-quick-book__select:focus-visible,
+.cinect-movie-quick-book__item--interactive .cinect-movie-quick-book__select:focus-visible,
+.cinect-movie-quick-book__item--open .cinect-movie-quick-book__select {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 14%) !important;
+}
+
+.cinect-movie-quick-book__item--active .cinect-movie-quick-book__select {
+  animation: cinect-qb-step-focus 0.22s ease;
+}
+
+.cinect-movie-quick-book__item--done .cinect-movie-quick-book__select {
+  background: #eef2ff !important;
+  border-color: #a5b4fc !important;
+  color: #3730a3 !important;
+}
+
+.cinect-movie-quick-book__item--done .cinect-movie-quick-book__select svg {
+  color: #4f46e5 !important;
+}
+
+.cinect-movie-quick-book__item:not(.cinect-movie-quick-book__item--active) .cinect-movie-quick-book__select {
+  cursor: default;
+}
+
+.cinect-movie-quick-book__content {
+  animation-duration: 0.2s !important;
+  animation-timing-function: ease !important;
+  background: #fff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 12px 32px rgb(15 23 42 / 12%) !important;
+  color: #1e293b !important;
+  transform-origin: top center;
+}
+
+.cinect-movie-quick-book__content [data-radix-select-viewport],
+.cinect-movie-quick-book__content > div {
+  background: #fff;
+}
+
+.cinect-movie-quick-book__option {
+  background: #fff;
+  color: #1e293b;
+  letter-spacing: normal;
+}
+
+.cinect-movie-quick-book__option[data-highlighted] {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.cinect-movie-quick-book__option[data-state="checked"] {
+  background: #eef2ff;
+  color: #3730a3;
+  font-weight: 600;
 }
 
 .cinect-movie-quick-book__submit {
-  background: linear-gradient(106deg, #663399, #3366cc 102.69%);
-  border: none;
-  border-radius: 6px;
-  color: #fff;
-  cursor: pointer;
+  border-radius: 8px;
+  flex: 0 0 auto;
   font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  margin-left: auto;
-  min-height: 2.75rem;
-  padding: 0 1.5rem;
-  text-transform: uppercase;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  min-height: 2.625rem;
+  min-width: 5rem;
+  padding: 0 0.875rem;
+  text-transform: none;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease,
+    filter 0.2s ease;
   white-space: nowrap;
 }
 
-.cinect-movie-quick-book__submit:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
+.cinect-movie-quick-book__submit--locked {
+  filter: saturate(0.65);
+  opacity: 0.72;
+  pointer-events: none;
 }
 
-.cinect-movie-quick-book__submit:hover:not(:disabled) {
-  filter: brightness(1.05);
+.cinect-movie-quick-book__submit--ready {
+  animation: cinect-qb-step-focus 0.28s ease;
+  box-shadow: 0 6px 18px rgb(102 51 153 / 28%);
 }
 
-@media screen and (max-width: 1023px) {
+.cinect-movie-quick-book__submit--ready:hover {
+  box-shadow: 0 8px 22px rgb(102 51 153 / 34%);
+  transform: translateY(-1px);
+}
+
+@keyframes cinect-qb-step-focus {
+  0% {
+    transform: translateY(1px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.cinect-movie-quick-book__title-skeleton,
+.cinect-movie-quick-book__select-skeleton,
+.cinect-movie-quick-book__submit-skeleton {
+  animation: cinect-qb-pulse 1.2s ease-in-out infinite;
+  background: rgb(255 255 255 / 55%);
+  border-radius: 6px;
+}
+
+.cinect-movie-quick-book__title-skeleton {
+  height: 2rem;
+  width: 7.5rem;
+}
+
+.cinect-movie-quick-book__select-skeleton {
+  flex: 1 1 0;
+  height: 2.625rem;
+  max-width: 10.5rem;
+  min-width: 7.75rem;
+}
+
+.cinect-movie-quick-book__submit-skeleton {
+  height: 2.5625rem;
+  width: 5.5rem;
+}
+
+@keyframes cinect-qb-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@media screen and (max-width: 767px) {
   .cinect-movie-quick-book__inner {
-    padding: 16px 20px;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.75rem 0.875rem;
+    scrollbar-width: none;
+  }
+
+  .cinect-movie-quick-book__inner::-webkit-scrollbar {
+    display: none;
   }
 
   .cinect-movie-quick-book__title {
-    width: 100%;
+    flex-shrink: 0;
+    font-size: 0.875rem;
+    min-width: 4.75rem;
   }
 
   .cinect-movie-quick-book__fields {
-    flex-basis: 100%;
-  }
-
-  .cinect-movie-quick-book__select {
-    flex: 1 1 calc(50% - 5px);
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
     width: auto;
   }
 
+  .cinect-movie-quick-book__item,
+  .cinect-movie-quick-book__fields .cinect-movie-quick-book__item:nth-child(2) {
+    flex: 0 0 9.25rem;
+    max-width: 9.25rem;
+    min-width: 9.25rem;
+  }
+
   .cinect-movie-quick-book__submit {
+    flex-shrink: 0;
     margin-left: 0;
+    width: auto;
+  }
+}
+
+/* Ticket page — print only the ticket card, not site chrome */
+@media print {
+  body:has(.ticket-print-page) .cinect-header-shell,
+  body:has(.ticket-print-page) footer.cinect-footer,
+  body:has(.ticket-print-page) nav.cinect-header-nav,
+  body:has(.ticket-print-page) .cinect-ambient-bg,
+  body:has(.ticket-print-page) .cinect-chatbot-root,
+  body:has(.ticket-print-page) .ticket-print-toolbar {
+    display: none !important;
+  }
+
+  body:has(.ticket-print-page) .cinect-app-main {
+    padding: 0 !important;
+  }
+
+  body:has(.ticket-print-page) .cinect-page-bg {
+    background: #fff !important;
+    min-height: auto !important;
+  }
+
+  body:has(.ticket-print-page) .ticket-print-page {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  body:has(.ticket-print-page) .ticket-print-target {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: 0 !important;
+  }
+}
+
+/* Landscape e-ticket — screen preview */
+.cet-ticket {
+  display: flex;
+  width: 100%;
+  max-width: 920px;
+  min-height: 220px;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid rgb(203 213 225 / 0.8);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgb(15 23 42 / 0.22);
+}
+
+.cet-brand {
+  display: flex;
+  width: 88px;
+  flex-shrink: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem 0.75rem;
+  background: linear-gradient(165deg, #663399 0%, #1e1b4b 100%);
+  color: #fff;
+}
+
+.cet-brand-logo {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #f3ea28;
+}
+
+.cet-brand-tag {
+  margin-top: 0.35rem;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.cet-brand-status {
+  margin-top: auto;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 0.12);
+  padding: 0.35rem 0.4rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.cet-brand-status--paid {
+  background: rgb(243 234 40 / 0.2);
+  color: #f3ea28;
+}
+
+.cet-body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem 1.1rem 0.85rem;
+  color: #0f172a;
+}
+
+.cet-movie-title {
+  margin: 0;
+  font-size: clamp(1rem, 2.2vw, 1.35rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #0f172a;
+}
+
+.cet-meta-line {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #64748b;
+}
+
+.cet-meta-dot {
+  margin: 0 0.35rem;
+  opacity: 0.55;
+}
+
+.cet-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.cet-info-label {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.cet-info-value {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #0f172a;
+}
+
+.cet-info-value--seats {
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+}
+
+.cet-info-value--total {
+  font-size: 1.05rem;
+  color: #663399;
+}
+
+.cet-snacks {
+  margin: 0.45rem 0 0;
+  overflow: hidden;
+  font-size: 0.72rem;
+  color: #64748b;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cet-footer-meta {
+  margin-top: 0.45rem;
+  overflow: hidden;
+  font-size: 0.65rem;
+  color: #94a3b8;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cet-perforation {
+  display: flex;
+  width: 14px;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #fff,
+    #fff 8px,
+    #e2e8f0 8px,
+    #e2e8f0 12px
+  );
+}
+
+.cet-perforation-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #cbd5e1;
+}
+
+.cet-stub {
+  display: flex;
+  width: 148px;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 0.65rem;
+  background: #f8fafc;
+  text-align: center;
+}
+
+.cet-qr-wrap {
+  padding: 0.45rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.cet-stub-hint {
+  margin: 0.45rem 0 0;
+  font-size: 0.58rem;
+  line-height: 1.35;
+  color: #64748b;
+}
+
+.cet-stub-seats {
+  margin: 0.3rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.ticket-print-source {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 920px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@media (max-width: 767px) {
+  .cet-ticket {
+    flex-direction: column;
+    max-width: 100%;
+    min-height: 0;
+  }
+
+  .cet-brand {
     width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .cet-brand-tag {
+    margin-top: 0;
+  }
+
+  .cet-brand-status {
+    margin-top: 0;
+    margin-left: auto;
+  }
+
+  .cet-perforation {
+    display: none;
+  }
+
+  .cet-stub {
+    width: 100%;
+    flex-direction: row;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .cet-stub-hint {
+    margin: 0;
+    flex: 1;
+    text-align: left;
+  }
+
+  .cet-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,11 +25,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useForgotPassword } from "@/hooks/queries/use-auth";
 
 type ForgotFormValues = { email: string };
 
 export default function ForgotPasswordPage() {
   const t = useTranslations("auth");
+  const tToast = useTranslations("toast");
+  const forgotPassword = useForgotPassword();
   const forgotSchema = useMemo(
     () =>
       z.object({
@@ -47,7 +51,12 @@ export default function ForgotPasswordPage() {
   });
 
   function onSubmit(data: ForgotFormValues) {
-    console.log("Forgot password:", data);
+    forgotPassword.mutate(
+      { email: data.email.trim().toLowerCase() },
+      {
+        onSuccess: () => toast.success(tToast("forgotPasswordSent")),
+      }
+    );
   }
 
   return (
@@ -72,8 +81,8 @@ export default function ForgotPasswordPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">
-              {t("sendResetLink")}
+            <Button type="submit" className="w-full" disabled={forgotPassword.isPending}>
+              {forgotPassword.isPending ? t("sendingResetLink") : t("sendResetLink")}
             </Button>
           </form>
         </Form>

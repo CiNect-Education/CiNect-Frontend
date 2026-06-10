@@ -35,6 +35,7 @@ import {
   Newspaper,
   Megaphone,
   ImageIcon,
+  UsersRound,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import type { UserRole } from "@/types/domain";
@@ -71,6 +72,12 @@ export function AdminSidebar() {
       { label: t("news"), href: "/admin/news", icon: Newspaper, roles: ["ADMIN"] as UserRole[] },
       { label: t("campaignsAdmin"), href: "/admin/campaigns", icon: Megaphone, roles: ["ADMIN"] as UserRole[] },
       { label: t("bannersAdmin"), href: "/admin/banners", icon: ImageIcon, roles: ["ADMIN"] as UserRole[] },
+      {
+        label: t("communityModeration"),
+        href: "/admin/community",
+        icon: UsersRound,
+        roles: ["ADMIN", "STAFF"] as UserRole[],
+      },
     ],
     [t]
   );

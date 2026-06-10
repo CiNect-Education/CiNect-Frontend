@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -8,14 +9,25 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { useBooking } from "@/hooks/queries/use-booking-flow";
+import { useInviteBookingFriends } from "@/hooks/queries/use-community";
 import { CheckCircle, Download, Calendar, MapPin, Clock } from "lucide-react";
+import { toast } from "sonner";
 
 export default function BookingSuccessPage() {
   const params = useParams();
   const bookingId = params.bookingId as string;
 
   const { data: bookingRes, isLoading, error, refetch } = useBooking(bookingId);
+  const inviteFriends = useInviteBookingFriends(bookingId);
   const booking = bookingRes?.data as import("@/types/domain").Booking | undefined;
+  const [inviteSharePath, setInviteSharePath] = useState<string | null>(null);
+
+  const shareUrl =
+    typeof window !== "undefined" && inviteSharePath
+      ? `${window.location.origin}${inviteSharePath}`
+      : typeof window !== "undefined"
+        ? `${window.location.origin}/join/pending`
+        : "/join/pending";
 
   if (isLoading) {
     return (
@@ -148,6 +160,55 @@ export default function BookingSuccessPage() {
             <Button asChild className="flex-1">
               <Link href="/account/orders">View tickets</Link>
             </Button>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-3">
+            <h3 className="font-semibold">Invite friends</h3>
+            <p className="text-sm text-muted-foreground">
+              Share your group booking invite so friends can join this showtime.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  inviteFriends.mutate(undefined, {
+                    onSuccess: (res) => {
+                      const path = res.data?.sharePath;
+                      if (path) setInviteSharePath(path);
+                      const url =
+                        typeof window !== "undefined" && path
+                          ? `${window.location.origin}${path}`
+                          : shareUrl;
+                      try {
+                        void navigator.clipboard.writeText(url);
+                        toast.success("Invite link copied");
+                      } catch {
+                        toast.error("Could not copy link");
+                      }
+                    },
+                  });
+                }}
+                disabled={inviteFriends.isPending}
+              >
+                Copy invite link
+              </Button>
+              <Button
+                onClick={() =>
+                  inviteFriends.mutate(undefined, {
+                    onSuccess: (res) => {
+                      const path = res.data?.sharePath;
+                      if (path) setInviteSharePath(path);
+                      toast.success("Invite link ready — share with friends");
+                    },
+                  })
+                }
+                disabled={inviteFriends.isPending}
+              >
+                Create invite link
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

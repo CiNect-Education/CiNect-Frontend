@@ -55,22 +55,22 @@ export function TicketTypePicker({
           return (
             <div
               key={product.code}
-              className="flex flex-col items-center gap-3 rounded-lg border border-white/25 px-4 py-5 text-center"
+              className="flex flex-col items-center rounded-lg border border-white/25 px-4 py-5 text-center"
             >
-              <div>
-                <p className="text-base font-bold tracking-wide text-white uppercase">
+              <div className="flex min-h-[3.25rem] w-full flex-col items-center justify-center">
+                <p className="line-clamp-2 text-base leading-snug font-bold tracking-wide text-white uppercase">
                   {label}
                 </p>
+              </div>
+              <div className="mt-1 flex min-h-[1.25rem] items-center justify-center">
                 {subLabel ? (
-                  <p className="mt-0.5 text-sm font-semibold text-[#f3ea28] uppercase">
-                    {subLabel}
-                  </p>
+                  <p className="text-sm font-semibold text-[#f3ea28] uppercase">{subLabel}</p>
                 ) : null}
               </div>
-              <p className="text-lg font-semibold text-white">
+              <p className="mt-3 text-lg font-semibold text-white">
                 {formatVnd(product.unitPrice, locale)}
               </p>
-              <div className="flex items-center gap-0 overflow-hidden rounded border border-white/40 bg-white/10">
+              <div className="mt-3 flex items-center gap-0 overflow-hidden rounded border border-white/40 bg-white/10">
                 <button
                   type="button"
                   className="flex h-9 w-10 items-center justify-center text-white transition hover:bg-white/15 disabled:opacity-40"

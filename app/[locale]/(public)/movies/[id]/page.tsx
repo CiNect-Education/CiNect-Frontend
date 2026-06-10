@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -20,8 +20,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { MovieJsonLd } from "@/components/shared/movie-jsonld";
-import { useMovie, useMovieReviews, useCreateReview, useMovies } from "@/hooks/queries/use-movies";
+import { parseYoutubeVideoId, youtubeEmbedUrl } from "@/lib/youtube";
+import { useMovie, useMovieReviews, useCreateReview, useMovies, useReviewEligibility } from "@/hooks/queries/use-movies";
 import { useMovieShowtimes, useCinemas } from "@/hooks/queries/use-cinemas";
+import { useReviewReaction, useCommunityWatchlist, useAddToWatchlist, useRemoveFromWatchlist } from "@/hooks/queries/use-community";
 import { useAuth } from "@/providers/auth-provider";
 import {
   Clock,
@@ -33,6 +35,8 @@ import {
   Film,
   ThumbsUp,
   MessageSquare,
+  BadgeCheck,
+  Heart,
   MapPin,
   Send,
   ChevronLeft,
@@ -42,6 +46,7 @@ import { format, addDays } from "date-fns";
 import { enUS } from "date-fns/locale";
 import { vi as viDateLocale } from "date-fns/locale";
 import { localizeAudioLabel } from "@/lib/showtime-display";
+import { cn } from "@/lib/utils";
 
 export default function MovieDetailPage() {
   const params = useParams();
@@ -75,7 +80,6 @@ export default function MovieDetailPage() {
   // Reviews
   const [reviewPage, setReviewPage] = useState(1);
   const [reviewSort, setReviewSort] = useState<"newest" | "highest">("newest");
-  const [likedReviews, setLikedReviews] = useState<Record<string, boolean>>({});
   const { data: reviewsRes, isLoading: reviewsLoading } = useMovieReviews(resolvedMovieId, {
     page: reviewPage,
     limit: 10,
@@ -92,7 +96,26 @@ export default function MovieDetailPage() {
   // Create review
   const [reviewRating, setReviewRating] = useState(8);
   const [reviewContent, setReviewContent] = useState("");
+  const [activeTab, setActiveTab] = useState("overview");
+  const [trailerRevealed, setTrailerRevealed] = useState(false);
+  const trailerSectionRef = useRef<HTMLDivElement>(null);
   const createReview = useCreateReview(resolvedMovieId);
+  const { data: eligibilityRes, isLoading: eligibilityLoading } = useReviewEligibility(
+    resolvedMovieId,
+    isAuthenticated
+  );
+  const reviewEligibility = eligibilityRes?.data;
+  const canWriteReview = reviewEligibility?.canReview === true;
+  const reactReview = useReviewReaction();
+  const { data: watchlistRes } = useCommunityWatchlist();
+  const addToWatchlist = useAddToWatchlist(resolvedMovieId);
+  const removeFromWatchlist = useRemoveFromWatchlist(resolvedMovieId);
+
+  const trailerSource = movie?.trailerUrl?.trim() ?? "";
+  const youtubeId = useMemo(
+    () => (trailerSource ? parseYoutubeVideoId(trailerSource) : null),
+    [trailerSource],
+  );
 
   // SEO - set document title
   useEffect(() => {
@@ -100,6 +123,19 @@ export default function MovieDetailPage() {
       document.title = `${movie.title} | CiNect`;
     }
   }, [movie]);
+
+  useEffect(() => {
+    if (!trailerRevealed) return;
+    const timer = window.setTimeout(() => {
+      trailerSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 180);
+    return () => window.clearTimeout(timer);
+  }, [trailerRevealed, activeTab]);
+
+  const handleWatchTrailer = () => {
+    setActiveTab("overview");
+    setTrailerRevealed(true);
+  };
 
   const dateFnsLocale = locale.startsWith("vi") ? viDateLocale : enUS;
 
@@ -135,6 +171,8 @@ export default function MovieDetailPage() {
       { id: string; title: string; posterUrl?: string; status?: string }
     > | undefined) ?? [];
   const recommendedMovies = relatedItems.filter((m) => m.id !== resolvedMovieId).slice(0, 4);
+  const watchlistItems = watchlistRes?.data ?? [];
+  const isInWatchlist = watchlistItems.some((item) => item.movieId === resolvedMovieId);
 
   const handleSubmitReview = () => {
     if (!reviewContent.trim()) return;
@@ -147,6 +185,15 @@ export default function MovieDetailPage() {
         },
       }
     );
+  };
+
+  const handleToggleWatchlist = () => {
+    if (!resolvedMovieId) return;
+    if (isInWatchlist) {
+      removeFromWatchlist.mutate(undefined);
+      return;
+    }
+    addToWatchlist.mutate(undefined);
   };
 
   if (isLoading) {
@@ -270,12 +317,15 @@ export default function MovieDetailPage() {
                       {t("bookNow")}
                     </Link>
                   </Button>
-                  {movie.trailerUrl && (
-                    <Button size="lg" variant="outline" asChild>
-                      <a href={movie.trailerUrl} target="_blank" rel="noopener noreferrer">
-                        <Play className="mr-2 h-5 w-5" />
-                        {t("trailer")}
-                      </a>
+                  {youtubeId && (
+                    <Button
+                      type="button"
+                      size="lg"
+                      variant="outline"
+                      onClick={handleWatchTrailer}
+                    >
+                      <Play className="mr-2 h-5 w-5" />
+                      {t("trailer")}
                     </Button>
                   )}
                   <Button size="lg" variant="outline" asChild>
@@ -284,6 +334,12 @@ export default function MovieDetailPage() {
                       {t("showtimes")}
                     </Link>
                   </Button>
+                  {isAuthenticated && (
+                    <Button size="lg" variant="outline" onClick={handleToggleWatchlist}>
+                      <Heart className={`mr-2 h-5 w-5 ${isInWatchlist ? "fill-current" : ""}`} />
+                      {isInWatchlist ? t("watchlistRemove") : t("watchlistAdd")}
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -293,7 +349,7 @@ export default function MovieDetailPage() {
 
       {/* Content */}
       <div className="mx-auto max-w-7xl px-4 pt-8 lg:px-6">
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList>
             <TabsTrigger value="overview">{t("overview")}</TabsTrigger>
             <TabsTrigger value="cast">{t("cast")}</TabsTrigger>
@@ -334,22 +390,65 @@ export default function MovieDetailPage() {
               </Card>
             </div>
 
-            {/* Trailer embed */}
-            {movie.trailerUrl && movie.trailerUrl.includes("youtube") && (
-              <Card>
-                <CardContent className="p-6">
-                  <h2 className="mb-3 text-xl font-semibold">{t("trailer")}</h2>
-                  <div className="aspect-video overflow-hidden rounded-lg">
-                    <iframe
-                      src={movie.trailerUrl.replace("watch?v=", "embed/")}
-                      title={`${movie.title} Trailer`}
-                      className="h-full w-full"
-                      allowFullScreen
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    />
+            {trailerRevealed && youtubeId && (
+              <div
+                ref={trailerSectionRef}
+                className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+              >
+                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-slate-950 via-[#12082a] to-slate-950 px-4 py-8 shadow-[0_24px_80px_-20px_rgba(88,28,135,0.55)] sm:px-8 sm:py-10">
+                  <div
+                    className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.22),transparent_55%)]"
+                    aria-hidden
+                  />
+                  <div
+                    className="pointer-events-none absolute -left-24 top-1/2 h-56 w-56 -translate-y-1/2 rounded-full bg-cyan-500/10 blur-3xl"
+                    aria-hidden
+                  />
+                  <div
+                    className="pointer-events-none absolute -right-24 top-1/3 h-64 w-64 rounded-full bg-violet-600/15 blur-3xl"
+                    aria-hidden
+                  />
+
+                  <div className="relative mb-5 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold tracking-[0.22em] text-violet-300/90 uppercase">
+                        {t("trailerFocusTitle")}
+                      </p>
+                      <h2 className="mt-1 text-2xl font-bold text-white">{t("trailer")}</h2>
+                      <p className="mt-1 max-w-xl text-sm text-slate-300">{t("trailerFocusHint")}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outlineLight"
+                      size="sm"
+                      className="shrink-0 border-white/25 bg-white/5 text-white hover:bg-white/10"
+                      onClick={() => setTrailerRevealed(false)}
+                    >
+                      {t("hideTrailer")}
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
+
+                  <div
+                    className={cn(
+                      "relative mx-auto max-w-5xl overflow-hidden rounded-xl",
+                      "ring-1 ring-white/15 shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_20px_60px_-12px_rgba(0,0,0,0.85)]",
+                      "before:pointer-events-none before:absolute before:inset-0 before:rounded-xl before:ring-2 before:ring-violet-400/30",
+                    )}
+                  >
+                    <div className="aspect-video w-full bg-black">
+                      <iframe
+                        key={`${youtubeId}-${trailerRevealed}`}
+                        src={youtubeEmbedUrl(youtubeId, { autoplay: true })}
+                        title={`${movie.title} Trailer`}
+                        className="h-full w-full border-0"
+                        allowFullScreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Gallery */}
@@ -566,49 +665,86 @@ export default function MovieDetailPage() {
 
           {/* Reviews Tab */}
           <TabsContent value="reviews" className="space-y-4">
-            {/* Write Review */}
             {isAuthenticated ? (
-              <Card className="cinect-glass border">
-                <CardContent className="p-6">
-                  <h3 className="mb-3 flex items-center gap-2 font-semibold">
-                    <MessageSquare className="h-5 w-5" />
-                    {t("writeReview")}
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm font-medium">{t("rating")}:</label>
-                      <Select
-                        value={String(reviewRating)}
-                        onValueChange={(v) => setReviewRating(Number(v))}
+              eligibilityLoading ? (
+                <Skeleton className="h-40 w-full rounded-lg" />
+              ) : canWriteReview ? (
+                <Card className="cinect-glass border">
+                  <CardContent className="p-6">
+                    <h3 className="mb-3 flex items-center gap-2 font-semibold">
+                      <MessageSquare className="h-5 w-5" />
+                      {t("writeReview")}
+                    </h3>
+                    <p className="text-muted-foreground mb-4 text-sm">{t("reviewVerifiedHint")}</p>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm font-medium">{t("rating")}:</label>
+                        <Select
+                          value={String(reviewRating)}
+                          onValueChange={(v) => setReviewRating(Number(v))}
+                        >
+                          <SelectTrigger className="w-24">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                              <SelectItem key={n} value={String(n)}>
+                                {n}/10
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Textarea
+                        value={reviewContent}
+                        onChange={(e) => setReviewContent(e.target.value)}
+                        placeholder={t("reviewBodyPlaceholder")}
+                        rows={4}
+                      />
+                      <Button
+                        onClick={handleSubmitReview}
+                        disabled={createReview.isPending || !reviewContent.trim()}
                       >
-                        <SelectTrigger className="w-24">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                            <SelectItem key={n} value={String(n)}>
-                              {n}/10
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        <Send className="mr-2 h-4 w-4" />
+                        {createReview.isPending ? t("submittingReview") : t("writeReview")}
+                      </Button>
                     </div>
-                    <Textarea
-                      value={reviewContent}
-                      onChange={(e) => setReviewContent(e.target.value)}
-                      placeholder={t("reviewBodyPlaceholder")}
-                      rows={4}
-                    />
-                    <Button
-                      onClick={handleSubmitReview}
-                      disabled={createReview.isPending || !reviewContent.trim()}
-                    >
-                      <Send className="mr-2 h-4 w-4" />
-                      {createReview.isPending ? t("submittingReview") : t("writeReview")}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="cinect-glass border">
+                  <CardContent className="p-6">
+                    <h3 className="mb-2 flex items-center gap-2 font-semibold">
+                      <BadgeCheck className="h-5 w-5 text-[#f3ea28]" />
+                      {t("reviewTicketOnlyTitle")}
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      {reviewEligibility?.reason === "ALREADY_REVIEWED"
+                        ? t("reviewAlreadySubmitted")
+                        : reviewEligibility?.reason === "NOT_WATCHED_YET"
+                          ? t("reviewAfterWatching")
+                          : t("reviewRequiresTicket")}
+                    </p>
+                    {reviewEligibility?.reason !== "ALREADY_REVIEWED" && (
+                      <div className="mt-4">
+                        {reviewEligibility?.reason === "NOT_WATCHED_YET" ? (
+                          <Button asChild variant="cta" size="sm">
+                            <Link href="/account/orders">{t("viewYourOrders")}</Link>
+                          </Button>
+                        ) : showtimes[0]?.id ? (
+                          <Button asChild variant="cta" size="sm">
+                            <Link href={`/booking/${showtimes[0].id}`}>{t("bookNow")}</Link>
+                          </Button>
+                        ) : (
+                          <Button variant="cta" size="sm" onClick={() => setActiveTab("showtimes")}>
+                            {t("bookNow")}
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )
             ) : (
               <Card className="cinect-glass border">
                 <CardContent className="p-6 text-center">
@@ -654,7 +790,6 @@ export default function MovieDetailPage() {
                 </div>
 
                 {sortedReviews.map((review) => {
-                  const liked = likedReviews[review.id];
                   return (
                     <Card key={review.id} className="cinect-glass border">
                       <CardContent className="p-4">
@@ -664,7 +799,15 @@ export default function MovieDetailPage() {
                               {review.userName?.charAt(0).toUpperCase() || "U"}
                             </div>
                             <div>
-                              <p className="font-medium">{review.userName}</p>
+                              <p className="flex items-center gap-1 font-medium">
+                                {review.userName}
+                                {review.isVerified ? (
+                                  <Badge variant="outline" className="text-[10px]">
+                                    <BadgeCheck className="mr-1 h-3 w-3" />
+                                    {t("verifiedBadge")}
+                                  </Badge>
+                                ) : null}
+                              </p>
                               <p className="text-muted-foreground text-xs">
                                 {format(new Date(review.createdAt), "PP", { locale: dateFnsLocale })}
                               </p>
@@ -677,21 +820,15 @@ export default function MovieDetailPage() {
                             </div>
                             <Button
                               type="button"
-                              variant={liked ? "default" : "ghost"}
+                              variant="ghost"
                               size="icon"
                               className="h-8 w-8"
-                              aria-label={liked ? t("reviewUnlikeAria") : t("reviewLikeAria")}
-                              onClick={() =>
-                                setLikedReviews((prev) => ({
-                                  ...prev,
-                                  [review.id]: !prev[review.id],
-                                }))
-                              }
+                              aria-label={t("reviewLikeAria")}
+                              onClick={() => reactReview.mutate({ reviewId: review.id })}
                             >
-                              <ThumbsUp
-                                className={`h-4 w-4 ${liked ? "fill-primary text-primary" : ""}`}
-                              />
+                              <ThumbsUp className="h-4 w-4" />
                             </Button>
+                            <span className="text-xs text-muted-foreground">{review.helpfulCount ?? 0}</span>
                           </div>
                         </div>
                         <p className="text-muted-foreground mt-3 text-sm">{review.content}</p>

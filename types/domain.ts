@@ -4,7 +4,7 @@ export type MovieStatus = "NOW_SHOWING" | "COMING_SOON" | "ENDED";
 export type AgeRating = "P" | "C13" | "C16" | "C18";
 export type RoomFormat = "2D" | "3D" | "IMAX" | "4DX" | "DOLBY";
 export type SeatType = "STANDARD" | "VIP" | "COUPLE" | "DISABLED";
-export type SeatStatus = "AVAILABLE" | "BOOKED" | "BLOCKED";
+export type SeatStatus = "AVAILABLE" | "HELD" | "BOOKED" | "BLOCKED";
 export type BookingStatus = "PENDING" | "HELD" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
 export type PaymentStatus = "PENDING" | "PAID" | "REFUNDED";
 export type PaymentMethod = "CARD" | "MOMO" | "ZALOPAY" | "VNPAY" | "BANK_TRANSFER" | "CASH";
@@ -12,7 +12,15 @@ export type DiscountType = "PERCENTAGE" | "FIXED";
 export type PromotionStatus = "ACTIVE" | "INACTIVE" | "EXPIRED";
 export type DayType = "WEEKDAY" | "WEEKEND" | "HOLIDAY";
 export type TimeSlot = "MORNING" | "AFTERNOON" | "EVENING" | "NIGHT";
-export type NotificationType = "BOOKING" | "PROMOTION" | "SYSTEM" | "MEMBERSHIP";
+export type NotificationType =
+  | "BOOKING"
+  | "PROMOTION"
+  | "SYSTEM"
+  | "MEMBERSHIP"
+  | "COMMUNITY"
+  | "REVIEW"
+  | "WATCHLIST"
+  | "REFUND";
 export type GiftCardStatus = "AVAILABLE" | "SOLD_OUT" | "REDEEMED" | "EXPIRED";
 export type CouponStatus = "ACTIVE" | "USED" | "EXPIRED";
 export type NewsCategory = "REVIEWS" | "TRAILERS" | "PROMOTIONS" | "GUIDES" | "GENERAL";
@@ -32,6 +40,8 @@ export interface User {
   dateOfBirth?: string;
   gender?: string;
   city?: string;
+  profilePublic?: boolean;
+  referralCode?: string;
   isActive?: boolean;
   emailVerified?: boolean;
   createdAt: string;
@@ -337,6 +347,8 @@ export interface Review {
   movieId: string;
   rating: number;
   content: string;
+  isVerified?: boolean;
+  helpfulCount?: number;
   createdAt: string;
   updatedAt: string;
 }

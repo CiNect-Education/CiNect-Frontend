@@ -1,21 +1,21 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -30,8 +30,8 @@ import {
 } from "@/components/ui/select";
 import {
   BadgeCheck,
-  CalendarDays,
   Camera,
+  Copy,
   Crown,
   Mail,
   MapPin,
@@ -44,8 +44,11 @@ import { toast } from "sonner";
 import { useAuth } from "@/providers/auth-provider";
 import { useUpdateProfile } from "@/hooks/queries/use-auth";
 import { useMembershipProfile } from "@/hooks/queries/use-membership";
+import { useCommunityReferral } from "@/hooks/queries/use-community";
 import { Link } from "@/i18n/navigation";
 import { PROFILE_GENDER_VALUES, profileFormSchema, type ProfileFormValues } from "@/lib/schemas/profile";
+import { ProfileAvatarField } from "@/components/account/profile-avatar-field";
+import { FieldHintTooltip, ProfileCompletionHint } from "@/components/shared/field-hint-tooltip";
 
 const CITY_SUGGESTIONS = [
   "Ho Chi Minh City",
@@ -66,8 +69,10 @@ export default function ProfilePage() {
   const tCommon = useTranslations("common");
   const { user, refetchUser } = useAuth();
   const { data: membershipRes } = useMembershipProfile();
+  const { data: referralRes } = useCommunityReferral();
   const updateProfile = useUpdateProfile();
   const membershipProfile = membershipRes?.data;
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -79,6 +84,7 @@ export default function ProfilePage() {
       dateOfBirth: "",
       gender: "",
       city: "",
+      profilePublic: true,
     },
   });
 
@@ -93,18 +99,22 @@ export default function ProfilePage() {
         ? ((user.gender as (typeof PROFILE_GENDER_VALUES)[number]) ?? "")
         : "",
       city: user.city ?? "",
+      profilePublic: user.profilePublic ?? true,
     });
   }, [form, user]);
 
   const values = form.watch();
 
-  const completionItems = [
-    { key: "fullName", label: t("completionName"), complete: values.fullName.trim().length >= 2 },
-    { key: "phone", label: t("completionPhone"), complete: values.phone.trim().length > 0 },
-    { key: "avatar", label: t("completionAvatar"), complete: values.avatar.trim().length > 0 },
-    { key: "dateOfBirth", label: t("completionBirthday"), complete: values.dateOfBirth.length > 0 },
-    { key: "city", label: t("completionCity"), complete: values.city.trim().length > 0 },
-  ];
+  const completionItems = useMemo(
+    () => [
+      { key: "fullName", label: t("completionName"), complete: values.fullName.trim().length >= 2 },
+      { key: "phone", label: t("completionPhone"), complete: values.phone.trim().length > 0 },
+      { key: "avatar", label: t("completionAvatar"), complete: values.avatar.trim().length > 0 },
+      { key: "dateOfBirth", label: t("completionBirthday"), complete: values.dateOfBirth.length > 0 },
+      { key: "city", label: t("completionCity"), complete: values.city.trim().length > 0 },
+    ],
+    [t, values.fullName, values.phone, values.avatar, values.dateOfBirth, values.city],
+  );
   const completedCount = completionItems.filter((item) => item.complete).length;
   const completionPercent = Math.round((completedCount / completionItems.length) * 100);
 
@@ -116,6 +126,7 @@ export default function ProfilePage() {
       .join("") || "CN";
 
   const avatarPreview = values.avatar.trim();
+  const referralCode = referralRes?.data?.code ?? user?.referralCode;
 
   const applyServerErrors = (details: unknown) => {
     if (!details || typeof details !== "object") return;
@@ -141,9 +152,11 @@ export default function ProfilePage() {
         dateOfBirth: data.dateOfBirth || undefined,
         gender: data.gender || undefined,
         city: data.city.trim() || undefined,
+        profilePublic: data.profilePublic,
       },
       {
         onSuccess: () => {
+          toast.success(t("profileUpdatedToast"));
           void refetchUser();
           form.reset({
             fullName: data.fullName.trim(),
@@ -152,6 +165,7 @@ export default function ProfilePage() {
             dateOfBirth: data.dateOfBirth,
             gender: data.gender,
             city: data.city.trim(),
+            profilePublic: data.profilePublic ?? true,
           });
         },
         onError: (error) => {
@@ -181,9 +195,14 @@ export default function ProfilePage() {
                       {initials}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="bg-primary text-primary-foreground absolute -right-1 -bottom-1 rounded-full p-2 shadow">
+                  <button
+                    type="button"
+                    className="bg-primary text-primary-foreground absolute -right-1 -bottom-1 rounded-full p-2 shadow"
+                    onClick={() => avatarInputRef.current?.click()}
+                    aria-label={t("avatarUploadCta")}
+                  >
                     <Camera className="h-4 w-4" />
-                  </div>
+                  </button>
                 </div>
 
                 <div className="min-w-0 flex-1 space-y-3">
@@ -221,13 +240,19 @@ export default function ProfilePage() {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">{t("profileCompletion")}</span>
+                      <span className="text-muted-foreground inline-flex items-center gap-1.5">
+                        {t("profileCompletion")}
+                        <ProfileCompletionHint
+                          description={t("profileChecklistDesc")}
+                          items={completionItems}
+                          doneLabel={t("completionDone")}
+                          pendingLabel={t("completionPending")}
+                          srLabel={t("profileChecklistTitle")}
+                        />
+                      </span>
                       <span className="font-medium">{completionPercent}%</span>
                     </div>
                     <Progress value={completionPercent} className="h-2.5" />
-                    <p className="text-muted-foreground text-xs">
-                      {t("completionHelp", { complete: completedCount, total: completionItems.length })}
-                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -236,8 +261,10 @@ export default function ProfilePage() {
 
           <Card className="cinect-glass border">
             <CardHeader>
-              <CardTitle className="text-lg">{t("personalInfoCardTitle")}</CardTitle>
-              <CardDescription>{t("profileDetailsDesc")}</CardDescription>
+              <div className="flex items-center gap-1.5">
+                <CardTitle className="text-lg">{t("personalInfoCardTitle")}</CardTitle>
+                <FieldHintTooltip hint={t("profileDetailsDesc")} srLabel={t("fieldHintSr")} />
+              </div>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -251,20 +278,24 @@ export default function ProfilePage() {
                       name="fullName"
                       render={({ field }) => (
                         <FormItem className="sm:col-span-2">
-                          <FormLabel>{tAuth("fullName")}</FormLabel>
+                          <div className="flex items-center gap-1.5">
+                            <FormLabel>{tAuth("fullName")}</FormLabel>
+                            <FieldHintTooltip hint={t("overviewCardDesc")} srLabel={t("fieldHintSr")} />
+                          </div>
                           <FormControl>
                             <Input placeholder={t("fullNamePlaceholder")} {...field} />
                           </FormControl>
-                          <FormDescription>{t("overviewCardDesc")}</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
 
                     <FormItem className="sm:col-span-2">
-                      <FormLabel>{tAuth("email")}</FormLabel>
+                      <div className="flex items-center gap-1.5">
+                        <FormLabel>{tAuth("email")}</FormLabel>
+                        <FieldHintTooltip hint={t("emailReadonlyHint")} srLabel={t("fieldHintSr")} />
+                      </div>
                       <Input type="email" value={user?.email ?? ""} disabled />
-                      <FormDescription>{t("emailReadonlyHint")}</FormDescription>
                     </FormItem>
 
                     <FormField
@@ -328,11 +359,13 @@ export default function ProfilePage() {
                       name="city"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t("labelCity")}</FormLabel>
+                          <div className="flex items-center gap-1.5">
+                            <FormLabel>{t("labelCity")}</FormLabel>
+                            <FieldHintTooltip hint={t("citySuggestionsHint")} srLabel={t("fieldHintSr")} />
+                          </div>
                           <FormControl>
                             <Input list="profile-city-suggestions" placeholder={t("cityPlaceholder")} {...field} />
                           </FormControl>
-                          <FormDescription>{t("citySuggestionsHint")}</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -342,12 +375,28 @@ export default function ProfilePage() {
                       control={form.control}
                       name="avatar"
                       render={({ field }) => (
+                        <ProfileAvatarField
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          fileInputRef={avatarInputRef}
+                        />
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="profilePublic"
+                      render={({ field }) => (
                         <FormItem className="sm:col-span-2">
-                          <FormLabel>{t("avatarUrlLabel")}</FormLabel>
-                          <FormControl>
-                            <Input id="avatarUrl" placeholder={t("avatarUrlPlaceholder")} {...field} />
-                          </FormControl>
-                          <FormDescription>{t("avatarPasteUrlHint")}</FormDescription>
+                          <div className="flex items-center justify-between rounded-lg border p-3">
+                            <div className="space-y-1">
+                              <FormLabel>{t("profilePublicLabel")}</FormLabel>
+                              <p className="text-xs text-muted-foreground">{t("profilePublicDesc")}</p>
+                            </div>
+                            <FormControl>
+                              <Switch checked={!!field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -359,6 +408,25 @@ export default function ProfilePage() {
                       <option key={city} value={city} />
                     ))}
                   </datalist>
+
+                  <FormField
+                    control={form.control}
+                    name="profilePublic"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center justify-between rounded-lg border p-3">
+                          <div className="space-y-1">
+                            <FormLabel>{t("profilePublicLabel")}</FormLabel>
+                            <p className="text-xs text-muted-foreground">{t("profilePublicDesc")}</p>
+                          </div>
+                          <FormControl>
+                            <Switch checked={!!field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <Separator />
 
@@ -390,11 +458,13 @@ export default function ProfilePage() {
         <div className="space-y-6">
           <Card className="cinect-glass border">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Crown className="h-5 w-5" />
-                {t("membershipSnapshotTitle")}
-              </CardTitle>
-              <CardDescription>{t("membershipSnapshotDesc")}</CardDescription>
+              <div className="flex items-center gap-1.5">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Crown className="h-5 w-5" />
+                  {t("membershipSnapshotTitle")}
+                </CardTitle>
+                <FieldHintTooltip hint={t("membershipSnapshotDesc")} srLabel={t("fieldHintSr")} />
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
@@ -422,24 +492,65 @@ export default function ProfilePage() {
               </Button>
             </CardContent>
           </Card>
-
           <Card className="cinect-glass border">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <CalendarDays className="h-5 w-5" />
-                {t("profileChecklistTitle")}
-              </CardTitle>
-              <CardDescription>{t("profileChecklistDesc")}</CardDescription>
+              <CardTitle className="text-lg">{t("referralCardTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {completionItems.map((item) => (
-                <div key={item.key} className="flex items-center justify-between rounded-lg border px-3 py-2">
-                  <span className="text-sm">{item.label}</span>
-                  <Badge variant={item.complete ? "default" : "secondary"}>
-                    {item.complete ? t("completionDone") : t("completionPending")}
-                  </Badge>
-                </div>
-              ))}
+              <p className="text-sm text-muted-foreground">{t("referralCardDesc")}</p>
+              <div className="flex items-center gap-2 rounded-lg border p-3">
+                <code className="min-w-0 flex-1 truncate text-sm">
+                  {referralRes?.data?.code ?? user?.referralCode ?? t("referralUnavailable")}
+                </code>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    const value = referralRes?.data?.code ?? user?.referralCode;
+                    if (!value) return;
+                    try {
+                      await navigator.clipboard.writeText(value);
+                      toast.success(t("referralCopySuccess"));
+                    } catch {
+                      toast.error(t("referralCopyFailed"));
+                    }
+                  }}
+                >
+                  <Copy className="mr-2 h-4 w-4" />
+                  {t("referralCopy")}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="cinect-glass border">
+            <CardHeader>
+              <CardTitle className="text-lg">{t("referralCardTitle")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">{t("referralCardDesc")}</p>
+              <div className="flex items-center gap-2 rounded-lg border p-3">
+                <code className="min-w-0 flex-1 truncate text-sm">
+                  {referralCode ?? t("referralUnavailable")}
+                </code>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    if (!referralCode) return;
+                    try {
+                      await navigator.clipboard.writeText(referralCode);
+                      toast.success(t("referralCopySuccess"));
+                    } catch {
+                      toast.error(t("referralCopyFailed"));
+                    }
+                  }}
+                >
+                  <Copy className="mr-2 h-4 w-4" />
+                  {t("referralCopy")}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

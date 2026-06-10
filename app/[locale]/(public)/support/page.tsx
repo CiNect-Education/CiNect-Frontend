@@ -87,26 +87,22 @@ export default function SupportPage() {
               <p className="text-muted-foreground text-sm">{t("chatbotHint")}</p>
               <ScrollArea className="h-72 rounded-md border p-3">
                 <div className="space-y-3">
-                  {chatMessages.length === 0 ? (
-                    <p className="text-muted-foreground text-sm">{t("chatbotEmpty")}</p>
-                  ) : (
-                    chatMessages.map((m, idx) => (
+                  {chatMessages.map((m, idx) => (
+                    <div
+                      key={`${m.role}-${idx}`}
+                      className={m.role === "user" ? "text-right" : "text-left"}
+                    >
                       <div
-                        key={`${m.role}-${idx}`}
-                        className={m.role === "user" ? "text-right" : "text-left"}
+                        className={
+                          m.role === "user"
+                            ? "bg-primary text-primary-foreground inline-block max-w-[90%] rounded-lg px-3 py-2 text-sm"
+                            : "bg-muted inline-block max-w-[90%] rounded-lg px-3 py-2 text-sm"
+                        }
                       >
-                        <div
-                          className={
-                            m.role === "user"
-                              ? "bg-primary text-primary-foreground inline-block max-w-[90%] rounded-lg px-3 py-2 text-sm"
-                              : "bg-muted inline-block max-w-[90%] rounded-lg px-3 py-2 text-sm"
-                          }
-                        >
-                          {m.text}
-                        </div>
+                        {m.text}
                       </div>
-                    ))
-                  )}
+                    </div>
+                  ))}
                 </div>
               </ScrollArea>
               <div className="flex gap-2">

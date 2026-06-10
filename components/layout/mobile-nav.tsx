@@ -22,6 +22,7 @@ import {
   LayoutGrid,
   LogIn,
   UserPlus,
+  Users,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,7 @@ const MAIN_NAV = [
 
 const SECONDARY_NAV = [
   { key: "campaigns", href: "/campaigns", icon: Megaphone },
+  { key: "community", href: "/community", icon: Users },
   { key: "membership", href: "/membership", icon: Crown },
   { key: "gift", href: "/gift", icon: Gift },
   { key: "support", href: "/support", icon: HeadphonesIcon },

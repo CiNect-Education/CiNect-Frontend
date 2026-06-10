@@ -1,101 +1,45 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useRef } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
+import { BookingRefundDialog } from "@/components/account/booking-refund-dialog";
+import { CinectETicket } from "@/components/tickets/cinect-e-ticket";
+import { CinectTicketDetail } from "@/components/tickets/cinect-ticket-detail";
 import { useBooking } from "@/hooks/queries/use-booking-flow";
-import { Download, Calendar, MapPin, Clock, Users } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
-import { format } from "date-fns";
+import { Download, Undo2 } from "lucide-react";
+import { toast } from "sonner";
 import { enUS } from "date-fns/locale";
 import { vi as viDateLocale } from "date-fns/locale";
 import { useLocale, useTranslations } from "next-intl";
-import { formatVnd, localizeRoomName } from "@/lib/showtime-display";
-
-function safeDate(value: unknown): Date | null {
-  if (typeof value === "string" || typeof value === "number" || value instanceof Date) {
-    const d = new Date(value);
-    return Number.isFinite(d.getTime()) ? d : null;
-  }
-  return null;
-}
-
-function toNumber(value: unknown): number {
-  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
-  if (typeof value === "string") {
-    const n = Number(value);
-    return Number.isFinite(n) ? n : 0;
-  }
-  return 0;
-}
+import { printTicketHtml } from "@/lib/ticket-print";
+import { isValid } from "date-fns";
 
 export default function TicketPage() {
   const params = useParams();
   const bookingId = params.bookingId as string;
   const locale = useLocale();
-  const tShow = useTranslations("showtimeDisplay");
+  const t = useTranslations("tickets");
+  const tAccount = useTranslations("account");
   const dateFnsLocale = locale.startsWith("vi") ? viDateLocale : enUS;
-  const price = (n: number) => formatVnd(n, locale);
+  const [refundOpen, setRefundOpen] = useState(false);
 
   const { data: bookingRes, isLoading, error, refetch } = useBooking(bookingId);
   const booking = bookingRes?.data as import("@/types/domain").Booking | undefined;
-  const ticketRef = useRef<HTMLDivElement>(null);
+  const printTicketRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = () => {
-    const ticketNode = ticketRef.current;
+    const ticketNode = printTicketRef.current;
     if (!ticketNode) {
-      window.print();
+      toast.error(t("printFailed"));
       return;
     }
 
-    const printWindow = window.open("", "_blank", "noopener,noreferrer,width=960,height=1280");
-    if (!printWindow) {
-      window.print();
-      return;
-    }
-
-    const styleTags = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
-      .map((el) => el.outerHTML)
-      .join("\n");
-
-    printWindow.document.write(`
-      <!doctype html>
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>CiNect Ticket</title>
-          ${styleTags}
-          <style>
-            @page { margin: 1cm; }
-            body {
-              margin: 0;
-              padding: 16px;
-              print-color-adjust: exact;
-              -webkit-print-color-adjust: exact;
-              background: #fff;
-            }
-            .ticket-print-shell {
-              max-width: 760px;
-              margin: 0 auto;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="ticket-print-shell">${ticketNode.outerHTML}</div>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-    }, 250);
+    printTicketHtml(ticketNode.outerHTML, () => {
+      toast.error(t("printFailed"));
+    });
   };
 
   if (isLoading) {
@@ -117,207 +61,52 @@ export default function TicketPage() {
 
   if (!booking) return null;
 
-  const { seats, snacks, payment, qrCode } = booking;
-  const movieTitle = booking.movieTitle ?? "Movie";
-  const cinemaName = booking.cinemaName ?? "";
-  const roomName = booking.roomName ?? "";
-  const showtimeRaw = booking.showtime as unknown;
-  const showtimeValue =
-    typeof showtimeRaw === "string" || typeof showtimeRaw === "number"
-      ? showtimeRaw
-      : showtimeRaw && typeof showtimeRaw === "object" && "startTime" in showtimeRaw
-        ? (showtimeRaw as { startTime?: unknown }).startTime
-        : booking.createdAt;
-  const formatType = booking.format ?? "2D";
-  const showtimeDate = safeDate(showtimeValue);
+  const showtimeDate = new Date(booking.showtime);
+  const canRefund =
+    booking.status === "CONFIRMED" &&
+    booking.payment?.status === "PAID" &&
+    isValid(showtimeDate) &&
+    showtimeDate >= new Date();
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between print:hidden">
-        <h1 className="text-3xl font-bold">Your Ticket</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleDownload}>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">{t("yourTicket")}</h1>
+          <p className="text-muted-foreground mt-1 text-sm">{t("arriveEarlyHint")}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {canRefund ? (
+            <Button variant="outline" size="sm" onClick={() => setRefundOpen(true)} className="shrink-0">
+              <Undo2 className="mr-2 h-4 w-4" />
+              {tAccount("requestRefund")}
+            </Button>
+          ) : null}
+          <Button variant="outline" size="sm" onClick={handleDownload} className="shrink-0">
             <Download className="mr-2 h-4 w-4" />
-            Save / Print PDF
+            {t("savePrintPdf")}
           </Button>
         </div>
       </div>
 
-      <div ref={ticketRef}>
-        <Card className="cinect-glass print:shadow-none">
-        <CardHeader className="space-y-4">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold">{movieTitle}</h2>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline">{formatType}</Badge>
-                {payment && (
-                  <Badge
-                    variant={payment.status === "PAID" ? "default" : "secondary"}
-                    className="text-xs"
-                  >
-                    {payment.status}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardHeader>
+      <CinectTicketDetail booking={booking} locale={locale} dateFnsLocale={dateFnsLocale} />
 
-        <CardContent className="space-y-6">
-          {/* QR Code */}
-          <div className="flex justify-center py-6">
-            <div className="border-primary/20 rounded-lg border-4 p-4">
-              <QRCodeSVG value={qrCode ?? bookingId} size={200} level="H" includeMargin={false} />
-            </div>
-          </div>
+      <BookingRefundDialog
+        booking={booking}
+        open={refundOpen}
+        onOpenChange={setRefundOpen}
+        onSuccess={() => refetch()}
+      />
 
-          <div className="text-muted-foreground text-center text-sm space-y-1">
-            <p>Scan this QR code at the cinema entrance.</p>
-            <p>Vui lòng có mặt trước giờ chiếu khoảng 15 phút để làm thủ tục vào rạp.</p>
-          </div>
-
-          <Separator />
-
-          {/* Booking Details */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="flex items-start gap-3">
-              <Calendar className="text-muted-foreground mt-0.5 h-5 w-5" />
-              <div className="space-y-1">
-                <div className="text-sm font-medium">Date & Time</div>
-                <div className="text-muted-foreground text-sm">
-                  {showtimeDate ? format(showtimeDate, "PPP", { locale: dateFnsLocale }) : "—"}
-                </div>
-                <div className="text-muted-foreground text-sm">
-                  {showtimeDate ? format(showtimeDate, "p", { locale: dateFnsLocale }) : "—"}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <MapPin className="text-muted-foreground mt-0.5 h-5 w-5" />
-              <div className="space-y-1">
-                <div className="text-sm font-medium">Cinema</div>
-                <div className="text-muted-foreground text-sm">{cinemaName}</div>
-                <div className="text-muted-foreground text-sm">
-                  {roomName ? localizeRoomName(roomName, (k, v) => tShow(k, v)) : "—"}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <Users className="text-muted-foreground mt-0.5 h-5 w-5" />
-              <div className="space-y-1">
-                <div className="text-sm font-medium">Seats</div>
-                <div className="text-muted-foreground text-sm">
-                  {seats?.map((s) => `${s.row}${s.number}`).join(", ") ?? "—"}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <Clock className="text-muted-foreground mt-0.5 h-5 w-5" />
-              <div className="space-y-1">
-                <div className="text-sm font-medium">Showtime</div>
-                <div className="text-muted-foreground text-sm">
-                  {showtimeDate ? format(showtimeDate, "PPpp", { locale: dateFnsLocale }) : "—"}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {snacks && snacks.length > 0 && (
-            <>
-              <Separator />
-              <div className="space-y-3">
-                <div className="text-sm font-medium">Snacks & Combos</div>
-                <div className="space-y-2">
-                  {snacks.map((snack, index) => (
-                    <div key={index} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        {snack.quantity}x {snack.name}
-                      </span>
-                      <span>
-                        {price(
-                          (toNumber(snack.unitPrice) || toNumber(snack.totalPrice)) *
-                            toNumber(snack.quantity)
-                        )}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
-          <Separator />
-
-          {/* Price Breakdown */}
-          <div className="space-y-2">
-            {seats && seats.length > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Tickets ({seats.length})</span>
-                <span>{price(seats.reduce((s, seat) => s + toNumber(seat.price), 0))}</span>
-              </div>
-            )}
-            {snacks && snacks.length > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Snacks</span>
-                <span>
-                  {price(
-                    snacks.reduce(
-                      (s, snack) =>
-                        s +
-                        (toNumber(snack.totalPrice) ||
-                          toNumber(snack.unitPrice) * toNumber(snack.quantity)),
-                      0
-                    )
-                  )}
-                </span>
-              </div>
-            )}
-            {toNumber(booking.discountAmount) > 0 && (
-              <div className="text-primary flex justify-between text-sm">
-                <span>Discount</span>
-                <span>-{price(toNumber(booking.discountAmount))}</span>
-              </div>
-            )}
-            <Separator />
-            <div className="flex justify-between font-bold">
-              <span>Total Paid</span>
-              <span className="text-lg">
-                {price(toNumber(payment?.amount) || toNumber(booking.finalAmount))}
-              </span>
-            </div>
-          </div>
-
-          {/* Booking Info */}
-          <div className="bg-muted text-muted-foreground space-y-1 rounded-lg p-4 text-xs">
-            <div>Booking ID: {booking.id}</div>
-            <div>Transaction ID: {payment?.transactionId ?? "N/A"}</div>
-            <div>
-              Booked on:{" "}
-              {safeDate(booking.createdAt)
-                ? format(new Date(booking.createdAt), "PPp", { locale: dateFnsLocale })
-                : "—"}
-            </div>
-          </div>
-        </CardContent>
-        </Card>
+      {/* Landscape e-ticket — print/PDF only (off-screen) */}
+      <div className="ticket-print-source" aria-hidden="true">
+        <CinectETicket
+          ref={printTicketRef}
+          booking={booking}
+          locale={locale}
+          dateFnsLocale={dateFnsLocale}
+        />
       </div>
-
-      {/* Print Styles */}
-      <style jsx global>{`
-        @media print {
-          body {
-            print-color-adjust: exact;
-            -webkit-print-color-adjust: exact;
-          }
-          @page {
-            margin: 1cm;
-          }
-        }
-      `}</style>
     </div>
   );
 }

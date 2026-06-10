@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
-import { QuickBookingWidget } from "@/components/home/quick-booking-widget";
+import { CinectMovieQuickBooking } from "@/components/movies/cinect-movie-quick-booking";
 import { MovieCarousel } from "@/components/home/movie-carousel";
 import { HeroCarousel } from "@/components/home/hero-carousel";
 import { ComingSoonCarousel } from "@/components/home/coming-soon-carousel";
@@ -165,9 +165,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Quick Booking Widget */}
+      {/* Quick booking — Cinestar-style cascade (cinema → movie → date → showtime) */}
       <section className="relative z-10 mx-auto -mt-8 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <QuickBookingWidget />
+        <CinectMovieQuickBooking />
       </section>
 
       {/* Now Showing Grid */}

@@ -1,3 +1,5 @@
+import { LEGACY_SHORT_ALIASES } from "@/lib/province-centroids";
+
 /** Matches `selected_city` in Settings / Header; sent as ?city= on showtimes API */
 export const SELECTED_CITY_STORAGE_KEY = "selected_city";
 
@@ -13,6 +15,7 @@ export function persistSelectedBookingCity(cityId: string) {
   );
 }
 
+/** @deprecated Legacy 8-city list — only used when provinces API is unavailable */
 export const BOOKING_CITIES = [
   { id: "hcm", labelVi: "TP. Hồ Chí Minh", labelEn: "Ho Chi Minh City" },
   { id: "hn", labelVi: "Hà Nội", labelEn: "Hanoi" },
@@ -26,16 +29,7 @@ export const BOOKING_CITIES = [
 
 export type BookingCityId = (typeof BOOKING_CITIES)[number]["id"];
 
-const CITY_ALIASES: Record<string, string> = {
-  hcm: "ho-chi-minh-city",
-  hn: "ha-noi",
-  dn: "da-nang",
-  hp: "hai-phong",
-  ct: "can-tho",
-  bd: "ho-chi-minh-city",
-  nt: "khanh-hoa",
-  vt: "ho-chi-minh-city",
-};
+const CITY_ALIASES: Record<string, string> = LEGACY_SHORT_ALIASES;
 
 export type BookingCityOption = {
   id: string;
@@ -75,10 +69,21 @@ export function buildBookingCityOptions(
   return [...newOptions, ...legacyOptions];
 }
 
-export function bookingCityLabel(id: string, locale: string): string {
-  const c = BOOKING_CITIES.find((x) => x.id === id);
-  if (!c) return id;
-  return locale.startsWith("vi") ? c.labelVi : c.labelEn;
+export function bookingCityLabel(
+  id: string,
+  locale: string,
+  provincesNew: Array<{ code: string; nameVi: string; nameEn: string }> = [],
+  provincesLegacy: Array<{ code: string; nameVi: string; nameEn: string }> = []
+): string {
+  const normalized = normalizeBookingCityId(id);
+  const fromNew = provincesNew.find((p) => p.code === normalized || p.code === id);
+  if (fromNew) return locale.startsWith("vi") ? fromNew.nameVi : fromNew.nameEn;
+  const fromLegacy = provincesLegacy.find((p) => p.code === normalized || p.code === id);
+  if (fromLegacy) return locale.startsWith("vi") ? fromLegacy.nameVi : fromLegacy.nameEn;
+
+  const c = BOOKING_CITIES.find((x) => x.id === id || x.id === normalized);
+  if (c) return locale.startsWith("vi") ? c.labelVi : c.labelEn;
+  return id;
 }
 
 /** Calendar date in the user's local timezone (avoid UTC off-by-one). */

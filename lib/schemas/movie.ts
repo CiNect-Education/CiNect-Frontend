@@ -75,6 +75,8 @@ export const reviewSchema = z.object({
   movieId: z.string(),
   rating: z.number().min(1).max(10),
   content: z.string(),
+  isVerified: n(z.boolean()),
+  helpfulCount: n(z.number()),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

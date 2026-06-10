@@ -49,6 +49,7 @@ export const profileFormSchema = z.object({
     .refine((value) => value === "" || CITY_REGEX.test(value), {
       message: "City can only contain letters and spaces",
     }),
+  profilePublic: z.boolean().default(true),
 });
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>;

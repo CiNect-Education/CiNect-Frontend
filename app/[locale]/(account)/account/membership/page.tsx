@@ -100,7 +100,12 @@ export default function AccountMembershipPage() {
     : 100;
 
   const handleRedeemCoupon = (couponId: string) => {
-    redeemCoupon.mutate({ couponId });
+    redeemCoupon.mutate(
+      { couponId },
+      {
+        onSuccess: () => toast.success(t("toastCouponRedeemed")),
+      }
+    );
   };
 
   return (

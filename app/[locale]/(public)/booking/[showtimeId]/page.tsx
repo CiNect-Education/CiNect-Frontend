@@ -45,6 +45,19 @@ import { vi as viDateLocale } from "date-fns/locale";
 import { useLocale, useTranslations } from "next-intl";
 import { formatVnd, localizeAudioLabel, localizeRoomName } from "@/lib/showtime-display";
 import { useAuth } from "@/providers/auth-provider";
+import { toast } from "sonner";
+
+function getSeatUiStatus(seat: Seat): string {
+  return String((seat as { status?: string }).status ?? seat.status ?? "AVAILABLE");
+}
+
+function seatsFromSeatsPayload(payload: unknown): Seat[] {
+  if (Array.isArray(payload)) return payload as Seat[];
+  if (payload && typeof payload === "object" && "seats" in payload) {
+    return ((payload as ShowtimeSeatsPayload).seats ?? []) as Seat[];
+  }
+  return [];
+}
 
 function extractConflictedSeatIds(error: unknown): string[] {
   if (!(error instanceof ApiError) || error.status !== 409) return [];
@@ -233,6 +246,20 @@ export default function BookingPage() {
     if (selectedSeats.length === 0) return;
     setConflictedSeatIds([]);
     try {
+      const freshResult = await refetch();
+      const freshPayload = freshResult.data?.data ?? freshResult.data;
+      const freshSeats = seatsFromSeatsPayload(freshPayload);
+      const unavailable = selectedSeats.filter((id) => {
+        const seat = freshSeats.find((s) => s.id === id);
+        return !seat || getSeatUiStatus(seat) !== "AVAILABLE";
+      });
+      if (unavailable.length > 0) {
+        setConflictedSeatIds(unavailable);
+        setSelectedSeats((prev) => prev.filter((id) => !unavailable.includes(id)));
+        toast.error(tb("seatsConflictMessage"));
+        return;
+      }
+
       const ticketLines = buildTicketLinesPayload(ticketQuantities);
       const response = await holdMutation.mutateAsync({
         showtimeId,
@@ -252,6 +279,9 @@ export default function BookingPage() {
           : (response as { expiresAt?: string }).expiresAt;
       setHoldId(holdIdVal ?? null);
       setExpiresAt(normalizeIsoDate(expiresAtVal));
+      setConflictedSeatIds([]);
+      clearRealtimeConflicts();
+      void refetch();
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         router.push(`/login?returnTo=${encodeURIComponent(`/booking/${showtimeId}`)}`);
@@ -261,11 +291,16 @@ export default function BookingPage() {
       if (failed.length > 0) {
         setConflictedSeatIds(failed);
         setSelectedSeats((prev) => prev.filter((id) => !failed.includes(id)));
+        toast.error(tb("seatsConflictMessage"));
       } else {
         setSelectedSeats([]);
+        toast.error(
+          err instanceof ApiError ? err.message || tb("seatsConflictMessage") : tb("seatsConflictMessage")
+        );
       }
+      void refetch();
     }
-  }, [selectedSeats, showtimeId, holdMutation, router, ticketQuantities]);
+  }, [selectedSeats, showtimeId, holdMutation, router, ticketQuantities, refetch, tb, clearRealtimeConflicts]);
 
   const handleExpire = useCallback(async () => {
     if (expiringRef.current) return;
@@ -344,67 +379,6 @@ export default function BookingPage() {
     return Number.isFinite(d.getTime()) ? d : null;
   }, [showtime?.startTime]);
 
-  const handleAutoPickSeats = () => {
-    const availableSeats = seatArray.filter((seat) => {
-      const status =
-        (seat as { status?: string }).status !== undefined
-          ? (seat as { status?: string }).status
-          : seat.status;
-      const type =
-        (seat as { type?: string }).type ??
-        (seat as { seatType?: string }).seatType ??
-        "STANDARD";
-      return status === "AVAILABLE" && type !== "DISABLED";
-    });
-    if (availableSeats.length === 0 || holdId) return;
-
-    const seatsByRow = availableSeats.reduce(
-      (acc, seat) => {
-        if (!acc[seat.row]) acc[seat.row] = [];
-        acc[seat.row].push(seat);
-        return acc;
-      },
-      {} as Record<string, Seat[]>
-    );
-
-    Object.values(seatsByRow).forEach((rowSeats) =>
-      rowSeats.sort((a, b) => a.number - b.number)
-    );
-
-    const desiredCount =
-      requiredSeatCount > 0
-        ? requiredSeatCount
-        : selectedSeats.length > 0
-          ? selectedSeats.length
-          : 2;
-    let bestGroup: Seat[] | null = null;
-    let bestScore = Number.POSITIVE_INFINITY;
-
-    for (const rowSeats of Object.values(seatsByRow)) {
-      if (rowSeats.length < desiredCount) continue;
-      const rowCenter = (rowSeats.length - 1) / 2;
-      for (let i = 0; i <= rowSeats.length - desiredCount; i++) {
-        const group = rowSeats.slice(i, i + desiredCount);
-        const isContiguous = group.every(
-          (seat, idx) => idx === 0 || seat.number === group[idx - 1].number + 1
-        );
-        if (!isContiguous) continue;
-        const groupCenter = i + (desiredCount - 1) / 2;
-        const score = Math.abs(groupCenter - rowCenter);
-        if (score < bestScore) {
-          bestScore = score;
-          bestGroup = group;
-        }
-      }
-    }
-
-    if (bestGroup && bestGroup.length > 0) {
-      setConflictedSeatIds([]);
-      clearRealtimeConflicts();
-      setSelectedSeats(bestGroup.map((s) => s.id));
-    }
-  };
-
   const pageLoading =
     authLoading || !isAuthenticated || isLoading || (bookingStep === "tickets" && ticketsLoading);
 
@@ -454,9 +428,9 @@ export default function BookingPage() {
 
       <div className="mx-auto max-w-7xl px-4 py-8">
         {/* Showtime header */}
-        <div className="mb-6 grid gap-4 lg:grid-cols-[240px,1fr]">
-          <div className="hidden lg:block">
-            <Card className="overflow-hidden">
+        <div className="mb-6 grid gap-4 lg:grid-cols-[auto,minmax(0,1fr)] lg:items-start">
+          <div className="hidden shrink-0 lg:block">
+            <Card className="w-36 overflow-hidden shadow-md xl:w-40">
               <div className="bg-muted relative aspect-[2/3]">
                 {showtime?.moviePosterUrl ? (
                   <RemoteImage
@@ -529,23 +503,18 @@ export default function BookingPage() {
 
               <Separator className="my-4" />
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-muted-foreground text-sm">
-                  {tb("seatMapTip")}
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline">
-                    {typeof showtime?.availableSeats === "number"
-                      ? tb("availableSeatsCount", { count: showtime.availableSeats })
-                      : tb("liveAvailability")}
-                  </Badge>
-                  <Badge variant="outline">
-                    {tb("baseFrom")}{" "}
-                    {typeof showtime?.basePrice === "number" && Number.isFinite(showtime.basePrice)
-                      ? formatPrice(showtime.basePrice)
-                      : "—"}
-                  </Badge>
-                </div>
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <Badge variant="outline">
+                  {typeof showtime?.availableSeats === "number"
+                    ? tb("availableSeatsCount", { count: showtime.availableSeats })
+                    : tb("liveAvailability")}
+                </Badge>
+                <Badge variant="outline">
+                  {tb("baseFrom")}{" "}
+                  {typeof showtime?.basePrice === "number" && Number.isFinite(showtime.basePrice)
+                    ? formatPrice(showtime.basePrice)
+                    : "—"}
+                </Badge>
               </div>
 
               {/* Pricing chips */}
@@ -590,7 +559,7 @@ export default function BookingPage() {
                   selectedSeats={selectedSeats}
                   onSeatClick={handleSeatClick}
                   disabled={!!holdId}
-                  conflictedSeatIds={allConflicts.length > 0 ? allConflicts : undefined}
+                  conflictedSeatIds={!holdId && allConflicts.length > 0 ? allConflicts : undefined}
                   layoutTemplate={roomMeta?.layoutTemplate}
                   aisleAfterCol={roomMeta?.aisleAfterCol}
                   roomName={
@@ -616,7 +585,7 @@ export default function BookingPage() {
                 <CountdownTimer expiresAt={expiresAt} onExpire={handleExpire} />
               )}
 
-              {allConflicts.length > 0 && (
+              {allConflicts.length > 0 && !holdId && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
@@ -661,18 +630,6 @@ export default function BookingPage() {
                 </Button>
               )}
 
-              {bookingStep === "seats" && (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  size="sm"
-                  disabled={holdId != null || seatArray.length === 0}
-                  onClick={handleAutoPickSeats}
-                >
-                  {tb("chooseBestSeats")}
-                </Button>
-              )}
-
               {bookingStep === "tickets" && ticketTotal > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{tb("ticketTotal")}:</span>
@@ -698,23 +655,18 @@ export default function BookingPage() {
                     </div>
                     <div className="space-y-2 text-xs">
                       {selectedSeatDetails.map((seat) => (
-                        <div key={seat.id} className="flex items-center justify-between gap-2">
-                          <div className="min-w-0">
-                            <div className="font-semibold">
-                              {seat.row}
-                              {seat.number}
-                            </div>
-                            <div className="text-muted-foreground">
-                              {seatTypeLabel(
-                                ((seat as { type?: string }).type ??
-                                  (seat as { seatType?: string }).seatType ??
-                                  "STANDARD") as string
-                              )}
-                            </div>
-                          </div>
-                          <div className="font-semibold tabular-nums">
-                            {formatPrice(seat.price ?? 0)}
-                          </div>
+                        <div key={seat.id} className="flex items-center gap-2">
+                          <span className="font-semibold">
+                            {seat.row}
+                            {seat.number}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {seatTypeLabel(
+                              ((seat as { type?: string }).type ??
+                                (seat as { seatType?: string }).seatType ??
+                                "STANDARD") as string
+                            )}
+                          </span>
                         </div>
                       ))}
                     </div>

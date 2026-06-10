@@ -12,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/membership",
     "/gift",
     "/news",
+    "/community",
     "/support",
   ];
 

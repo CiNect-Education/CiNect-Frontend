@@ -184,6 +184,7 @@ export function Footer() {
             <FooterLink href="/support">{t("contact")}</FooterLink>
             <FooterLink href="/support">{t("careers")}</FooterLink>
             <FooterLink href="/news">{t("news")}</FooterLink>
+            <FooterLink href="/community">{tNav("community")}</FooterLink>
           </FooterColumn>
 
           <FooterColumn title={t("otherServices")}>

@@ -85,12 +85,15 @@ export function BookingCityField({
       <PopoverContent
         align="start"
         sideOffset={4}
-        className="z-[9999] max-h-60 w-[var(--radix-popover-trigger-width)] min-w-[10rem] overflow-auto p-0.5 text-xs"
+        className="cinect-dropdown-panel cinect-dropdown-scroll z-[9999] max-h-60 w-[var(--radix-popover-trigger-width)] min-w-[10rem] overflow-y-auto p-1 text-xs"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <button
           type="button"
-          className="hover:bg-accent text-muted-foreground hover:text-accent-foreground w-full rounded-sm px-2 py-1.5 text-left"
+          className={cn(
+            "cinect-dropdown-item w-full px-2 py-1.5 text-left",
+            !value && "cinect-dropdown-item--selected"
+          )}
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => {
             onChange("");
@@ -106,8 +109,8 @@ export function BookingCityField({
             key={c.id}
             type="button"
             className={cn(
-              "hover:bg-accent w-full rounded-sm px-2 py-1.5 text-left",
-              value === c.id && "bg-accent"
+              "cinect-dropdown-item w-full px-2 py-1.5 text-left",
+              value === c.id && "cinect-dropdown-item--selected"
             )}
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => {

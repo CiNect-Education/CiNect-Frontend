@@ -1,0 +1,457 @@
+/* Showtimes — cinestar.com.vn/showtimes clone */
+.cinect-showtimes {
+  --font-title: var(--font-display), var(--font-inter), system-ui, sans-serif;
+  --st-yellow: #f3ea28;
+  --st-purple: #663399;
+  --st-border: #a9a9a9;
+  --st-text: #f8fafc;
+  background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 48%, #0f172a 100%);
+  color: var(--st-text);
+  font-size: 10px;
+  margin-inline: calc(50% - 50vw);
+  min-height: 100vh;
+  padding-bottom: 4.8rem;
+  width: 100vw;
+}
+
+.cinect-showtimes .container {
+  box-sizing: border-box;
+  margin-inline: auto;
+  max-width: 1230px;
+  padding-inline: 15px;
+  width: 100%;
+}
+
+/* ── Filter bar ── */
+.cinect-showtimes .showtime-filter {
+  --gap: 1rem;
+  --spacing: 5rem;
+  margin: var(--spacing) 0 3rem;
+}
+
+.cinect-showtimes .showtime-filter-items {
+  border-bottom: 0.1rem solid var(--st-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  justify-content: space-between;
+  padding-bottom: var(--spacing);
+}
+
+.cinect-showtimes .showtime-filter-item {
+  border: 1px solid var(--st-border);
+  border-radius: 0.8rem;
+  display: flex;
+  flex-basis: calc(25% - var(--gap));
+  flex-direction: column;
+  max-width: calc(25% - var(--gap));
+  min-width: 0;
+  padding: 1rem;
+}
+
+.cinect-showtimes .showtime-filter-item--large {
+  flex: 1 1 0%;
+  max-width: calc(50% - var(--gap));
+}
+
+.cinect-showtimes .showtime-filter-heading {
+  align-items: center;
+  color: var(--st-yellow);
+  display: flex;
+  font-family: var(--font-title);
+  font-size: 2.4rem;
+  font-weight: 400;
+  justify-content: space-between;
+  line-height: 1;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.cinect-showtimes .showtime-filter-heading svg {
+  color: var(--st-yellow);
+  flex-shrink: 0;
+  height: 2.6rem;
+  width: 2.6rem;
+}
+
+.cinect-showtimes .showtime-filter-select {
+  margin-top: auto;
+  width: 100%;
+}
+
+.cinect-showtimes .showtime-filter-select .showtime-filter-trigger {
+  align-items: center;
+  background: #fff !important;
+  border: 1px solid #908888 !important;
+  border-radius: 0.8rem !important;
+  box-sizing: border-box;
+  color: var(--st-purple) !important;
+  cursor: pointer;
+  display: flex !important;
+  font-size: 1.4rem;
+  font-weight: 700;
+  gap: 0.6rem;
+  height: auto !important;
+  justify-content: space-between;
+  letter-spacing: 0.04rem;
+  line-height: 1.3;
+  max-width: 100%;
+  min-height: 3.6rem;
+  padding: 0.6rem 1.2rem !important;
+  text-transform: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  width: 100% !important;
+}
+
+.cinect-showtimes .showtime-filter-select .showtime-filter-trigger > span {
+  -webkit-line-clamp: unset !important;
+  display: block;
+  flex: 1 1 auto;
+  line-clamp: unset !important;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cinect-showtimes .showtime-filter-select--done .showtime-filter-trigger {
+  background: var(--st-yellow) !important;
+  border-color: var(--st-yellow) !important;
+  color: var(--st-purple) !important;
+}
+
+.cinect-showtimes .showtime-filter-select--active .showtime-filter-trigger {
+  border-color: var(--st-yellow);
+}
+
+.cinect-showtimes .showtime-filter-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.cinect-showtimes .showtime-filter-trigger svg {
+  color: var(--st-purple) !important;
+  flex-shrink: 0;
+  height: 1.4rem !important;
+  opacity: 0.85;
+  width: 1.4rem !important;
+}
+
+/* ── Results ── */
+.cinect-showtimes .movies-showtimes {
+  min-height: 50vh;
+}
+
+.cinect-showtimes .movies-showtime {
+  border-bottom: 1px solid var(--st-border);
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 5rem;
+  padding-bottom: 3rem;
+}
+
+.cinect-showtimes .sec-showtimes-left {
+  box-sizing: border-box;
+  flex: 0 0 33.3333%;
+  max-width: 33.3333%;
+  padding-right: 2rem;
+}
+
+.cinect-showtimes .sec-showtimes-right {
+  box-sizing: border-box;
+  flex: 0 0 66.6667%;
+  max-width: 66.6667%;
+}
+
+.cinect-showtimes .movies-img .inner {
+  display: block;
+  overflow: hidden;
+  position: relative;
+}
+
+.cinect-showtimes .movies-img .inner img {
+  display: block;
+  height: auto;
+  max-width: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.cinect-showtimes .movies-img__placeholder {
+  aspect-ratio: 2 / 3;
+  background: rgb(30 41 59 / 80%);
+  width: 100%;
+}
+
+.cinect-showtimes .movies-name {
+  font-family: var(--font-title);
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 2rem 0;
+}
+
+.cinect-showtimes .movies-name a {
+  color: var(--st-text);
+  text-decoration: none;
+}
+
+.cinect-showtimes .movies-name a:hover {
+  color: var(--st-yellow);
+}
+
+.cinect-showtimes .movies-type {
+  font-size: 1.4rem;
+}
+
+.cinect-showtimes .movies-type ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cinect-showtimes .movies-type ul li {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.4rem;
+}
+
+.cinect-showtimes .movies-type .meta-ic {
+  color: var(--st-yellow);
+  flex-shrink: 0;
+  height: 1.7rem;
+  margin-top: 0.15rem;
+  width: 1.7rem;
+}
+
+.cinect-showtimes .movies-type .txt {
+  line-height: 1.45;
+}
+
+.cinect-showtimes .movies-list {
+  border-bottom: 1px solid rgb(169 169 169 / 35%);
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+}
+
+.cinect-showtimes .movies-list:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.cinect-showtimes .theater-heading {
+  color: var(--st-text);
+  font-family: var(--font-title);
+  font-size: 2.6rem;
+  font-weight: 400;
+  line-height: 1.25;
+  margin: 0 0 0.4rem;
+  text-transform: capitalize;
+}
+
+.cinect-showtimes .theater-sub {
+  color: rgb(248 250 252 / 85%);
+  font-size: 1.4rem;
+  line-height: 1.45;
+  margin: 0 0 1.2rem;
+}
+
+.cinect-showtimes .movies-rp-item:not(:last-child) {
+  margin-bottom: 0.8rem;
+}
+
+.cinect-showtimes .movies-rp-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+}
+
+.cinect-showtimes .movies-time-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.cinect-showtimes .movies-time-item {
+  border-radius: 0.4rem;
+  color: var(--st-text);
+  display: block;
+  font-size: 1.3rem;
+  padding: 0.6rem 1.2rem;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.cinect-showtimes .movies-time-item::before {
+  border: 0.1rem solid rgb(248 250 252 / 50%);
+  border-radius: inherit;
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  transition: border-color 0.15s ease;
+}
+
+.cinect-showtimes .movies-time-item:hover,
+.cinect-showtimes .movies-time-item:focus-visible {
+  color: var(--st-yellow);
+}
+
+.cinect-showtimes .movies-time-item:hover::before,
+.cinect-showtimes .movies-time-item:focus-visible::before {
+  border-color: var(--st-yellow);
+}
+
+/* ── Empty / error ── */
+.cinect-showtimes .showtimes-empty {
+  border: 0.1rem solid rgb(248 250 252 / 35%);
+  border-radius: 0.6rem;
+  margin: 4rem 0;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.cinect-showtimes .showtimes-empty__title {
+  font-family: var(--font-title);
+  font-size: 2rem;
+  margin-bottom: 0.8rem;
+}
+
+.cinect-showtimes .showtimes-empty__hint {
+  color: rgb(248 250 252 / 75%);
+  font-size: 1.4rem;
+}
+
+/* ── Scroll to top ── */
+.cinect-showtimes .btn-scroll-to-top {
+  align-items: center;
+  background: rgb(248 250 252 / 12%);
+  border: 1px solid rgb(248 250 252 / 35%);
+  border-radius: 50%;
+  bottom: 8rem;
+  color: var(--st-text);
+  cursor: pointer;
+  display: flex;
+  height: 4.4rem;
+  justify-content: center;
+  position: fixed;
+  right: 2rem;
+  transition: background-color 0.2s ease;
+  width: 4.4rem;
+  z-index: 50;
+}
+
+.cinect-showtimes .btn-scroll-to-top:hover {
+  background-color: var(--st-purple);
+}
+
+/* ── Skeleton ── */
+.cinect-showtimes .showtimes-skeleton-filter {
+  border: 1px solid rgb(169 169 169 / 40%);
+  border-radius: 0.8rem;
+  height: 9.4rem;
+}
+
+.cinect-showtimes .showtimes-skeleton-poster {
+  aspect-ratio: 2 / 3;
+  background: rgb(30 41 59 / 60%);
+  border-radius: 0.4rem;
+}
+
+.cinect-showtimes .showtimes-skeleton-line {
+  background: rgb(30 41 59 / 60%);
+  border-radius: 0.3rem;
+  height: 1.2rem;
+}
+
+.cinect-showtimes .showtimes-skeleton-chip {
+  background: rgb(30 41 59 / 60%);
+  border-radius: 0.4rem;
+  height: 3.2rem;
+  width: 5.4rem;
+}
+
+/* ── Responsive ── */
+@media only screen and (max-width: 1200px) {
+  .cinect-showtimes .showtime-filter-heading {
+    font-size: 2rem;
+  }
+
+  .cinect-showtimes .theater-heading {
+    font-size: 2rem;
+  }
+
+  .cinect-showtimes .movies-name {
+    font-size: 1.8rem;
+  }
+}
+
+@media only screen and (max-width: 800px) {
+  .cinect-showtimes .showtime-filter-heading {
+    font-size: 1.7rem;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .cinect-showtimes .showtime-filter {
+    --spacing: 3rem;
+  }
+
+  .cinect-showtimes .showtime-filter-item {
+    --gap: 0.5rem;
+    flex-basis: calc(50% - var(--gap));
+    max-width: calc(50% - var(--gap));
+  }
+
+  .cinect-showtimes .showtime-filter-item--large {
+    flex-basis: 100%;
+    max-width: 100%;
+    order: 2;
+  }
+
+  .cinect-showtimes .sec-showtimes-left,
+  .cinect-showtimes .sec-showtimes-right {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+
+  .cinect-showtimes .movies-time-item {
+    padding: 0.4rem 1.2rem;
+  }
+
+  .cinect-showtimes .theater-heading {
+    font-size: 1.8rem;
+  }
+
+  .cinect-showtimes .btn-scroll-to-top {
+    bottom: 7rem;
+    right: 1.5rem;
+  }
+}
+
+@media screen and (max-width: 560px) {
+  .cinect-showtimes .movies-showtime {
+    flex-direction: column;
+  }
+
+  .cinect-showtimes .sec-showtimes-left,
+  .cinect-showtimes .sec-showtimes-right {
+    flex: 0 0 100%;
+    max-width: 100%;
+    padding-right: 0;
+  }
+
+  .cinect-showtimes .movies-img {
+    max-width: 14rem;
+  }
+}

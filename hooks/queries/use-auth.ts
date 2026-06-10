@@ -1,6 +1,7 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useApiQuery } from "@/hooks/use-api-query";
 import { useApiMutation } from "@/hooks/use-api-mutation";
+import { apiClient } from "@/lib/api-client";
 import { userSchema, authResponseSchema } from "@/lib/schemas/auth";
 import type { User } from "@/types/domain";
 import type { LoginInput, RegisterInput } from "@/lib/schemas/auth";
@@ -27,7 +28,6 @@ export function useLogin() {
     LoginInput
   >("post", "/auth/login", {
     schema: authResponseSchema,
-    successMessage: "Login successful",
     onSuccess: (res) => {
       const { user, tokens } = res.data;
       setAccessToken(tokens.accessToken);
@@ -43,7 +43,6 @@ export function useRegister() {
     RegisterInput
   >("post", "/auth/register", {
     schema: authResponseSchema,
-    successMessage: "Registration successful",
   });
 }
 
@@ -60,17 +59,11 @@ export function useLogout() {
 }
 
 export function useForgotPassword() {
-  return useApiMutation<void, { email: string }>("post", "/auth/forgot-password", {
-    successMessage: "Password reset email sent",
-  });
+  return useApiMutation<void, { email: string }>("post", "/auth/forgot-password");
 }
 
 export function useResetPassword() {
-  return useApiMutation<void, { token: string; password: string; confirmPassword: string }>(
-    "post",
-    "/auth/reset-password",
-    { successMessage: "Password reset successfully" }
-  );
+  return useApiMutation<void, { token: string; newPassword: string }>("post", "/auth/reset-password");
 }
 
 // ─── Token Refresh ──────────────────────────────────────────────
@@ -100,14 +93,25 @@ type UpdateProfileInput = {
   dateOfBirth?: string;
   gender?: string;
   city?: string;
+  profilePublic?: boolean;
+  referralCode?: string;
 };
+
+export function useUploadAvatar() {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return apiClient.postFormData<{ url: string }>("/auth/profile/avatar", formData);
+    },
+  });
+}
 
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
 
   return useApiMutation<User, UpdateProfileInput>("put", "/auth/profile", {
     schema: userSchema,
-    successMessage: "Profile updated",
     invalidateKeys: [["membership", "profile"]],
     onSuccess: (res) => {
       const user = res.data;

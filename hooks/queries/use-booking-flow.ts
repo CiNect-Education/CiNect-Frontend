@@ -19,7 +19,7 @@ export function useShowtimeSeats(showtimeId: string) {
   return useQuery({
     queryKey: ["showtimes", showtimeId, "seats"],
     queryFn: () => apiClient.get<ShowtimeSeatsPayload>(`/showtimes/${showtimeId}/seats`),
-    refetchInterval: 10000,
+    refetchInterval: 5000,
   });
 }
 

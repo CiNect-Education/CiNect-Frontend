@@ -40,7 +40,9 @@ export function MoviesBookingLanding() {
 
   return (
     <div className="flex flex-col">
-      <CinectMovieQuickBooking />
+      <div className="mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+        <CinectMovieQuickBooking />
+      </div>
 
       <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-10 sm:px-6 lg:px-8">
         {loadingNow ? (

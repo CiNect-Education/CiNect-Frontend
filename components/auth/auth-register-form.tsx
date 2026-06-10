@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
@@ -20,7 +21,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { authFieldClass, authLabelClass, authSubmitClass } from "@/components/auth/auth-form-styles";
+import {
+  authFieldClass,
+  authLabelClass,
+  authPasswordToggleClass,
+  authSubmitClass,
+} from "@/components/auth/auth-form-styles";
 
 const FULL_NAME_REGEX = /^[\p{L}\s]+$/u;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -33,15 +39,18 @@ type RegisterFormValues = {
   phone: string;
   password: string;
   confirmPassword: string;
+  referralCode: string;
 };
 
 export function AuthRegisterForm() {
   const t = useTranslations("auth");
   const router = useRouter();
   const { register } = useAuth();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const referralCodeParam = searchParams.get("referralCode")?.trim() ?? "";
 
   const registerSchema = useMemo(
     () =>
@@ -89,6 +98,7 @@ export function AuthRegisterForm() {
       phone: "",
       password: "",
       confirmPassword: "",
+      referralCode: referralCodeParam,
     },
   });
 
@@ -105,10 +115,11 @@ export function AuthRegisterForm() {
         phone: data.phone.trim(),
         password: data.password,
         confirmPassword: data.confirmPassword,
+        referralCode: data.referralCode.trim() || undefined,
       });
       router.push("/login");
     } catch {
-      // Error toast already shown in AuthProvider
+      // Error toast is shown by useApiMutation
     } finally {
       setIsLoading(false);
     }
@@ -178,6 +189,19 @@ export function AuthRegisterForm() {
           />
           <FormField
             control={form.control}
+            name="referralCode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className={authLabelClass()}>{t("referralCode")}</FormLabel>
+                <FormControl>
+                  <Input placeholder={t("referralCodePlaceholder")} className={authFieldClass} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="password"
             render={({ field }) => (
               <FormItem>
@@ -193,7 +217,7 @@ export function AuthRegisterForm() {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute right-0 top-0 h-11 px-3 text-slate-500 hover:text-slate-800"
+                      className={authPasswordToggleClass}
                       onClick={() => setShowPassword((p) => !p)}
                       aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                     >
@@ -222,7 +246,7 @@ export function AuthRegisterForm() {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute right-0 top-0 h-11 px-3 text-slate-500 hover:text-slate-800"
+                      className={authPasswordToggleClass}
                       onClick={() => setShowConfirmPassword((p) => !p)}
                       aria-label={showConfirmPassword ? t("hidePassword") : t("showPassword")}
                     >
