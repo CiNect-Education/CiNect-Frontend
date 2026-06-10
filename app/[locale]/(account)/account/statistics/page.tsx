@@ -82,7 +82,6 @@ export default function AccountStatisticsPage() {
       <PageHeader
         title={t("statistics")}
         description={t("statisticsDesc")}
-        breadcrumbs={[{ label: t("title"), href: "/account/profile" }, { label: t("statistics") }]}
       />
 
       {isLoading ? (

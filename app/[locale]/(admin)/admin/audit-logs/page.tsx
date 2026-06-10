@@ -181,7 +181,6 @@ export default function AdminAuditLogsPage() {
       <PageHeader
         title={t("auditLogs")}
         description={t("descAuditLogs")}
-        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("auditLogs") }]}
         actions={
           <Button
             variant="outline"

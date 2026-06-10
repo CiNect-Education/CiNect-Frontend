@@ -241,7 +241,6 @@ export default function AdminBookingsPage() {
     <AdminPageShell
       title={t("bookings")}
       description={t("descBookings")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("bookings") }]}
       actions={
         <Button variant="outline" size="sm">
           <Download className="mr-2 h-4 w-4" />

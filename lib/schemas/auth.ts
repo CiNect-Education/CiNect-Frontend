@@ -61,7 +61,6 @@ export const registerSchema = z
       .trim()
       .min(1, "Phone number is required")
       .regex(PHONE_REGEX, "Phone number must be exactly 10 digits"),
-    referralCode: z.string().trim().optional(),
   })
   .refine((d) => d.password === d.confirmPassword, {
     message: "Passwords do not match",
@@ -99,7 +98,6 @@ export const userSchema = z.object({
   gender: n(z.string()),
   city: n(z.string()),
   profilePublic: n(z.boolean()),
-  referralCode: n(z.string()),
   isActive: n(z.boolean()),
   emailVerified: n(z.boolean()),
   createdAt: n(z.string()),

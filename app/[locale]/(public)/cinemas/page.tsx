@@ -218,7 +218,6 @@ export default function CinemasPage() {
       <PageHeader
         title={t("title")}
         description={t("description")}
-        breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("title") }]}
       />
 
       {/* Filters */}

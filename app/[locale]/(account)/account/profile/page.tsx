@@ -31,7 +31,6 @@ import {
 import {
   BadgeCheck,
   Camera,
-  Copy,
   Crown,
   Mail,
   MapPin,
@@ -44,7 +43,6 @@ import { toast } from "sonner";
 import { useAuth } from "@/providers/auth-provider";
 import { useUpdateProfile } from "@/hooks/queries/use-auth";
 import { useMembershipProfile } from "@/hooks/queries/use-membership";
-import { useCommunityReferral } from "@/hooks/queries/use-community";
 import { Link } from "@/i18n/navigation";
 import { PROFILE_GENDER_VALUES, profileFormSchema, type ProfileFormValues } from "@/lib/schemas/profile";
 import { ProfileAvatarField } from "@/components/account/profile-avatar-field";
@@ -69,7 +67,6 @@ export default function ProfilePage() {
   const tCommon = useTranslations("common");
   const { user, refetchUser } = useAuth();
   const { data: membershipRes } = useMembershipProfile();
-  const { data: referralRes } = useCommunityReferral();
   const updateProfile = useUpdateProfile();
   const membershipProfile = membershipRes?.data;
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -126,7 +123,6 @@ export default function ProfilePage() {
       .join("") || "CN";
 
   const avatarPreview = values.avatar.trim();
-  const referralCode = referralRes?.data?.code ?? user?.referralCode;
 
   const applyServerErrors = (details: unknown) => {
     if (!details || typeof details !== "object") return;
@@ -180,7 +176,6 @@ export default function ProfilePage() {
       <PageHeader
         title={t("profile")}
         description={t("profileDesc")}
-        breadcrumbs={[{ label: t("title"), href: "/account/profile" }, { label: t("profile") }]}
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.45fr_0.85fr]">
@@ -490,67 +485,6 @@ export default function ProfilePage() {
               <Button asChild variant="outline" className="w-full">
                 <Link href="/account/membership">{t("manageMembership")}</Link>
               </Button>
-            </CardContent>
-          </Card>
-          <Card className="cinect-glass border">
-            <CardHeader>
-              <CardTitle className="text-lg">{t("referralCardTitle")}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">{t("referralCardDesc")}</p>
-              <div className="flex items-center gap-2 rounded-lg border p-3">
-                <code className="min-w-0 flex-1 truncate text-sm">
-                  {referralRes?.data?.code ?? user?.referralCode ?? t("referralUnavailable")}
-                </code>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    const value = referralRes?.data?.code ?? user?.referralCode;
-                    if (!value) return;
-                    try {
-                      await navigator.clipboard.writeText(value);
-                      toast.success(t("referralCopySuccess"));
-                    } catch {
-                      toast.error(t("referralCopyFailed"));
-                    }
-                  }}
-                >
-                  <Copy className="mr-2 h-4 w-4" />
-                  {t("referralCopy")}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="cinect-glass border">
-            <CardHeader>
-              <CardTitle className="text-lg">{t("referralCardTitle")}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">{t("referralCardDesc")}</p>
-              <div className="flex items-center gap-2 rounded-lg border p-3">
-                <code className="min-w-0 flex-1 truncate text-sm">
-                  {referralCode ?? t("referralUnavailable")}
-                </code>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    if (!referralCode) return;
-                    try {
-                      await navigator.clipboard.writeText(referralCode);
-                      toast.success(t("referralCopySuccess"));
-                    } catch {
-                      toast.error(t("referralCopyFailed"));
-                    }
-                  }}
-                >
-                  <Copy className="mr-2 h-4 w-4" />
-                  {t("referralCopy")}
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </div>

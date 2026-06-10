@@ -347,7 +347,12 @@
     --cinect-header-height: 4.25rem;
     --cinect-header-sub-height: 0px;
     --cinect-header-total-height: var(--cinect-header-height);
+    background: #0f172a;
     color: hsl(0 0% 98%);
+  }
+
+  .dark .cinect-header-shell {
+    background: var(--cinect-bg);
   }
 
   @media (min-width: 640px) {
@@ -390,14 +395,22 @@
   }
 
   .cinect-header-main {
-    background: hsl(235 48% 8%);
+    background: #0f172a;
     border-color: hsl(0 0% 100% / 0.08);
-    box-shadow: 0 4px 24px hsl(235 50% 4% / 0.45);
+    box-shadow: none;
+  }
+
+  .dark .cinect-header-main {
+    background: var(--cinect-bg);
   }
 
   .cinect-header-sub {
-    background: hsl(235 44% 10%);
+    background: #0f172a;
     color: hsl(0 0% 98% / 0.92);
+  }
+
+  .dark .cinect-header-sub {
+    background: var(--cinect-bg);
   }
 
   .cinect-header-sub-link {

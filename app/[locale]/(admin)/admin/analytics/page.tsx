@@ -186,10 +186,6 @@ export default function AdminAnalyticsPage() {
     <AdminPageShell
       title={t("analytics") ?? "Analytics"}
       description={t("descAnalytics")}
-      breadcrumbs={[
-        { label: t("title"), href: "/admin" },
-        { label: t("analytics") ?? "Analytics" },
-      ]}
       actions={
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex rounded-md border">

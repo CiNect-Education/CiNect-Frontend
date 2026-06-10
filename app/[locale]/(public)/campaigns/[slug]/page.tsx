@@ -85,11 +85,6 @@ export default function CampaignPage() {
       <PageHeader
         title={campaign.title}
         description={campaign.description}
-        breadcrumbs={[
-          { label: tNav("home"), href: "/" },
-          { label: t("title"), href: "/campaigns" },
-          { label: campaign.title },
-        ]}
       />
 
       {/* Hero Banner */}

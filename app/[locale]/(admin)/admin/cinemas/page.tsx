@@ -194,7 +194,6 @@ export default function AdminCinemasPage() {
     <AdminPageShell
       title={t("cinemas")}
       description={t("descCinemas")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("cinemas") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />

@@ -96,10 +96,6 @@ export function MoviesCatalogContent() {
       <PageHeader
         title={t("catalogTitle")}
         description={t("description")}
-        breadcrumbs={[
-          { label: t("bookingLanding"), href: "/movies" },
-          { label: t("catalogTitle") },
-        ]}
       />
 
       <div className="mt-8 flex flex-col gap-6 lg:flex-row">

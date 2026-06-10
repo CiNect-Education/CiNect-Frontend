@@ -123,7 +123,6 @@ export default function AdminRolesPage() {
       <AdminPageShell
         title={t("roles")}
         description={t("descRoles")}
-        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("roles") }]}
       >
         <div className="space-y-6">
           <Skeleton className="h-10 w-72" />
@@ -141,7 +140,6 @@ export default function AdminRolesPage() {
     <AdminPageShell
       title={t("roles")}
       description={t("descRoles")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("roles") }]}
       actions={
         <Button onClick={handleSave} disabled={saving || manageableRoles.length === 0}>
           <Save className="mr-2 h-4 w-4" />

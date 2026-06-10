@@ -54,11 +54,6 @@ export default function NewsArticlePage() {
       <div className="mx-auto max-w-3xl px-4 py-8 lg:px-6">
         <PageHeader
           title=""
-          breadcrumbs={[
-            { label: tNav("home"), href: "/" },
-            { label: t("title"), href: "/news" },
-            { label: t("articleLoading") },
-          ]}
         />
         <Skeleton className="mb-4 h-10 w-3/4" />
         <Skeleton className="mb-6 h-4 w-48" />
@@ -98,11 +93,6 @@ export default function NewsArticlePage() {
     <div className="mx-auto max-w-3xl px-4 py-8 lg:px-6">
       <PageHeader
         title=""
-        breadcrumbs={[
-          { label: tNav("home"), href: "/" },
-          { label: t("title"), href: "/news" },
-          { label: article.title },
-        ]}
       />
 
       <article>

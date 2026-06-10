@@ -224,7 +224,6 @@ export default function AdminRoomsPage() {
     <AdminPageShell
       title={t("rooms")}
       description={t("descRooms")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("rooms") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />

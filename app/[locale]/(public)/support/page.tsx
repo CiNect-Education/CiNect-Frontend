@@ -64,7 +64,6 @@ export default function SupportPage() {
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
       <PageHeader
         title={t("title")}
-        breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("title") }]}
       />
 
       <div className="space-y-10">

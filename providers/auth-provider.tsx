@@ -31,7 +31,6 @@ interface AuthContextValue {
     confirmPassword: string;
     fullName: string;
     phone: string;
-    referralCode?: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
   refetchUser: () => void;
@@ -124,7 +123,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       confirmPassword: string;
       fullName: string;
       phone: string;
-      referralCode?: string;
     }) => {
       try {
         await registerMutation.mutateAsync(data);

@@ -147,7 +147,6 @@ export default function AdminBannersPage() {
     <AdminPageShell
       title={t("bannersAdmin")}
       description={t("descBannersAdmin")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("bannersAdmin") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />

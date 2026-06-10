@@ -325,7 +325,6 @@ export default function AdminShowtimesPage() {
     <AdminPageShell
       title={t("showtimes")}
       description={t("descShowtimes")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("showtimes") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />

@@ -29,10 +29,6 @@ export default function NotificationsPage() {
       <PageHeader
         title={t("notifications")}
         description={t("notificationsDesc")}
-        breadcrumbs={[
-          { label: t("title"), href: "/account/profile" },
-          { label: t("notifications") },
-        ]}
         actions={
           <Button
             variant="outline"

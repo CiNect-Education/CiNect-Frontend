@@ -62,7 +62,6 @@ export default function CommunityPage() {
       <PageHeader
         title={t("title")}
         description={t("description")}
-        breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("title") }]}
       />
 
       <Card className="mb-8 border-[#f3ea28]/25 bg-[#f3ea28]/5">

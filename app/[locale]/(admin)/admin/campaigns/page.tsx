@@ -146,7 +146,6 @@ export default function AdminCampaignsPage() {
     <AdminPageShell
       title={t("campaignsAdmin")}
       description={t("descCampaignsAdmin")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("campaignsAdmin") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />

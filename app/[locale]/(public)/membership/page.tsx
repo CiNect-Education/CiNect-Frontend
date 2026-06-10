@@ -122,7 +122,6 @@ export default function MembershipPage() {
       <PageHeader
         title={t("title")}
         description={t("pageDescription")}
-        breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("title") }]}
       />
 
       {/* Animated Tier Badges - Cards */}

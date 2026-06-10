@@ -230,7 +230,6 @@ export default function AdminPricingPage() {
     <AdminPageShell
       title={t("pricing")}
       description={t("descPricing")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("pricing") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />

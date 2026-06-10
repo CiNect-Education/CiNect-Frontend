@@ -59,12 +59,6 @@ const watchlistItemSchema = z
   })
   .passthrough();
 
-const referralSchema = z.object({
-  referralCode: z.string(),
-  referralsCount: z.number(),
-  pointsPerReferral: z.number(),
-});
-
 const groupInviteSchema = z.object({
   token: z.string(),
   expiresAt: z.string(),
@@ -185,12 +179,6 @@ export function useRemoveFromWatchlist(movieId: string) {
   });
 }
 
-export function useCommunityReferral() {
-  return useApiQuery(["community", "referral"], "/community/referral", undefined, {
-    schema: referralSchema,
-  });
-}
-
 export function useJoinCommunityGroup(token: string) {
   return useApiQuery(["community", "join", token], `/community/join/${token}`, undefined, {
     enabled: !!token,
@@ -245,4 +233,41 @@ export function useAdminSupportTickets(params?: QueryParams) {
       schema: z.array(supportTicketSchema) as unknown as z.ZodType<z.infer<typeof supportTicketSchema>[]>,
     }
   );
+}
+
+const adminCommunityStatsSchema = z.object({
+  pendingReviews: z.number(),
+  openTickets: z.number(),
+  totalRefunds: z.number(),
+  verifiedReviews: z.number(),
+});
+
+export function useAdminCommunityStats() {
+  return useApiQuery(["admin", "community", "stats"], "/admin/community/stats", undefined, {
+    schema: adminCommunityStatsSchema,
+  });
+}
+
+export function useRejectCommunityReview() {
+  return useApiMutation("post", (v: { id: string }) => `/admin/community/reviews/${v.id}/reject`, {
+    invalidateKeys: [["admin", "community", "pending"], ["admin", "community", "stats"]],
+  });
+}
+
+export function useRejectCommunityPost() {
+  return useApiMutation("post", (v: { id: string }) => `/admin/community/posts/${v.id}/reject`, {
+    invalidateKeys: [["admin", "community", "pending"], ["admin", "community", "stats"]],
+  });
+}
+
+export function useRejectCommunityPhoto() {
+  return useApiMutation("post", (v: { id: string }) => `/admin/community/photos/${v.id}/reject`, {
+    invalidateKeys: [["admin", "community", "pending"], ["admin", "community", "stats"]],
+  });
+}
+
+export function useResolveSupportTicket() {
+  return useApiMutation("patch", (v: { id: string; isResolved: boolean }) => `/admin/support/tickets/${v.id}`, {
+    invalidateKeys: [["admin", "support", "tickets"], ["admin", "community", "stats"]],
+  });
 }

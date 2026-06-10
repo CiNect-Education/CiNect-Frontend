@@ -94,7 +94,6 @@ type UpdateProfileInput = {
   gender?: string;
   city?: string;
   profilePublic?: boolean;
-  referralCode?: string;
 };
 
 export function useUploadAvatar() {

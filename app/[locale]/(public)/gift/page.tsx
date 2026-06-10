@@ -43,7 +43,6 @@ export default function GiftPage() {
       <PageHeader
         title={t("giftCardsTitle")}
         description={t("giftCardsDescription")}
-        breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("giftCardsTitle") }]}
       />
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

@@ -68,7 +68,7 @@ export default function PublicUserProfilePage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <PageHeader title={t("profileTitle")} description={t("profileDesc")} breadcrumbs={[{ label: t("title"), href: "/community" }, { label: user.fullName ?? t("unknownUser") }]} />
+      <PageHeader title={t("profileTitle")} description={t("profileDesc")} />
 
       <Card className="mb-6">
         <CardContent className="flex items-center gap-4 p-5">

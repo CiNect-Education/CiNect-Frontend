@@ -278,10 +278,6 @@ export default function OrdersPage() {
       <PageHeader
         title={t("tickets")}
         description={t("ticketsPageDesc")}
-        breadcrumbs={[
-          { label: t("title"), href: "/account/profile" },
-          { label: t("tickets") },
-        ]}
       />
 
       <Card className="cinect-glass mb-6 border">

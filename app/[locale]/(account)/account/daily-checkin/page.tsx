@@ -53,7 +53,6 @@ export default function DailyCheckinPage() {
       <PageHeader
         title={t("dailyCheckinTitle")}
         description={t("dailyCheckinDesc")}
-        breadcrumbs={[{ label: t("title"), href: "/account/profile" }, { label: t("dailyCheckinTitle") }]}
       />
 
       {statusQuery.isLoading ? (

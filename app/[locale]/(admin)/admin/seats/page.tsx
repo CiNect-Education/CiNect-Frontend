@@ -363,7 +363,6 @@ export default function AdminSeatsPage() {
     <AdminPageShell
       title={t("seats")}
       description={t("descSeats")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("seats") }]}
     >
       {(cinemasError || roomsError || seatsError) ? (
         <ApiErrorState

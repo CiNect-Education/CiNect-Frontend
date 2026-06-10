@@ -27,11 +27,6 @@ export default function OrderDetailPage() {
     <div>
       <PageHeader
         title={`${t("ticketDetail")} #${orderId}`}
-        breadcrumbs={[
-          { label: t("title"), href: "/account/profile" },
-          { label: t("tickets"), href: "/account/orders" },
-          { label: `#${orderId}` },
-        ]}
       />
 
       {isLoading ? (

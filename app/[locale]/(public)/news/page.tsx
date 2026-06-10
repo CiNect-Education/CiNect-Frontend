@@ -63,7 +63,6 @@ export default function NewsPage() {
       <PageHeader
         title={t("title")}
         description={t("description")}
-        breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("title") }]}
       />
 
       {/* Category Tabs */}

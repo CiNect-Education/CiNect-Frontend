@@ -41,7 +41,6 @@ export interface User {
   gender?: string;
   city?: string;
   profilePublic?: boolean;
-  referralCode?: string;
   isActive?: boolean;
   emailVerified?: boolean;
   createdAt: string;

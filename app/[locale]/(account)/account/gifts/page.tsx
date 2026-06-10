@@ -55,7 +55,6 @@ export default function AccountGiftsPage() {
       <PageHeader
         title={t("gifts")}
         description={t("giftsDesc")}
-        breadcrumbs={[{ label: t("title"), href: "/account/profile" }, { label: t("gifts") }]}
       />
 
       {!gifts || gifts.length === 0 ? (

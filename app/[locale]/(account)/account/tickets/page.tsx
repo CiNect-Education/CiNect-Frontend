@@ -105,10 +105,6 @@ export default function AccountTicketsPage() {
       <PageHeader
         title={t("tickets")}
         description={t("ticketsPageDesc")}
-        breadcrumbs={[
-          { label: t("title"), href: "/account/profile" },
-          { label: t("tickets") },
-        ]}
       />
 
       {isLoading ? (

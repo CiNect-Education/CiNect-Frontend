@@ -192,7 +192,6 @@ function AdminReportsPage() {
       <PageHeader
         title={t("reports")}
         description={t("descReports")}
-        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("reports") }]}
         actions={
           <div className="flex items-center gap-2">
             <CalendarDays className="text-muted-foreground h-4 w-4" />
