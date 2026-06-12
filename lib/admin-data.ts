@@ -30,6 +30,9 @@ export type AdminKpiShape = {
   totalBookings: number;
   totalMovies: number;
   totalCinemas: number;
+  totalUsers: number;
+  totalShowtimes: number;
+  confirmedBookings: number;
   occupancyRate: number;
 };
 
@@ -52,6 +55,9 @@ export function unwrapKpiPayload(payload: unknown): AdminKpiShape | undefined {
     totalBookings: Number(row.totalBookings ?? 0),
     totalMovies: Number(row.totalMovies ?? 0),
     totalCinemas: Number(row.totalCinemas ?? 0),
+    totalUsers: Number(row.totalUsers ?? 0),
+    totalShowtimes: Number(row.totalShowtimes ?? 0),
+    confirmedBookings: Number(row.confirmedBookings ?? 0),
     occupancyRate: Number(row.occupancyRate ?? 0),
   };
 }

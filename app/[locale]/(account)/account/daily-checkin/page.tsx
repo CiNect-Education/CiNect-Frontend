@@ -53,7 +53,6 @@ export default function DailyCheckinPage() {
       <PageHeader
         title={t("dailyCheckinTitle")}
         description={t("dailyCheckinDesc")}
-        breadcrumbs={[{ label: t("title"), href: "/account/profile" }, { label: t("dailyCheckinTitle") }]}
       />
 
       {statusQuery.isLoading ? (
@@ -65,7 +64,7 @@ export default function DailyCheckinPage() {
         <ApiErrorState error={statusQuery.error} onRetry={statusQuery.refetch} />
       ) : (
         <div className="space-y-6">
-          <Card className="cinect-glass border-primary/25 border shadow-[0_0_0_1px_rgba(255,196,0,.08)]">
+          <Card className="cinect-account-panel cinect-account-highlight-gold">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-2xl">
                 <CalendarCheck2 className="text-primary h-5 w-5" />
@@ -75,15 +74,15 @@ export default function DailyCheckinPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-3">
-                <div className="from-primary/12 to-primary/5 rounded-lg border bg-gradient-to-br p-3">
+                <div className="from-primary/12 to-primary/5 cinect-account-inset bg-gradient-to-br p-3">
                   <div className="text-muted-foreground text-xs">{t("dailyCheckinCurrentStreak")}</div>
                   <div className="mt-1 text-xl font-semibold">{status?.streak ?? 0}</div>
                 </div>
-                <div className="from-primary/12 to-primary/5 rounded-lg border bg-gradient-to-br p-3">
+                <div className="from-primary/12 to-primary/5 cinect-account-inset bg-gradient-to-br p-3">
                   <div className="text-muted-foreground text-xs">{t("dailyCheckinTodayReward")}</div>
                   <div className="mt-1 text-xl font-semibold">+{status?.rewardPoints ?? 0}</div>
                 </div>
-                <div className="from-primary/12 to-primary/5 rounded-lg border bg-gradient-to-br p-3">
+                <div className="from-primary/12 to-primary/5 cinect-account-inset bg-gradient-to-br p-3">
                   <div className="text-muted-foreground text-xs">{t("dailyCheckinAvailablePoints")}</div>
                   <div className="mt-1 text-xl font-semibold">{status?.currentPoints ?? 0}</div>
                 </div>
@@ -113,7 +112,7 @@ export default function DailyCheckinPage() {
             </CardContent>
           </Card>
 
-          <Card className="cinect-glass border">
+          <Card className="cinect-account-panel">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CircleHelp className="h-5 w-5" />
@@ -122,28 +121,28 @@ export default function DailyCheckinPage() {
               <CardDescription>{t("dailyCheckinGuideDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-lg border p-3 text-sm">
+              <div className="cinect-account-inset p-3 text-sm">
                 <div className="font-medium">{t("dailyCheckinGuideRule1Title")}</div>
                 <div className="text-muted-foreground mt-1">{t("dailyCheckinGuideRule1Desc")}</div>
               </div>
-              <div className="rounded-lg border p-3 text-sm">
+              <div className="cinect-account-inset p-3 text-sm">
                 <div className="font-medium">{t("dailyCheckinGuideRule2Title")}</div>
                 <div className="text-muted-foreground mt-1">{t("dailyCheckinGuideRule2Desc")}</div>
               </div>
-              <div className="rounded-lg border p-3 text-sm">
+              <div className="cinect-account-inset p-3 text-sm">
                 <div className="font-medium">{t("dailyCheckinGuideRule3Title")}</div>
                 <div className="text-muted-foreground mt-1">
                   {t("dailyCheckinGuideRule3Desc", { points: status?.nextRewardPoints ?? status?.rewardPoints ?? 0 })}
                 </div>
               </div>
-              <div className="rounded-lg border p-3 text-sm">
+              <div className="cinect-account-inset p-3 text-sm">
                 <div className="font-medium">{t("dailyCheckinGuideRule4Title")}</div>
                 <div className="text-muted-foreground mt-1">{t("dailyCheckinGuideRule4Desc")}</div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="cinect-glass border">
+          <Card className="cinect-account-panel">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <History className="h-5 w-5" />
@@ -164,7 +163,7 @@ export default function DailyCheckinPage() {
                     return (
                       <div
                         key={item.id}
-                        className="hover:bg-muted/30 flex items-center justify-between rounded-lg border p-3 transition-colors"
+                        className="hover:bg-muted/30 flex items-center justify-between cinect-account-inset p-3 transition-colors"
                       >
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-sm font-medium">

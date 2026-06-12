@@ -6,8 +6,8 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 /** Auth page shell (assets under public/auth/). */
-const AUTH_BG_DESKTOP = "/auth/bg-regis.jpg";
-const AUTH_BG_MOBILE = "/auth/bg-regis-mobi.jpg";
+const AUTH_BG_DESKTOP = "/auth/bg-auth-desktop.png";
+const AUTH_BG_MOBILE = "/auth/bg-auth-mobile.png";
 
 type AuthTab = "login" | "register";
 

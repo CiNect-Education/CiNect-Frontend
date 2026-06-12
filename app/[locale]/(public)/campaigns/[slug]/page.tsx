@@ -85,11 +85,6 @@ export default function CampaignPage() {
       <PageHeader
         title={campaign.title}
         description={campaign.description}
-        breadcrumbs={[
-          { label: tNav("home"), href: "/" },
-          { label: t("title"), href: "/campaigns" },
-          { label: campaign.title },
-        ]}
       />
 
       {/* Hero Banner */}
@@ -141,7 +136,10 @@ export default function CampaignPage() {
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
               {campaign.movies.map((movie) => (
-                <Link key={movie.id} href={`/movies/${movie.slug}`}>
+                <Link
+                  key={movie.id}
+                  href={`/movies/${(movie as { slug?: string }).slug ?? movie.id}`}
+                >
                   <div className="hover:border-primary/50 overflow-hidden rounded-lg border transition">
                     <div className="bg-muted aspect-[2/3]">
                       {movie.posterUrl ? (

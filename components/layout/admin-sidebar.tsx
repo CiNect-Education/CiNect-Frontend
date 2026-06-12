@@ -35,6 +35,9 @@ import {
   Newspaper,
   Megaphone,
   ImageIcon,
+  UsersRound,
+  RotateCcw,
+  Settings,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import type { UserRole } from "@/types/domain";
@@ -71,6 +74,12 @@ export function AdminSidebar() {
       { label: t("news"), href: "/admin/news", icon: Newspaper, roles: ["ADMIN"] as UserRole[] },
       { label: t("campaignsAdmin"), href: "/admin/campaigns", icon: Megaphone, roles: ["ADMIN"] as UserRole[] },
       { label: t("bannersAdmin"), href: "/admin/banners", icon: ImageIcon, roles: ["ADMIN"] as UserRole[] },
+      {
+        label: t("communityModeration"),
+        href: "/admin/community",
+        icon: UsersRound,
+        roles: ["ADMIN", "STAFF"] as UserRole[],
+      },
     ],
     [t]
   );
@@ -81,6 +90,12 @@ export function AdminSidebar() {
         label: t("bookings"),
         href: "/admin/bookings",
         icon: Ticket,
+        roles: ["ADMIN", "STAFF"] as UserRole[],
+      },
+      {
+        label: t("refunds"),
+        href: "/admin/refunds",
+        icon: RotateCcw,
         roles: ["ADMIN", "STAFF"] as UserRole[],
       },
       {
@@ -107,6 +122,12 @@ export function AdminSidebar() {
         label: t("auditLogs"),
         href: "/admin/audit-logs",
         icon: ScrollText,
+        roles: ["ADMIN"] as UserRole[],
+      },
+      {
+        label: t("settings"),
+        href: "/admin/settings",
+        icon: Settings,
         roles: ["ADMIN"] as UserRole[],
       },
     ],
@@ -143,7 +164,11 @@ export function AdminSidebar() {
   if (!open) return null;
 
   return (
-    <Sidebar collapsible="none" className="sticky top-0 h-svh self-start border-r">
+    <Sidebar
+      collapsible="none"
+      data-sidebar="sidebar"
+      className="cinect-admin-sidebar sticky top-0 h-svh self-start border-r-0 !bg-transparent"
+    >
       <SidebarHeader className="border-b px-5 py-5">
         <Link href="/admin" className="flex items-center gap-3 text-lg font-bold">
           <LayoutDashboard className="text-primary h-6 w-6" />
@@ -153,20 +178,18 @@ export function AdminSidebar() {
 
       <SidebarContent className="overflow-y-auto px-1 py-1">
         {/* Overview */}
-        {role === "ADMIN" && (
-          <SidebarGroup className="px-2 py-2">
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === "/admin"} size="lg">
-                  <Link href="/admin">
-                    <LayoutDashboard className="h-5 w-5" />
-                    <span>{t("dashboard")}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroup>
-        )}
+        <SidebarGroup className="px-2 py-2">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname === "/admin"} size="lg">
+                <Link href="/admin">
+                  <LayoutDashboard className="h-5 w-5" />
+                  <span>{t("dashboard")}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
 
         {/* Content Management */}
         <SidebarGroup className="px-2 py-2">

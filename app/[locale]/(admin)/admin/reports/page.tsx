@@ -192,7 +192,6 @@ function AdminReportsPage() {
       <PageHeader
         title={t("reports")}
         description={t("descReports")}
-        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("reports") }]}
         actions={
           <div className="flex items-center gap-2">
             <CalendarDays className="text-muted-foreground h-4 w-4" />
@@ -214,14 +213,14 @@ function AdminReportsPage() {
       />
 
       <Tabs value={activeTab} onValueChange={(v) => setReportTab(parseReportTab(v))}>
-        <TabsList className="cinect-glass border">
+        <TabsList className="cinect-admin-panel">
           <TabsTrigger value="sales">{t("reportsTabSales")}</TabsTrigger>
           <TabsTrigger value="movies">{t("reportsTabMovies")}</TabsTrigger>
           <TabsTrigger value="cinemas">{t("reportsTabCinemas")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sales" className="space-y-6">
-          <Card className="cinect-glass border">
+          <Card className="cinect-admin-panel">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{t("salesReport")}</CardTitle>
               <Button variant="outline" size="sm" onClick={exportSalesCSV}>
@@ -265,7 +264,7 @@ function AdminReportsPage() {
                   </ResponsiveContainer>
                 </div>
               )}
-              <div className="cinect-glass rounded-md border">
+              <div className="cinect-admin-panel rounded-md">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -297,7 +296,7 @@ function AdminReportsPage() {
         </TabsContent>
 
         <TabsContent value="movies" className="space-y-6">
-          <Card className="cinect-glass border">
+          <Card className="cinect-admin-panel">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{t("reportsMoviePerformance")}</CardTitle>
               <Button variant="outline" size="sm" onClick={exportMoviesCSV}>
@@ -332,7 +331,7 @@ function AdminReportsPage() {
                   </ResponsiveContainer>
                 </div>
               )}
-              <div className="cinect-glass rounded-md border">
+              <div className="cinect-admin-panel rounded-md">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -368,7 +367,7 @@ function AdminReportsPage() {
         </TabsContent>
 
         <TabsContent value="cinemas" className="space-y-6">
-          <Card className="cinect-glass border">
+          <Card className="cinect-admin-panel">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{t("reportsCinemaPerformance")}</CardTitle>
               <Button variant="outline" size="sm" onClick={exportCinemasCSV}>
@@ -403,7 +402,7 @@ function AdminReportsPage() {
                   </ResponsiveContainer>
                 </div>
               )}
-              <div className="cinect-glass rounded-md border">
+              <div className="cinect-admin-panel rounded-md">
                 <Table>
                   <TableHeader>
                     <TableRow>

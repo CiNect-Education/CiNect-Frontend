@@ -4,7 +4,7 @@ export type MovieStatus = "NOW_SHOWING" | "COMING_SOON" | "ENDED";
 export type AgeRating = "P" | "C13" | "C16" | "C18";
 export type RoomFormat = "2D" | "3D" | "IMAX" | "4DX" | "DOLBY";
 export type SeatType = "STANDARD" | "VIP" | "COUPLE" | "DISABLED";
-export type SeatStatus = "AVAILABLE" | "BOOKED" | "BLOCKED";
+export type SeatStatus = "AVAILABLE" | "HELD" | "BOOKED" | "BLOCKED";
 export type BookingStatus = "PENDING" | "HELD" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
 export type PaymentStatus = "PENDING" | "PAID" | "REFUNDED";
 export type PaymentMethod = "CARD" | "MOMO" | "ZALOPAY" | "VNPAY" | "BANK_TRANSFER" | "CASH";
@@ -12,7 +12,15 @@ export type DiscountType = "PERCENTAGE" | "FIXED";
 export type PromotionStatus = "ACTIVE" | "INACTIVE" | "EXPIRED";
 export type DayType = "WEEKDAY" | "WEEKEND" | "HOLIDAY";
 export type TimeSlot = "MORNING" | "AFTERNOON" | "EVENING" | "NIGHT";
-export type NotificationType = "BOOKING" | "PROMOTION" | "SYSTEM" | "MEMBERSHIP";
+export type NotificationType =
+  | "BOOKING"
+  | "PROMOTION"
+  | "SYSTEM"
+  | "MEMBERSHIP"
+  | "COMMUNITY"
+  | "REVIEW"
+  | "WATCHLIST"
+  | "REFUND";
 export type GiftCardStatus = "AVAILABLE" | "SOLD_OUT" | "REDEEMED" | "EXPIRED";
 export type CouponStatus = "ACTIVE" | "USED" | "EXPIRED";
 export type NewsCategory = "REVIEWS" | "TRAILERS" | "PROMOTIONS" | "GUIDES" | "GENERAL";
@@ -32,10 +40,11 @@ export interface User {
   dateOfBirth?: string;
   gender?: string;
   city?: string;
+  profilePublic?: boolean;
   isActive?: boolean;
   emailVerified?: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Genre {
@@ -68,6 +77,9 @@ export interface Movie {
   cast: CastMember[];
   language: string;
   subtitles?: string;
+  imdbId?: string;
+  imdbRating?: number;
+  metacriticScore?: number;
   rating?: number;
   ratingCount?: number;
   ageRating: AgeRating;
@@ -83,6 +95,7 @@ export interface MovieListItem {
   title: string;
   slug: string;
   posterUrl: string;
+  bannerUrl?: string;
   duration: number;
   releaseDate: string;
   genres: Genre[];
@@ -94,6 +107,8 @@ export interface MovieListItem {
   description?: string;
   director?: string;
   subtitles?: string;
+  imdbRating?: number;
+  metacriticScore?: number;
   rating?: number;
   status: MovieStatus;
 }
@@ -172,10 +187,17 @@ export interface Seat {
 }
 
 export interface ShowtimeSeatsPayload {
-  showtime?: { id: string; basePrice?: number };
+  showtime?: {
+    id: string;
+    startTime?: string;
+    endTime?: string;
+    basePrice?: number;
+    format?: string;
+  };
   room?: {
     id: string;
     name?: string;
+    format?: string;
     layoutTemplate?: string;
     aisleAfterCol?: number | null;
   };
@@ -213,11 +235,21 @@ export interface HoldTicketLine {
   subLabelEn?: string | null;
 }
 
+export interface HoldSeatGroup {
+  kind: "single" | "couple";
+  label: string;
+  seatType: string;
+  seatIds: string[];
+  price: number;
+}
+
 export interface HoldDetails {
   holdId: string;
   showtimeId: string;
   expiresAt: string;
   seats: Array<{ id: string; row: string; number: number; type: string; price?: number }>;
+  seatGroups?: HoldSeatGroup[];
+  ticketsTotal?: number;
   ticketLines?: HoldTicketLine[];
   showtime?: {
     movieTitle?: string;
@@ -337,6 +369,8 @@ export interface Review {
   movieId: string;
   rating: number;
   content: string;
+  isVerified?: boolean;
+  helpfulCount?: number;
   createdAt: string;
   updatedAt: string;
 }

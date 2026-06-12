@@ -65,9 +65,9 @@ export function HeaderCityPicker({ className }: { className?: string }) {
     if (!selectedCity) return t("selectCity");
     return (
       cityOptions.find((c) => c.id === selectedCity)?.label ??
-      bookingCityLabel(selectedCity, locale)
+      bookingCityLabel(selectedCity, locale, provincesNew, provincesLegacy)
     );
-  }, [selectedCity, cityOptions, locale, t]);
+  }, [selectedCity, cityOptions, locale, t, provincesLegacy, provincesNew]);
 
   useEffect(() => {
     function sync() {
@@ -102,17 +102,20 @@ export function HeaderCityPicker({ className }: { className?: string }) {
         <span className="max-w-[10rem] truncate">{displayLabel}</span>
         <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-70" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-64 p-2">
+      <DropdownMenuContent align="start" className="cinect-dropdown-panel w-64 p-2">
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t("selectCity")}
-          className="mb-2 h-9"
+          className="mb-2 h-9 border-[#908888] bg-white"
         />
-        <div className="max-h-56 overflow-y-auto">
+        <div className="cinect-dropdown-scroll max-h-56 overflow-y-auto">
           <DropdownMenuItem
             onClick={() => selectCity("")}
-            className="cursor-pointer font-medium"
+            className={cn(
+              "cinect-dropdown-item cursor-pointer font-medium",
+              !selectedCity && "cinect-dropdown-item--selected"
+            )}
           >
             {tCommon("allCities")}
           </DropdownMenuItem>
@@ -121,8 +124,8 @@ export function HeaderCityPicker({ className }: { className?: string }) {
               key={city.id}
               onClick={() => selectCity(city.id)}
               className={cn(
-                "cursor-pointer",
-                selectedCity === city.id && "bg-primary/10 text-primary"
+                "cinect-dropdown-item cursor-pointer",
+                selectedCity === city.id && "cinect-dropdown-item--selected"
               )}
             >
               {city.label}

@@ -20,7 +20,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { authFieldClass, authLabelClass, authSubmitClass } from "@/components/auth/auth-form-styles";
+import {
+  authFieldClass,
+  authLabelClass,
+  authPasswordToggleClass,
+  authSubmitClass,
+} from "@/components/auth/auth-form-styles";
 
 const FULL_NAME_REGEX = /^[\p{L}\s]+$/u;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -108,7 +113,7 @@ export function AuthRegisterForm() {
       });
       router.push("/login");
     } catch {
-      // Error toast already shown in AuthProvider
+      // Error toast is shown by useApiMutation
     } finally {
       setIsLoading(false);
     }
@@ -193,7 +198,7 @@ export function AuthRegisterForm() {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute right-0 top-0 h-11 px-3 text-slate-500 hover:text-slate-800"
+                      className={authPasswordToggleClass}
                       onClick={() => setShowPassword((p) => !p)}
                       aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                     >
@@ -222,7 +227,7 @@ export function AuthRegisterForm() {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute right-0 top-0 h-11 px-3 text-slate-500 hover:text-slate-800"
+                      className={authPasswordToggleClass}
                       onClick={() => setShowConfirmPassword((p) => !p)}
                       aria-label={showConfirmPassword ? t("hidePassword") : t("showPassword")}
                     >

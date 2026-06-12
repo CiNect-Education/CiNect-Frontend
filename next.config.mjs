@@ -1,11 +1,24 @@
 import createNextIntlPlugin from "next-intl/plugin";
+import { createRequire } from "module";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 
+const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
+
+function withOptionalBundleAnalyzer(config) {
+  if (process.env.ANALYZE !== "true") return config;
+  try {
+    const bundleAnalyzer = require("@next/bundle-analyzer");
+    return bundleAnalyzer({ enabled: true })(config);
+  } catch {
+    console.warn("[next.config] @next/bundle-analyzer not installed — run npm install to use analyze");
+    return config;
+  }
+}
 
 const securityHeaders = [
   { key: "X-DNS-Prefetch-Control", value: "on" },
@@ -21,7 +34,6 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://unpkg.com",
       "img-src 'self' data: https: blob:",
       "font-src 'self' data:",
-      // Browser fetch to Nest (3001) / Spring (8081); localhost vs 127.0.0.1 are different origins.
       "connect-src 'self' ws: wss: https: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*",
       "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com",
       "media-src 'self'",
@@ -33,6 +45,9 @@ const securityHeaders = [
 const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
+  },
+  experimental: {
+    optimizePackageImports: ["lucide-react", "date-fns", "recharts"],
   },
   images: {
     dangerouslyAllowSVG: true,
@@ -58,9 +73,21 @@ const nextConfig = {
       { source: "/:locale/movie", destination: "/:locale/movies", permanent: true },
     ];
   },
+  async rewrites() {
+    const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api/v1").replace(
+      /\/api\/v1\/?$/,
+      "",
+    );
+    return [
+      {
+        source: "/uploads/:path*",
+        destination: `${apiBase}/uploads/:path*`,
+      },
+    ];
+  },
   turbopack: {
     root: __dirname,
   },
 };
 
-export default withNextIntl(nextConfig);
+export default withOptionalBundleAnalyzer(withNextIntl(nextConfig));

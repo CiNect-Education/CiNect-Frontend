@@ -25,7 +25,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { authFieldClass, authLabelClass, authSubmitClass } from "@/components/auth/auth-form-styles";
+import {
+  authFieldClass,
+  authLabelClass,
+  authPasswordToggleClass,
+  authSubmitClass,
+} from "@/components/auth/auth-form-styles";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
@@ -127,10 +132,10 @@ export function AuthLoginForm() {
         if (rememberMe) localStorage.setItem(REMEMBER_EMAIL_KEY, email);
         else localStorage.removeItem(REMEMBER_EMAIL_KEY);
       }
-      const user = await login({ email, password: data.password });
+      const user = await login({ email, password: data.password, rememberMe });
       router.push(resolvePostLoginPath(user?.role, returnToRef.current));
     } catch {
-      // Error toast already shown in AuthProvider
+      // Error toast is shown by useApiMutation
     } finally {
       setIsLoading(false);
     }
@@ -191,7 +196,7 @@ export function AuthLoginForm() {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute right-0 top-0 h-11 px-3 text-slate-500 hover:text-slate-800"
+                      className={authPasswordToggleClass}
                       onClick={() => setShowPassword((p) => !p)}
                       aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                     >

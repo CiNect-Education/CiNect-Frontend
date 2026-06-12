@@ -95,7 +95,6 @@ export default function PromotionsPage() {
       <PageHeader
         title={t("title")}
         description={t("description")}
-        breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("title") }]}
       />
 
       {/* Voucher code lookup — exclusive vouchers only visible when user enters code */}

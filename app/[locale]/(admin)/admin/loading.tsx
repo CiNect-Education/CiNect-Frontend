@@ -10,7 +10,7 @@ export default function AdminDashboardLoading() {
       </div>
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i}>
+          <Card key={i} className="cinect-admin-panel">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -26,7 +26,7 @@ export default function AdminDashboardLoading() {
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i}>
+          <Card key={i} className="cinect-admin-panel">
             <CardHeader>
               <Skeleton className="h-5 w-32" />
             </CardHeader>

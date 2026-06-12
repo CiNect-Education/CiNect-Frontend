@@ -40,7 +40,8 @@ import {
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Power } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -52,6 +53,7 @@ import {
   useCreateUser,
   useUpdateUser,
   useDeleteUser,
+  useToggleUserActive,
   useAdminCinemas,
 } from "@/hooks/queries/use-admin";
 import { format } from "date-fns";
@@ -146,6 +148,7 @@ export default function AdminUsersPage() {
   const createMutation = useCreateUser();
   const updateMutation = useUpdateUser();
   const deleteMutation = useDeleteUser();
+  const toggleActiveMutation = useToggleUserActive();
 
   const createForm = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
@@ -246,6 +249,15 @@ export default function AdminUsersPage() {
       },
       { accessorKey: "city", header: tNav("city"), cell: ({ row }) => row.original.city ?? "—" },
       {
+        accessorKey: "isActive",
+        header: t("status"),
+        cell: ({ row }) => (
+          <Badge variant={row.original.isActive === false ? "secondary" : "default"}>
+            {row.original.isActive === false ? t("inactive") : t("active")}
+          </Badge>
+        ),
+      },
+      {
         accessorKey: "createdAt",
         header: t("colCreated"),
         cell: ({ row }) =>
@@ -256,6 +268,14 @@ export default function AdminUsersPage() {
         header: t("colActions"),
         cell: ({ row }) => (
           <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => toggleActiveMutation.mutate({ id: row.original.id })}
+              aria-label={t("toggleUserActive")}
+            >
+              <Power className="h-4 w-4" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -276,14 +296,13 @@ export default function AdminUsersPage() {
         ),
       },
     ],
-    [openEdit, t, tAuth, tNav]
+    [openEdit, t, tAuth, tNav, toggleActiveMutation]
   );
 
   return (
     <AdminPageShell
       title={t("users")}
       description={t("descUsers")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("users") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
@@ -299,14 +318,14 @@ export default function AdminUsersPage() {
           data={actualUsers}
           searchKey="fullName"
           searchPlaceholder={t("searchUsers")}
-          className="cinect-glass rounded-lg border p-4"
+          className="cinect-admin-panel rounded-lg p-4"
           isLoading={usersLoading}
           emptyMessage={t("emptyUsers")}
         />
       )}
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="cinect-glass max-w-lg border">
+        <DialogContent className="cinect-admin-panel max-w-lg">
           <DialogHeader>
             <DialogTitle>{t("createUser")}</DialogTitle>
           </DialogHeader>
@@ -400,7 +419,7 @@ export default function AdminUsersPage() {
       </Dialog>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="cinect-glass max-w-lg border">
+        <DialogContent className="cinect-admin-panel max-w-lg">
           <DialogHeader>
             <DialogTitle>{t("editUser")}</DialogTitle>
           </DialogHeader>
@@ -530,7 +549,7 @@ export default function AdminUsersPage() {
       </Dialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="cinect-glass border">
+        <AlertDialogContent className="cinect-admin-panel">
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deleteUser")}</AlertDialogTitle>
             <AlertDialogDescription>

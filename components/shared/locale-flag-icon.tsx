@@ -19,10 +19,9 @@ const FLAG_FALLBACK: Record<LocaleId, string> = {
 type Props = {
   locale: LocaleId;
   className?: string;
-  size?: number;
 };
 
-export function LocaleFlagIcon({ locale, className, size = 24 }: Props) {
+export function LocaleFlagIcon({ locale, className }: Props) {
   const [src, setSrc] = useState(FLAG_SRC[locale]);
 
   useEffect(() => {
@@ -30,17 +29,13 @@ export function LocaleFlagIcon({ locale, className, size = 24 }: Props) {
   }, [locale]);
 
   return (
-    <span
-      className={cn("cinect-lg-image", className)}
-      style={{ width: size, height: size }}
-      aria-hidden
-    >
+    <span className={cn("cinect-lg-image", className)} aria-hidden>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
         alt=""
-        width={size}
-        height={size}
+        width={24}
+        height={24}
         className="h-full w-full object-cover"
         loading="lazy"
         decoding="async"

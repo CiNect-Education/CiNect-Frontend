@@ -7,6 +7,7 @@ import {
 } from "@/lib/schemas/cinema";
 import type { Cinema, CinemaListItem, Showtime, Seat } from "@/types/domain";
 import type { QueryParams } from "@/types/api";
+import type { UseApiQueryOptions } from "@/hooks/use-api-query";
 import { z } from "zod";
 
 export type ProvinceNewItem = {
@@ -31,9 +32,14 @@ export type ProvinceLegacyItem = {
 
 // ─── Cinema list ───────────────────────────────────────────────────
 
-export function useCinemas(params?: QueryParams) {
+export function useCinemas(
+  params?: QueryParams,
+  options?: Pick<UseApiQueryOptions<CinemaListItem[]>, "enabled" | "staleTime">,
+) {
   return useApiQuery<CinemaListItem[]>(["cinemas", JSON.stringify(params)], "/cinemas", params, {
     schema: z.array(cinemaListItemSchema) as unknown as z.ZodType<CinemaListItem[]>,
+    staleTime: 30 * 60 * 1000,
+    ...options,
   });
 }
 

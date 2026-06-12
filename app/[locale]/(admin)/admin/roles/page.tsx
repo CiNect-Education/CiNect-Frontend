@@ -35,7 +35,7 @@ const PERMISSION_ROWS = [
   ["analytics.read", "permAnalyticsRead"],
 ] as const;
 
-const KNOWN_PERMISSION_KEYS = new Set(PERMISSION_ROWS.map(([key]) => key));
+const KNOWN_PERMISSION_KEYS = new Set<string>(PERMISSION_ROWS.map(([key]) => key));
 
 /** Legacy seed used colon-separated keys (e.g. movies:read); UI rows use dots (movies.read). */
 function normalizePermissionsFromApi(raw: string[] | undefined): string[] {
@@ -123,7 +123,6 @@ export default function AdminRolesPage() {
       <AdminPageShell
         title={t("roles")}
         description={t("descRoles")}
-        breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("roles") }]}
       >
         <div className="space-y-6">
           <Skeleton className="h-10 w-72" />
@@ -141,7 +140,6 @@ export default function AdminRolesPage() {
     <AdminPageShell
       title={t("roles")}
       description={t("descRoles")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("roles") }]}
       actions={
         <Button onClick={handleSave} disabled={saving || manageableRoles.length === 0}>
           <Save className="mr-2 h-4 w-4" />
@@ -149,7 +147,7 @@ export default function AdminRolesPage() {
         </Button>
       }
     >
-      <Card className="cinect-glass border">
+      <Card className="cinect-admin-panel">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Shield className="text-primary h-5 w-5" />

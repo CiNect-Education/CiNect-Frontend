@@ -186,10 +186,6 @@ export default function AdminAnalyticsPage() {
     <AdminPageShell
       title={t("analytics") ?? "Analytics"}
       description={t("descAnalytics")}
-      breadcrumbs={[
-        { label: t("title"), href: "/admin" },
-        { label: t("analytics") ?? "Analytics" },
-      ]}
       actions={
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex rounded-md border">
@@ -233,7 +229,7 @@ export default function AdminAnalyticsPage() {
     >
       <div className="space-y-8">
         {/* Revenue Trend */}
-        <Card id="revenue-section" className="cinect-glass border">
+        <Card id="revenue-section" className="cinect-admin-panel">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{t("analyticsRevenueTrend")}</CardTitle>
             <div className="flex gap-2">
@@ -295,7 +291,7 @@ export default function AdminAnalyticsPage() {
         </Card>
 
         {/* Forecast Chart */}
-        <Card id="forecast-section" className="cinect-glass border">
+        <Card id="forecast-section" className="cinect-admin-panel">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{t("analyticsRevenueForecast")}</CardTitle>
             <div className="flex gap-2">
@@ -347,7 +343,7 @@ export default function AdminAnalyticsPage() {
 
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Occupancy Heatmap (Treemap) */}
-          <Card id="occupancy-section" className="cinect-glass border">
+          <Card id="occupancy-section" className="cinect-admin-panel">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{t("occupancyByCinema")}</CardTitle>
               <div className="flex gap-2">
@@ -419,7 +415,7 @@ export default function AdminAnalyticsPage() {
           </Card>
 
           {/* Customer Segmentation */}
-          <Card id="segments-section" className="cinect-glass border">
+          <Card id="segments-section" className="cinect-admin-panel">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{t("analyticsCustomerSegmentation")}</CardTitle>
               <div className="flex gap-2">
@@ -475,7 +471,7 @@ export default function AdminAnalyticsPage() {
         </div>
 
         {/* Top Movies */}
-        <Card id="movies-section" className="cinect-glass border">
+        <Card id="movies-section" className="cinect-admin-panel">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{t("analyticsTopMovies")}</CardTitle>
             <div className="flex gap-2">
@@ -520,7 +516,7 @@ export default function AdminAnalyticsPage() {
         </Card>
 
         {/* Peak Hours */}
-        <Card id="peak-hours-section" className="cinect-glass border">
+        <Card id="peak-hours-section" className="cinect-admin-panel">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{t("analyticsPeakHours")}</CardTitle>
             <div className="flex gap-2">

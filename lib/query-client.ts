@@ -10,10 +10,9 @@ export function createQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        // Data stays fresh for 2 minutes -- good enough for movie listings
-        staleTime: 2 * 60 * 1000,
-        // Cache entries are garbage collected after 10 minutes
-        gcTime: 10 * 60 * 1000,
+        staleTime: 5 * 60 * 1000,
+        gcTime: 15 * 60 * 1000,
+        refetchOnMount: false,
         // Retry up to 2 times, but skip retries for 4xx errors
         retry: (failureCount, error) => {
           if (error instanceof ApiError && error.status < 500) return false;

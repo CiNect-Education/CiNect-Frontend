@@ -64,7 +64,7 @@ export const seatSchema = z.object({
   row: z.string(),
   number: z.number(),
   type: z.enum(["STANDARD", "VIP", "COUPLE", "DISABLED"]),
-  status: z.enum(["AVAILABLE", "BOOKED", "BLOCKED"]),
+  status: z.enum(["AVAILABLE", "HELD", "BOOKED", "BLOCKED"]),
   price: n(z.number()),
 });
 

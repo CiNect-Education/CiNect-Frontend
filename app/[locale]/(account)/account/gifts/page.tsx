@@ -55,11 +55,10 @@ export default function AccountGiftsPage() {
       <PageHeader
         title={t("gifts")}
         description={t("giftsDesc")}
-        breadcrumbs={[{ label: t("title"), href: "/account/profile" }, { label: t("gifts") }]}
       />
 
       {!gifts || gifts.length === 0 ? (
-        <Card className="cinect-glass border">
+        <Card className="cinect-account-panel">
           <CardContent className="py-12">
             <EmptyState
               icon={Gift}
@@ -79,7 +78,7 @@ export default function AccountGiftsPage() {
           {gifts.map((gift) => (
             <Card
               key={gift.id}
-              className="cinect-glass relative overflow-hidden border transition-all hover:shadow-lg"
+              className="cinect-account-row relative overflow-hidden"
             >
               <div className="bg-primary/5 absolute top-0 right-0 h-32 w-32 translate-x-8 -translate-y-8 rounded-full" />
 
@@ -107,7 +106,7 @@ export default function AccountGiftsPage() {
                   )}
                 </div>
 
-                <div className="border-primary/30 bg-primary/5 flex items-center justify-between rounded-lg border border-dashed p-3">
+                <div className="cinect-account-inset border-primary/20 bg-primary/5 flex items-center justify-between border-dashed p-3">
                   <code className="font-mono text-sm font-semibold">{gift.code}</code>
                   <Button
                     variant="ghost"

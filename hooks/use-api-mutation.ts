@@ -10,6 +10,10 @@ interface UseApiMutationOptions<TData, TVariables> extends Omit<
 > {
   /** Toast message shown on success. */
   successMessage?: string;
+  /** Show success toast when `successMessage` is set. Default: true. */
+  showSuccessToast?: boolean;
+  /** Show API error toast on failure. Default: true. Set false when the caller shows a localized toast. */
+  showErrorToast?: boolean;
   /** Zod schema to validate the response. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   schema?: ZodType<TData, ZodTypeDef, any>;
@@ -27,7 +31,15 @@ export function useApiMutation<TData, TVariables = unknown>(
   options?: UseApiMutationOptions<TData, TVariables>
 ) {
   const queryClient = useQueryClient();
-  const { successMessage, schema, invalidateKeys, ...mutationOptions } = options ?? {};
+  const {
+    successMessage,
+    showSuccessToast,
+    showErrorToast = true,
+    schema,
+    invalidateKeys,
+    ...mutationOptions
+  } = options ?? {};
+  const shouldShowSuccessToast = showSuccessToast ?? !!successMessage;
 
   const requestOpts: RequestOptions | undefined = schema ? { schema } : undefined;
 
@@ -41,7 +53,7 @@ export function useApiMutation<TData, TVariables = unknown>(
       return apiClient[method]<TData>(resolvedPath, variables, requestOpts);
     },
     onSuccess: (data, variables, ctx) => {
-      if (successMessage) {
+      if (successMessage && shouldShowSuccessToast) {
         toast.success(successMessage);
       }
       if (invalidateKeys?.length) {
@@ -53,7 +65,9 @@ export function useApiMutation<TData, TVariables = unknown>(
       (mutationOptions?.onSuccess as any)?.(data, variables, ctx);
     },
     onError: (error, variables, ctx) => {
-      toast.error(error.toastMessage);
+      if (showErrorToast) {
+        toast.error(error.toastMessage);
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (mutationOptions?.onError as any)?.(error, variables, ctx);
     },

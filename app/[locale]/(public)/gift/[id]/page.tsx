@@ -84,11 +84,6 @@ export default function GiftDetailPage() {
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
       <PageHeader
         title={giftCard.title}
-        breadcrumbs={[
-          { label: tNav("home"), href: "/" },
-          { label: t("giftCardsTitle"), href: "/gift" },
-          { label: giftCard.title },
-        ]}
       />
 
       <div className="grid gap-8 lg:grid-cols-2">

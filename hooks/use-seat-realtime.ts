@@ -3,9 +3,16 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { RealtimeConnection, type SeatEvent } from "@/lib/realtime";
-import type { Seat } from "@/types/domain";
+import type { ApiEnvelope } from "@/types/api";
+import type { Seat, ShowtimeSeatsPayload } from "@/types/domain";
 
 const POLL_INTERVAL_MS = 8000;
+
+type SeatsQueryCache =
+  | ApiEnvelope<ShowtimeSeatsPayload>
+  | { data?: ShowtimeSeatsPayload | Seat[] }
+  | Seat[]
+  | undefined;
 
 function statusFromEventType(type: SeatEvent["type"]): "AVAILABLE" | "HELD" | "BOOKED" | "BLOCKED" {
   switch (type) {
@@ -19,6 +26,46 @@ function statusFromEventType(type: SeatEvent["type"]): "AVAILABLE" | "HELD" | "B
     default:
       return "AVAILABLE";
   }
+}
+
+function patchSeatStatuses(
+  seats: Seat[],
+  seatIdsSet: Set<string>,
+  newStatus: ReturnType<typeof statusFromEventType>
+): Seat[] {
+  return seats.map((seat) =>
+    seatIdsSet.has(seat.id) ? { ...seat, status: newStatus } : seat
+  );
+}
+
+function patchSeatsQueryCache(
+  old: SeatsQueryCache,
+  seatIdsSet: Set<string>,
+  newStatus: ReturnType<typeof statusFromEventType>
+): SeatsQueryCache {
+  if (!old) return old;
+
+  if (Array.isArray(old)) {
+    return patchSeatStatuses(old, seatIdsSet, newStatus);
+  }
+
+  const data = old.data;
+  if (Array.isArray(data)) {
+    return { ...old, data: patchSeatStatuses(data, seatIdsSet, newStatus) };
+  }
+
+  if (data && typeof data === "object" && "seats" in data) {
+    const payload = data as ShowtimeSeatsPayload;
+    return {
+      ...old,
+      data: {
+        ...payload,
+        seats: patchSeatStatuses(payload.seats ?? [], seatIdsSet, newStatus),
+      },
+    };
+  }
+
+  return old;
 }
 
 export function useSeatRealtime(showtimeId: string, selectedSeatIds: string[] = []) {
@@ -39,21 +86,14 @@ export function useSeatRealtime(showtimeId: string, selectedSeatIds: string[] = 
       const newStatus = statusFromEventType(event.type);
       const seatIdsSet = new Set(event.seatIds);
 
-      queryClient.setQueryData(
+      queryClient.setQueryData<SeatsQueryCache>(
         ["showtimes", showtimeId, "seats"],
-        (old: { data?: Seat[] } | Seat[] | undefined) => {
-          const prev = Array.isArray(old) ? old : (old?.data ?? []);
-          const seats = Array.isArray(prev) ? prev : [];
-          const updated = seats.map((seat) =>
-            seatIdsSet.has(seat.id) ? { ...seat, status: newStatus } : seat
-          );
-          return Array.isArray(old) ? updated : { ...(old ?? {}), data: updated };
-        }
+        (old) => patchSeatsQueryCache(old, seatIdsSet, newStatus)
       );
 
-      const unavailable = event.type === "SEAT_HELD" || event.type === "SEAT_BOOKED";
+      // Only BOOKED is a hard conflict. SEAT_HELD also fires for the current user's own hold.
       const selected = selectedRef.current;
-      if (unavailable && selected.length > 0) {
+      if (event.type === "SEAT_BOOKED" && selected.length > 0) {
         const conflicted = event.seatIds.filter((id) => selected.includes(id));
         if (conflicted.length > 0) {
           setConflictedSeatIds((prev) => Array.from(new Set([...prev, ...conflicted])));
@@ -79,7 +119,6 @@ export function useSeatRealtime(showtimeId: string, selectedSeatIds: string[] = 
     };
   }, [showtimeId, queryClient]);
 
-  // Fallback polling when WebSocket fails
   useEffect(() => {
     if (!usePolling) return;
     const interval = setInterval(() => {

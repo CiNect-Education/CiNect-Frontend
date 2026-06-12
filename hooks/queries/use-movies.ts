@@ -66,6 +66,26 @@ export function useCreateReview(movieId: string) {
     invalidateKeys: [
       ["movie-reviews", movieId],
       ["movie", movieId],
+      ["movie-review-eligibility", movieId],
+      ["community", "reviews"],
     ],
   });
+}
+
+const reviewEligibilitySchema = z.object({
+  canReview: z.boolean(),
+  reason: z.enum(["ALREADY_REVIEWED", "NOT_WATCHED_YET", "NO_TICKET"]).nullable(),
+  willBeVerified: z.boolean().optional(),
+});
+
+export function useReviewEligibility(movieId: string, enabled = true) {
+  return useApiQuery(
+    ["movie-review-eligibility", movieId],
+    `/movies/${movieId}/review-eligibility`,
+    undefined,
+    {
+      schema: reviewEligibilitySchema,
+      enabled: !!movieId && enabled,
+    }
+  );
 }

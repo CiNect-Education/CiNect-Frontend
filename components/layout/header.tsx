@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Ticket, MapPin, Gift, Building2 } from "lucide-react";
 import { CinectBrandLogo } from "@/components/branding/cinect-brand-logo";
 import { UserMenu } from "@/components/shared/user-menu";
+import { HeaderNotifications } from "@/components/shared/header-notifications";
 import { GlobalSearch } from "@/components/shared/global-search";
 import { SettingsPanel } from "@/components/shared/settings-panel";
 import { MobileNav } from "./mobile-nav";
@@ -19,6 +20,7 @@ const BOTTOM_RIGHT_NAV = [
   { key: "promotions", href: "/promotions" },
   { key: "campaigns", href: "/campaigns" },
   { key: "gift", href: "/gift" },
+  { key: "community", href: "/community" },
   { key: "support", href: "/support" },
 ] as const;
 
@@ -72,12 +74,17 @@ export function Header() {
                 <SettingsPanel triggerClassName="text-white hover:text-[#f3ea28]" />
               </ClientOnly>
             </div>
-            <ClientOnly>
-              <UserMenu variant="header" />
-            </ClientOnly>
-            <ClientOnly>
-              <HeaderLocaleSwitcher />
-            </ClientOnly>
+            <div className="cinect-header-auth-lang">
+              <ClientOnly>
+                <HeaderNotifications />
+              </ClientOnly>
+              <ClientOnly>
+                <UserMenu variant="header" />
+              </ClientOnly>
+              <ClientOnly>
+                <HeaderLocaleSwitcher />
+              </ClientOnly>
+            </div>
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5 lg:hidden">

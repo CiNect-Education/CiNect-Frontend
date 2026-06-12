@@ -194,7 +194,6 @@ export default function AdminCinemasPage() {
     <AdminPageShell
       title={t("cinemas")}
       description={t("descCinemas")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("cinemas") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
@@ -207,13 +206,13 @@ export default function AdminCinemasPage() {
         data={cinemas}
         searchKey="name"
         searchPlaceholder={t("searchCinemas")}
-        className="cinect-glass rounded-lg border p-4"
+        className="cinect-admin-panel rounded-lg p-4"
         isLoading={cinemasLoading}
         emptyMessage={t("emptyCinemas")}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="cinect-glass max-w-lg border">
+        <DialogContent className="cinect-admin-panel max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingCinema ? t("editCinema") : t("addCinema")}</DialogTitle>
           </DialogHeader>
@@ -318,7 +317,7 @@ export default function AdminCinemasPage() {
       </Dialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="cinect-glass border">
+        <AlertDialogContent className="cinect-admin-panel">
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deleteCinema")}</AlertDialogTitle>
             <AlertDialogDescription>

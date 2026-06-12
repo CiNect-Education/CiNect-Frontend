@@ -39,6 +39,9 @@ export function useAdminKPIs(range = "7d") {
     totalBookings: number;
     totalMovies: number;
     totalCinemas: number;
+    totalUsers: number;
+    totalShowtimes: number;
+    confirmedBookings: number;
     occupancyRate: number;
   }>(["admin", "kpis", range], "/admin/kpis", { range });
 }
@@ -504,6 +507,40 @@ export function useDeleteUser() {
   return useApiMutation<void, { id: string }>("delete", (v) => `/admin/users/${v.id}`, {
     successMessage: "User deleted",
     invalidateKeys: [["admin", "users"]],
+  });
+}
+
+export function useToggleUserActive() {
+  return useApiMutation<User, { id: string }>("put", (v) => `/admin/users/${v.id}/toggle-active`, {
+    successMessage: "User status updated",
+    invalidateKeys: [["admin", "users"]],
+  });
+}
+
+export function useAdminRefunds(params?: QueryParams) {
+  return useApiQuery<
+    Array<{
+      id: string;
+      bookingId: string;
+      amount: number | string;
+      refundMethod: string;
+      reason?: string;
+      createdAt: string;
+      user?: { fullName?: string; email?: string };
+      booking?: {
+        showtime?: {
+          movie?: { title?: string };
+          cinema?: { name?: string };
+          startTime?: string;
+        };
+      };
+    }>
+  >(["admin", "refunds", JSON.stringify(params ?? {})], "/admin/refunds", params);
+}
+
+export function useSyncProvinces() {
+  return useApiMutation<{ message?: string }, void>("post", "/admin/provinces/sync", {
+    successMessage: "Provinces synced",
   });
 }
 

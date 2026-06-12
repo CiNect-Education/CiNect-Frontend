@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
-import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LocaleFlagIcon } from "@/components/shared/locale-flag-icon";
 
@@ -24,6 +23,7 @@ export function HeaderLocaleSwitcher({ className }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const current = LOCALES.find((l) => l.id === locale) ?? LOCALES[0];
+  const alternateLocales = LOCALES.filter((l) => l.id !== locale);
 
   const switchLocale = useCallback(
     (id: (typeof LOCALES)[number]["id"]) => {
@@ -68,26 +68,30 @@ export function HeaderLocaleSwitcher({ className }: Props) {
         aria-haspopup="listbox"
         onClick={() => setOpen((v) => !v)}
       >
-        <span className="cinect-lg-option cinect-lg-option--trigger">
-          <LocaleFlagIcon locale={current.id} size={24} />
-          <span className="cinect-lg-txt">{current.short}</span>
+        <span className="cinect-lg-popup">
+          <span className="cinect-lg-option">
+            <LocaleFlagIcon locale={current.id} />
+            <span className="cinect-lg-txt">{current.short}</span>
+            <span className="cinect-lg-arr" aria-hidden />
+          </span>
         </span>
-        <ChevronDown className="cinect-lg-arr" strokeWidth={2.5} aria-hidden />
       </button>
 
       <div className={cn("cinect-lg-action-popup", open && "is-open")} role="listbox" aria-label={t("language")}>
         <div className="cinect-lg-popup">
-          {LOCALES.map(({ id, short }) => (
+          {alternateLocales.map(({ id, short }) => (
             <button
               key={id}
               type="button"
               role="option"
-              aria-selected={locale === id}
-              className={cn("cinect-lg-popup-item", locale === id && "is-active")}
+              aria-selected={false}
+              className="cinect-lg-popup-item"
               onClick={() => switchLocale(id)}
             >
-              <LocaleFlagIcon locale={id} size={24} />
-              <span className="cinect-lg-txt cinect-lg-txt--popup">{short}</span>
+              <span className="cinect-lg-option">
+                <LocaleFlagIcon locale={id} />
+                <span className="cinect-lg-txt cinect-lg-txt--popup">{short}</span>
+              </span>
             </button>
           ))}
         </div>

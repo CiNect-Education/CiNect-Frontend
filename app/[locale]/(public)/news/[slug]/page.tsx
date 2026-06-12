@@ -54,11 +54,6 @@ export default function NewsArticlePage() {
       <div className="mx-auto max-w-3xl px-4 py-8 lg:px-6">
         <PageHeader
           title=""
-          breadcrumbs={[
-            { label: tNav("home"), href: "/" },
-            { label: t("title"), href: "/news" },
-            { label: t("articleLoading") },
-          ]}
         />
         <Skeleton className="mb-4 h-10 w-3/4" />
         <Skeleton className="mb-6 h-4 w-48" />
@@ -98,11 +93,6 @@ export default function NewsArticlePage() {
     <div className="mx-auto max-w-3xl px-4 py-8 lg:px-6">
       <PageHeader
         title=""
-        breadcrumbs={[
-          { label: tNav("home"), href: "/" },
-          { label: t("title"), href: "/news" },
-          { label: article.title },
-        ]}
       />
 
       <article>
@@ -175,11 +165,11 @@ export default function NewsArticlePage() {
       {relatedArticles.length > 0 && (
         <div className="mt-12 border-t pt-8">
           <h2 className="mb-4 text-xl font-semibold">Related Articles</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid auto-rows-fr gap-4 sm:grid-cols-2">
             {relatedArticles.map((a) => (
-              <Link key={a.id} href={`/news/${a.slug}`}>
-                <Card className="overflow-hidden transition-all hover:shadow-md">
-                  <div className="flex gap-4 p-4">
+              <Link key={a.id} href={`/news/${a.slug}`} className="block h-full">
+                <Card className="h-full overflow-hidden transition-all hover:shadow-md">
+                  <div className="flex h-full gap-4 p-4">
                     {a.imageUrl ? (
                       <div className="bg-muted h-20 w-24 shrink-0 overflow-hidden rounded">
                         <div className="relative h-full w-full">

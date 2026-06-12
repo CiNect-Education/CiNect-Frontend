@@ -26,6 +26,7 @@ import { countryLabelForLanguage, movieTagline } from "@/lib/movie-display";
 import { parseYoutubeVideoId } from "@/lib/youtube";
 import { localizeAudioLabel } from "@/lib/showtime-display";
 import { cn } from "@/lib/utils";
+import { MovieExternalScores } from "@/components/movies/movie-external-scores";
 
 export type HomeMovieCardVariant = "nowShowing" | "comingSoon";
 
@@ -115,6 +116,17 @@ export function HomeMovieCard({
           )}
         </Link>
 
+        {movie.imdbRating != null && movie.imdbRating > 0 ? (
+          <div className="pointer-events-none absolute top-2 right-2 z-10">
+            <span
+              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold text-black shadow-sm"
+              style={{ backgroundColor: "#F5C518" }}
+            >
+              IMDb {Number.isInteger(movie.imdbRating) ? `${movie.imdbRating}.0` : movie.imdbRating.toFixed(1)}
+            </span>
+          </div>
+        ) : null}
+
         <div className="pointer-events-none absolute top-2 left-2 z-10 flex flex-wrap gap-1">
           {movie.formats?.slice(0, 2).map((fmt) => (
             <Badge
@@ -193,9 +205,19 @@ export function HomeMovieCard({
                   {tMovies("releaseDate")}: {releaseLabel}
                 </HoverMetaRow>
               ) : null}
+              {movie.imdbRating != null && movie.imdbRating > 0 ? (
+                <li>
+                  <MovieExternalScores
+                    imdbRating={movie.imdbRating}
+                    metacriticScore={movie.metacriticScore}
+                    size="sm"
+                    className="text-white [&_span]:text-white"
+                  />
+                </li>
+              ) : null}
               {movie.rating != null && Number(movie.rating) > 0 ? (
                 <HoverMetaRow icon={Star}>
-                  {tMovies("rating")}: {movie.rating}
+                  CiNect: {movie.rating}
                 </HoverMetaRow>
               ) : null}
             </ul>

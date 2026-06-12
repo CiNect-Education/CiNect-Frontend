@@ -84,7 +84,7 @@ export function ChatbotWidget() {
   }
 
   return (
-    <div className="pointer-events-none fixed right-4 bottom-20 z-[90] md:bottom-6">
+    <div className="cinect-chatbot-root pointer-events-none fixed right-4 bottom-20 z-[90] md:bottom-6">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button

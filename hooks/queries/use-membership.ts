@@ -44,7 +44,6 @@ export function useMyCoupons() {
 
 export function useRedeemCoupon() {
   return useApiMutation<void, { couponId: string }>("post", "/me/coupons/redeem", {
-    successMessage: "Coupon redeemed!",
     invalidateKeys: [["my-coupons"]],
   });
 }
@@ -93,6 +92,8 @@ export function useClaimDailyCheckin() {
     },
     void
   >("post", "/membership/daily-checkin/claim", {
+    showSuccessToast: false,
+    showErrorToast: false,
     invalidateKeys: [["membership", "profile"], ["points-history"], ["membership", "daily-checkin", "status"]],
   });
 }

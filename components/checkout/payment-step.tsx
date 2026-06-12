@@ -1,22 +1,23 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Card } from "@/components/ui/card";
-import { CreditCard, Wallet, Gift, Tag, Smartphone, Building2, Banknote } from "lucide-react";
-import type { PaymentMethod } from "@/types/domain";
+import { cn } from "@/lib/utils";
+import { CreditCard, Wallet, Gift, Smartphone, Building2, Banknote } from "lucide-react";
+import type { PaymentMethod, Promotion } from "@/types/domain";
+import { PromoPickerRow, PromoPickerSheet } from "@/components/checkout/promo-picker-sheet";
 
 interface PaymentStepProps {
   onPayment: (paymentMethod: PaymentMethod, amount: number) => Promise<void>;
   isLoading: boolean;
   totalAmount: number;
-  promoCode: string;
-  onPromoCodeChange: (code: string) => void;
-  onApplyPromo: () => void;
+  orderAmount: number;
+  appliedPromoCode?: string | null;
+  onApplyPromo: (code: string) => Promise<void> | void;
   isApplyingPromo?: boolean;
   giftCardCode: string;
   onGiftCardCodeChange: (code: string) => void;
@@ -27,12 +28,7 @@ interface PaymentStepProps {
   onApplyPoints: () => void;
   isApplyingPoints?: boolean;
   availablePoints?: number;
-  eligiblePromotions?: Array<{
-    id: string;
-    title: string;
-    code?: string;
-    eligiblePaymentMethods?: PaymentMethod[];
-  }>;
+  eligiblePromotions?: Promotion[];
 }
 
 function paymentMethodLabel(m: PaymentMethod, t: (key: string) => string) {
@@ -52,18 +48,12 @@ function paymentMethodLabel(m: PaymentMethod, t: (key: string) => string) {
   }
 }
 
-function paymentMethodShort(m: PaymentMethod, t: (key: string) => string) {
-  if (m === "CARD") return t("pmShortCard");
-  if (m === "BANK_TRANSFER") return t("pmShortBank");
-  return m.toLowerCase();
-}
-
 export function PaymentStep({
   onPayment,
   isLoading,
   totalAmount,
-  promoCode,
-  onPromoCodeChange,
+  orderAmount,
+  appliedPromoCode,
   onApplyPromo,
   isApplyingPromo,
   giftCardCode,
@@ -80,6 +70,7 @@ export function PaymentStep({
   const t = useTranslations("checkout");
   const tCommon = useTranslations("common");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CARD");
+  const [promoPickerOpen, setPromoPickerOpen] = useState(false);
 
   const paymentMethods = useMemo(
     () =>
@@ -98,15 +89,18 @@ export function PaymentStep({
     [t]
   );
 
-  const visiblePromotions =
-    eligiblePromotions?.filter(
-      (p) =>
-        !p.eligiblePaymentMethods ||
-        p.eligiblePaymentMethods.length === 0 ||
-        p.eligiblePaymentMethods.includes(paymentMethod)
-    ) ?? [];
-  const hiddenPromotionsCount =
-    (eligiblePromotions?.length ?? 0) - (visiblePromotions?.length ?? 0);
+  const appliedPromotion = useMemo(
+    () =>
+      eligiblePromotions.find(
+        (p) =>
+          p.code &&
+          appliedPromoCode &&
+          p.code.toUpperCase() === appliedPromoCode.toUpperCase(),
+      ) ?? null,
+    [eligiblePromotions, appliedPromoCode],
+  );
+
+  const eligiblePromoCount = eligiblePromotions.filter((p) => p.code).length;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,69 +109,26 @@ export function PaymentStep({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {eligiblePromotions.length > 0 && (
-        <Card className="cinect-glass p-4">
-          <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
-            <Tag className="h-4 w-4" />
-            {t("availablePromotions")}
-          </Label>
-          <p className="text-muted-foreground mb-1 text-xs">{t("promotionsHint")}</p>
-          {hiddenPromotionsCount > 0 && (
-            <p className="text-muted-foreground mb-2 text-[11px]">{t("promotionsOtherMethodsHint")}</p>
-          )}
-          <div className="space-y-2">
-            {visiblePromotions.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                className="hover:bg-muted/70 flex w-full items-center justify-between rounded-md border p-2 text-left text-sm transition-colors"
-                onClick={() => {
-                  if (!p.code) return;
-                  onPromoCodeChange(p.code);
-                  onApplyPromo();
-                }}
-              >
-                <span className="pr-2">
-                  {p.title}
-                  {p.eligiblePaymentMethods && p.eligiblePaymentMethods.length > 0 && (
-                    <span className="text-muted-foreground ml-2 text-[11px]">
-                      ({p.eligiblePaymentMethods.map((m) => paymentMethodShort(m, t)).join(", ")})
-                    </span>
-                  )}
-                </span>
-                {p.code && (
-                  <span className="text-primary font-mono text-xs font-semibold">{p.code}</span>
-                )}
-              </button>
-            ))}
-          </div>
-        </Card>
-      )}
+      <div className="cinect-flow-divider pb-4">
+        <PromoPickerRow
+          appliedPromoCode={appliedPromoCode}
+          appliedPromotion={appliedPromotion}
+          eligibleCount={eligiblePromoCount}
+          onOpen={() => setPromoPickerOpen(true)}
+        />
+        <PromoPickerSheet
+          open={promoPickerOpen}
+          onOpenChange={setPromoPickerOpen}
+          promotions={eligiblePromotions}
+          appliedPromoCode={appliedPromoCode}
+          paymentMethod={paymentMethod}
+          orderAmount={orderAmount}
+          isApplying={isApplyingPromo}
+          onApply={onApplyPromo}
+        />
+      </div>
 
-      <Card className="cinect-glass p-4">
-        <Label htmlFor="promo" className="mb-2 flex items-center gap-2 text-sm font-medium">
-          <Tag className="h-4 w-4" />
-          {t("promoCodeLabel")}
-        </Label>
-        <div className="flex gap-2">
-          <Input
-            id="promo"
-            placeholder={t("promoPlaceholder")}
-            value={promoCode}
-            onChange={(e) => onPromoCodeChange(e.target.value)}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onApplyPromo}
-            disabled={!promoCode.trim() || isApplyingPromo}
-          >
-            {isApplyingPromo ? tCommon("applying") : tCommon("apply")}
-          </Button>
-        </div>
-      </Card>
-
-      <Card className="cinect-glass p-4">
+      <div className="cinect-flow-divider space-y-3 pb-6">
         <Label htmlFor="gift" className="mb-2 flex items-center gap-2 text-sm font-medium">
           <Gift className="h-4 w-4" />
           {t("giftCardLabel")}
@@ -198,9 +149,9 @@ export function PaymentStep({
             {isApplyingGiftCard ? tCommon("applying") : tCommon("apply")}
           </Button>
         </div>
-      </Card>
+      </div>
 
-      <Card className="cinect-glass p-4">
+      <div className="cinect-flow-divider space-y-3 pb-6">
         <Label htmlFor="points" className="mb-2 flex items-center gap-2 text-sm font-medium">
           <Banknote className="h-4 w-4" />
           {t("useLoyaltyPoints")}
@@ -227,14 +178,20 @@ export function PaymentStep({
         <p className="text-muted-foreground mt-1 text-xs">
           {t("pointsAvailable", { points: availablePoints.toLocaleString() })}
         </p>
-      </Card>
+      </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 pt-2">
         <Label className="text-sm font-medium">{t("paymentMethod")}</Label>
         <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
           <div className="grid gap-2 sm:grid-cols-2">
             {paymentMethods.map((m) => (
-              <Card key={m.value} className="cinect-glass p-4">
+              <div
+                key={m.value}
+                className={cn(
+                  "cinect-flow-interactive p-4",
+                  paymentMethod === m.value && "cinect-flow-interactive-selected",
+                )}
+              >
                 <div className="flex items-center space-x-3">
                   <RadioGroupItem value={m.value} id={m.value} />
                   <Label htmlFor={m.value} className="flex flex-1 cursor-pointer items-center gap-2">
@@ -242,7 +199,7 @@ export function PaymentStep({
                     {m.label}
                   </Label>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         </RadioGroup>

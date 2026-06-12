@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -25,10 +26,22 @@ import {
   buildGoogleMapsDirectionsUrl,
   buildGoogleMapsPlaceUrl,
   formatDistanceKm,
-  getCurrentPositionCoords,
-  haversineKm,
 } from "@/lib/maps";
-import { CinemaVietnamMap } from "@/components/cinemas/cinema-vietnam-map";
+import {
+  distanceToCinemaKm,
+  locateUserPrecise,
+  readUserLocation,
+  sortByDistanceFromUser,
+  USER_LOCATION_CHANGED_EVENT,
+} from "@/lib/user-location";
+import { DetectRegionButton } from "@/components/shared/detect-region-button";
+const CinemaVietnamMap = dynamic(
+  () => import("@/components/cinemas/cinema-vietnam-map").then((m) => m.CinemaVietnamMap),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[320px] w-full rounded-xl" />,
+  },
+);
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];
@@ -50,8 +63,6 @@ export default function CinemasPage() {
 
   const city = normalizeBookingCityId(searchParams.get("city") || "");
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [isLocating, setIsLocating] = useState(false);
-  const [locationError, setLocationError] = useState<string>("");
   const amenities = useMemo(
     () => searchParams.get("amenities")?.split(",").filter(Boolean) || [],
     [searchParams]
@@ -74,7 +85,12 @@ export default function CinemasPage() {
         amenities.every((a) => (c.amenities ?? []).includes(a))
       );
     return list;
-  }, [rawCinemas, city, amenities]);
+  }, [rawCinemas, amenities]);
+
+  const cinemasSorted = useMemo(
+    () => sortByDistanceFromUser(cinemas, userCoords),
+    [cinemas, userCoords]
+  );
 
   const allAmenities = useMemo(
     () => Array.from(new Set(rawCinemas.flatMap((c) => c.amenities ?? []))).sort(),
@@ -126,6 +142,16 @@ export default function CinemasPage() {
     setShowAllCinemas(false);
   }, [city, amenities.join(",")]);
 
+  useEffect(() => {
+    function syncUserLocation() {
+      const stored = readUserLocation();
+      setUserCoords(stored ? { lat: stored.lat, lng: stored.lng } : null);
+    }
+    syncUserLocation();
+    window.addEventListener(USER_LOCATION_CHANGED_EVENT, syncUserLocation);
+    return () => window.removeEventListener(USER_LOCATION_CHANGED_EVENT, syncUserLocation);
+  }, []);
+
   function setCity(c: string) {
     const normalized = normalizeBookingCityId(c);
     const p = new URLSearchParams(searchParams.toString());
@@ -151,17 +177,13 @@ export default function CinemasPage() {
     router.push(`?${p.toString()}`);
   }
 
-  async function detectMyLocation() {
-    setLocationError("");
-    setIsLocating(true);
-    try {
-      const coords = await getCurrentPositionCoords();
-      setUserCoords(coords);
-    } catch {
-      setLocationError(t("locationUnavailable"));
-    } finally {
-      setIsLocating(false);
+  function handleLocationApplied(cityId: string) {
+    const stored = readUserLocation();
+    if (stored) {
+      setUserCoords({ lat: stored.lat, lng: stored.lng });
+      setShowAllCinemas(true);
     }
+    if (cityId) setCity(cityId);
   }
 
   function openPlaceMap(
@@ -203,7 +225,6 @@ export default function CinemasPage() {
       <PageHeader
         title={t("title")}
         description={t("description")}
-        breadcrumbs={[{ label: tNav("home"), href: "/" }, { label: t("title") }]}
       />
 
       {/* Filters */}
@@ -226,16 +247,18 @@ export default function CinemasPage() {
           </div>
         </div>
 
-        <div className="mt-3 flex items-center gap-2">
-          <Badge
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <DetectRegionButton
+            size="sm"
             variant="outline"
-            className="cursor-pointer"
-            onClick={detectMyLocation}
-            aria-disabled={isLocating}
-          >
-            {isLocating ? t("locating") : t("useMyLocation")}
-          </Badge>
-          {locationError ? <span className="text-destructive text-xs">{locationError}</span> : null}
+            showLabel
+            onApplied={(cityId) => handleLocationApplied(cityId)}
+          />
+          {userCoords ? (
+            <span className="text-muted-foreground text-xs">
+              {t("sortedByNearest")}
+            </span>
+          ) : null}
         </div>
 
         {allAmenities.length > 0 && (
@@ -258,8 +281,8 @@ export default function CinemasPage() {
         )}
       </div>
 
-      {!isLoading && !error && cinemas.length > 0 ? (
-        <CinemaVietnamMap cinemas={cinemas} />
+      {!isLoading && !error && cinemasSorted.length > 0 ? (
+        <CinemaVietnamMap cinemas={cinemasSorted} userCoords={userCoords} />
       ) : null}
 
       {/* Cinema grid — collapsed until user expands */}
@@ -271,7 +294,7 @@ export default function CinemasPage() {
           <h3 className="mb-2 text-lg font-semibold">{t("emptyState")}</h3>
           <p className="text-muted-foreground text-sm">{tCommon("tryAdjustFilters")}</p>
         </div>
-      ) : !isLoading && cinemas.length > 0 ? (
+      ) : !isLoading && cinemasSorted.length > 0 ? (
         <section className="mt-8" aria-label={t("allCinemas")}>
           <div className="flex justify-center">
             <Button
@@ -284,7 +307,7 @@ export default function CinemasPage() {
             >
               {showAllCinemas
                 ? t("hideAllCinemas")
-                : t("showAllCinemas", { count: cinemas.length })}
+                : t("showAllCinemas", { count: cinemasSorted.length })}
               <ChevronDown
                 className={cn("ml-2 h-5 w-5 shrink-0 transition-transform", showAllCinemas && "rotate-180")}
                 aria-hidden
@@ -294,7 +317,10 @@ export default function CinemasPage() {
 
           {showAllCinemas ? (
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {cinemas.map((cinema) => (
+              {cinemasSorted.map((cinema) => {
+                const distanceKm =
+                  userCoords != null ? distanceToCinemaKm(userCoords, cinema) : null;
+                return (
                 <Link key={cinema.id} href={`/cinemas/${cinema.slug || cinema.id}`}>
                   <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
                     <div className="bg-muted relative aspect-video overflow-hidden">
@@ -322,15 +348,10 @@ export default function CinemasPage() {
                         <span className="line-clamp-1">{cinema.address}</span>
                       </div>
                       <p className="text-muted-foreground mb-3 text-xs">{cinema.city}</p>
-                      {userCoords && cinema.latitude != null && cinema.longitude != null ? (
+                      {distanceKm != null ? (
                         <p className="text-primary mb-3 text-xs font-medium">
                           {t("distanceFromYou", {
-                            distance: formatDistanceKm(
-                              haversineKm(userCoords, {
-                                lat: cinema.latitude,
-                                lng: cinema.longitude,
-                              })
-                            ),
+                            distance: formatDistanceKm(distanceKm),
                           })}
                         </p>
                       ) : null}
@@ -364,7 +385,8 @@ export default function CinemasPage() {
                     </CardContent>
                   </Card>
                 </Link>
-              ))}
+                );
+              })}
             </div>
           ) : null}
         </section>

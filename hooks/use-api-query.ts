@@ -22,7 +22,8 @@ export function useApiQuery<T>(
   params?: QueryParams,
   options?: UseApiQueryOptions<T>
 ) {
-  const { schema, ...queryOptions } = options ?? {};
+  const { schema, enabled, ...queryOptions } = options ?? {};
+  const isBrowser = typeof window !== "undefined";
 
   const requestOpts: RequestOptions | undefined = schema ? { schema } : undefined;
 
@@ -30,5 +31,6 @@ export function useApiQuery<T>(
     queryKey: key,
     queryFn: ({ signal }) => apiClient.get<T>(path, params, { ...requestOpts, signal }),
     ...queryOptions,
+    enabled: isBrowser && (enabled ?? true),
   });
 }

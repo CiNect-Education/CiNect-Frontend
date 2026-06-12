@@ -287,7 +287,6 @@ export default function AdminPromotionsPage() {
     <AdminPageShell
       title={t("promotions")}
       description={t("descPromotions")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("promotions") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
@@ -300,13 +299,13 @@ export default function AdminPromotionsPage() {
         data={promotions}
         searchKey="title"
         searchPlaceholder={t("searchPromotions")}
-        className="cinect-glass rounded-lg border p-4"
+        className="cinect-admin-panel rounded-lg p-4"
         isLoading={promotionsLoading}
         emptyMessage={t("emptyPromotions")}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="cinect-glass max-w-lg border">
+        <DialogContent className="cinect-admin-panel max-w-lg">
           <DialogHeader>
             <DialogTitle>
               {editingPromotion ? t("editPromotion") : t("createPromotion")}
@@ -497,7 +496,7 @@ export default function AdminPromotionsPage() {
       </Dialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="cinect-glass border">
+        <AlertDialogContent className="cinect-admin-panel">
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deletePromotion")}</AlertDialogTitle>
             <AlertDialogDescription>

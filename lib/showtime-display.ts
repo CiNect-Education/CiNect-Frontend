@@ -32,3 +32,30 @@ export function formatVnd(amount: number, localeCode: string): string {
     maximumFractionDigits: 0,
   }).format(amount);
 }
+
+/** Maps Prisma / API enum names to short display codes (2D, 3D, …). */
+export function normalizeRoomFormat(raw: string): string {
+  const v = raw.trim();
+  const map: Record<string, string> = {
+    STANDARD2D: "2D",
+    STANDARD3D: "3D",
+    FOURDX: "4DX",
+    IMAX: "IMAX",
+    DOLBY: "DOLBY",
+  };
+  return map[v] ?? v;
+}
+
+/** Localizes room/showtime format for UI badges (DB may send enum names or 2D/3D codes). */
+export function localizeRoomFormat(raw: string, tr: (key: string) => string): string {
+  const code = normalizeRoomFormat(raw);
+  const keyByCode: Record<string, string> = {
+    "2D": "format2D",
+    "3D": "format3D",
+    IMAX: "formatIMAX",
+    "4DX": "format4DX",
+    DOLBY: "formatDOLBY",
+  };
+  const key = keyByCode[code];
+  return key ? tr(key) : code;
+}

@@ -146,7 +146,6 @@ export default function AdminCampaignsPage() {
     <AdminPageShell
       title={t("campaignsAdmin")}
       description={t("descCampaignsAdmin")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("campaignsAdmin") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
@@ -158,7 +157,7 @@ export default function AdminCampaignsPage() {
         <Alert variant="destructive" className="mb-4">
           <AlertTitle>{tCommon("error")}</AlertTitle>
           <AlertDescription>
-            {error instanceof ApiError ? error.toastMessage : String(error?.message ?? "Request failed")}
+            {error instanceof ApiError ? error.toastMessage : tCommon("error")}
           </AlertDescription>
         </Alert>
       )}

@@ -1,28 +1,39 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApiErrorState } from "@/components/system/api-error-state";
-import { useBookings } from "@/hooks/queries/use-bookings";
+import { BookingRefundDialog } from "@/components/account/booking-refund-dialog";
+import { useBookings, useBookingRefunds } from "@/hooks/queries/use-bookings";
 import { Link } from "@/i18n/navigation";
 import { format, isValid } from "date-fns";
 import { enUS, vi as viDateLocale } from "date-fns/locale";
 import {
-  ArrowUpDown,
   CalendarPlus,
   ExternalLink,
+  Filter,
   Search,
   Ticket,
+  Undo2,
 } from "lucide-react";
 import type { Booking, BookingStatus } from "@/types/domain";
+import { formatVnd } from "@/lib/showtime-display";
+import { parseStoredRefundReason } from "@/lib/refund-reasons";
 
 function toList<T>(v: unknown): T[] {
   if (Array.isArray(v)) return v as T[];
@@ -48,13 +59,41 @@ export default function OrdersPage() {
   const dateFnsLocale = locale.startsWith("vi") ? viDateLocale : enUS;
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<BookingStatus | "ALL">("ALL");
-  const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
+  const [tab, setTab] = useState<"upcoming" | "past" | "refunds">("upcoming");
   const [sortBy, setSortBy] = useState<"showtime-desc" | "showtime-asc" | "amount-desc">(
     "showtime-desc"
   );
+  const [refundTarget, setRefundTarget] = useState<Booking | null>(null);
+
+  const statusOptions = [
+    "ALL",
+    "PENDING",
+    "HELD",
+    "CONFIRMED",
+    "COMPLETED",
+    "CANCELLED",
+  ] as const;
+
+  const sortOptions = [
+    { value: "showtime-desc", label: t("ticketSortShowtimeDesc") },
+    { value: "showtime-asc", label: t("ticketSortShowtimeAsc") },
+    { value: "amount-desc", label: t("ticketSortAmountDesc") },
+  ] as const;
 
   const { data, isLoading, error, refetch } = useBookings({ limit: 200 });
+  const {
+    data: refundsData,
+    isLoading: refundsLoading,
+    error: refundsError,
+    refetch: refetchRefunds,
+  } = useBookingRefunds({ limit: 50 });
+  const refunds = useMemo(() => toList<import("@/lib/schemas/booking-refund").BookingRefund>(refundsData?.data ?? refundsData), [refundsData]);
   const bookings = useMemo(() => toList<Booking>(data?.data ?? data), [data]);
+
+  const canRequestRefund = (booking: Booking, isUpcoming: boolean) =>
+    isUpcoming &&
+    booking.status === "CONFIRMED" &&
+    booking.payment?.status === "PAID";
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -152,18 +191,17 @@ export default function OrdersPage() {
   const renderTicketCard = (booking: Booking, isUpcoming: boolean) => (
     <Card
       key={booking.id}
-      className="cinect-glass group overflow-hidden border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+      className="cinect-account-row group overflow-hidden"
     >
       <CardContent className="p-0">
         <div className="from-primary/10 via-primary/5 to-transparent h-1 w-full bg-gradient-to-r" />
         <div className="grid gap-4 p-4 sm:grid-cols-[84px_minmax(0,1fr)_auto] sm:items-center">
-          <div className="relative h-28 w-[84px] overflow-hidden rounded-md border">
-            <Image
+          <div className="relative h-28 w-[84px] overflow-hidden rounded-md border bg-muted">
+            <RemoteImage
               src={booking.moviePosterUrl || posterFallback}
               alt={booking.movieTitle || "Movie poster"}
               fill
               sizes="84px"
-              className="object-cover"
             />
           </div>
 
@@ -214,6 +252,17 @@ export default function OrdersPage() {
                 Add to calendar
               </Button>
             )}
+            {canRequestRefund(booking, isUpcoming) && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-amber-300 justify-start border-amber-400/30 hover:bg-amber-500/10"
+                onClick={() => setRefundTarget(booking)}
+              >
+                <Undo2 className="mr-1 h-4 w-4" />
+                {t("requestRefund")}
+              </Button>
+            )}
             <Button size="sm" variant="ghost" className="justify-start" onClick={() => handleShareTicket(booking)}>
               <ExternalLink className="mr-1 h-4 w-4" />
               Copy link
@@ -229,16 +278,12 @@ export default function OrdersPage() {
       <PageHeader
         title={t("tickets")}
         description={t("ticketsPageDesc")}
-        breadcrumbs={[
-          { label: t("title"), href: "/account/profile" },
-          { label: t("tickets") },
-        ]}
       />
 
-      <Card className="cinect-glass mb-6 border">
+      <Card className="cinect-account-filter mb-6">
         <CardContent className="pt-6">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
-            <div className="relative flex-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative min-w-0 flex-1">
               <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
                 placeholder={t("ticketSearchPlaceholder")}
@@ -247,54 +292,32 @@ export default function OrdersPage() {
                 onChange={(e) => setQuery(e.target.value)}
               />
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {(
-                [
-                  "ALL",
-                  "PENDING",
-                  "HELD",
-                  "CONFIRMED",
-                  "COMPLETED",
-                  "CANCELLED",
-                ] as const
-              ).map((s) => (
-                <Button
-                  key={s}
-                  type="button"
-                  size="sm"
-                  variant={status === s ? "default" : "outline"}
-                  onClick={() => setStatus(s)}
-                >
-                  {t(`orderStatus${s}` as "orderStatusALL")}
-                </Button>
-              ))}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant={sortBy === "showtime-desc" ? "default" : "outline"}
-                onClick={() => setSortBy("showtime-desc")}
-              >
-                <ArrowUpDown className="mr-1 h-4 w-4" />
-                Newest showtime
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={sortBy === "showtime-asc" ? "default" : "outline"}
-                onClick={() => setSortBy("showtime-asc")}
-              >
-                Oldest showtime
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={sortBy === "amount-desc" ? "default" : "outline"}
-                onClick={() => setSortBy("amount-desc")}
-              >
-                Highest amount
-              </Button>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0 sm:gap-2">
+              <Select value={status} onValueChange={(v) => setStatus(v as BookingStatus | "ALL")}>
+                <SelectTrigger className="h-9 w-full sm:w-[148px]" aria-label={t("ticketFilterStatus")}>
+                  <Filter className="text-muted-foreground mr-1.5 h-3.5 w-3.5 shrink-0" />
+                  <SelectValue placeholder={t("ticketFilterStatus")} />
+                </SelectTrigger>
+                <SelectContent align="end">
+                  {statusOptions.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {t(`orderStatus${s}` as "orderStatusALL")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+                <SelectTrigger className="h-9 w-full sm:w-[168px]" aria-label={t("ticketSortBy")}>
+                  <SelectValue placeholder={t("ticketSortBy")} />
+                </SelectTrigger>
+                <SelectContent align="end">
+                  {sortOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>
@@ -310,14 +333,15 @@ export default function OrdersPage() {
         <ApiErrorState error={error} onRetry={refetch} />
       ) : (
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="space-y-4">
-          <TabsList className="cinect-glass border">
+          <TabsList className="cinect-account-tabs">
             <TabsTrigger value="upcoming">{t("upcomingTickets")}</TabsTrigger>
             <TabsTrigger value="past">{t("pastTickets")}</TabsTrigger>
+            <TabsTrigger value="refunds">{t("refundHistoryTab")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="upcoming" className="space-y-3">
             {upcoming.length === 0 ? (
-              <Card className="cinect-glass border">
+              <Card className="cinect-account-panel">
                 <CardContent className="py-10 text-center text-sm text-muted-foreground">
                   {t("noUpcomingTickets")}
                 </CardContent>
@@ -329,7 +353,7 @@ export default function OrdersPage() {
 
           <TabsContent value="past" className="space-y-3">
             {past.length === 0 ? (
-              <Card className="cinect-glass border">
+              <Card className="cinect-account-panel">
                 <CardContent className="py-10 text-center text-sm text-muted-foreground">
                   {t("noPastTickets")}
                 </CardContent>
@@ -338,8 +362,81 @@ export default function OrdersPage() {
               past.map((booking) => renderTicketCard(booking, false))
             )}
           </TabsContent>
+
+          <TabsContent value="refunds" className="space-y-3">
+            {refundsLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-20 w-full rounded-md" />
+                ))}
+              </div>
+            ) : refundsError ? (
+              <ApiErrorState error={refundsError} onRetry={refetchRefunds} />
+            ) : refunds.length === 0 ? (
+              <Card className="cinect-account-panel">
+                <CardContent className="py-10 text-center text-sm text-muted-foreground">
+                  {t("refundHistoryEmpty")}
+                </CardContent>
+              </Card>
+            ) : (
+              refunds.map((refund) => {
+                const parsedReason = parseStoredRefundReason(refund.reason);
+                const reasonText = parsedReason.code
+                  ? t(`refundCancelReason${parsedReason.code}` as "refundCancelReasonSCHEDULE_CONFLICT")
+                  : null;
+
+                return (
+                <Card key={refund.id} className="cinect-account-panel">
+                  <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0 space-y-1">
+                      <p className="font-medium">{refund.movieTitle ?? t("refundUnknownMovie")}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {refund.cinemaName ?? "—"}
+                        {refund.showtime && isValid(new Date(refund.showtime))
+                          ? ` • ${format(new Date(refund.showtime), "PPp", { locale: dateFnsLocale })}`
+                          : ""}
+                      </p>
+                      {reasonText ? (
+                        <p className="text-muted-foreground text-xs">
+                          {t("refundReasonSelectedLabel")}: {reasonText}
+                          {parsedReason.detail ? ` — ${parsedReason.detail}` : ""}
+                        </p>
+                      ) : null}
+                      <p className="text-muted-foreground text-xs">
+                        {format(new Date(refund.createdAt), "PPp", { locale: dateFnsLocale })}
+                      </p>
+                    </div>
+                    <div className="text-right text-sm">
+                      <p className="font-semibold text-emerald-300">{formatVnd(refund.amount, locale)}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {refund.refundMethod === "STORE_CREDIT"
+                          ? t("refundMethodStoreCredit")
+                          : t("refundMethodOriginal")}
+                      </p>
+                      {refund.storeCreditCode ? (
+                        <p className="text-amber-300 mt-1 font-mono text-xs">{refund.storeCreditCode}</p>
+                      ) : null}
+                    </div>
+                  </CardContent>
+                </Card>
+                );
+              })
+            )}
+          </TabsContent>
         </Tabs>
       )}
+
+      {refundTarget ? (
+        <BookingRefundDialog
+          booking={refundTarget}
+          open={!!refundTarget}
+          onOpenChange={(open) => !open && setRefundTarget(null)}
+          onSuccess={() => {
+            void refetch();
+            void refetchRefunds();
+          }}
+        />
+      ) : null}
     </div>
   );
 }

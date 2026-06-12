@@ -11,7 +11,7 @@ export default function AdminNewsLoading() {
         </div>
         <Skeleton className="h-10 w-28" />
       </div>
-      <Card>
+      <Card className="cinect-admin-panel">
         <CardHeader>
           <Skeleton className="h-5 w-24" />
         </CardHeader>

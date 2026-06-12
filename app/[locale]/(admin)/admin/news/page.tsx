@@ -179,7 +179,6 @@ export default function AdminNewsPage() {
     <AdminPageShell
       title={t("news")}
       description={t("descNews")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("news") }]}
       actions={
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
@@ -191,7 +190,7 @@ export default function AdminNewsPage() {
         <Alert variant="destructive" className="mb-4">
           <AlertTitle>{tCommon("error")}</AlertTitle>
           <AlertDescription>
-            {error instanceof ApiError ? error.toastMessage : String(error?.message ?? "Request failed")}
+            {error instanceof ApiError ? error.toastMessage : tCommon("error")}
           </AlertDescription>
         </Alert>
       )}

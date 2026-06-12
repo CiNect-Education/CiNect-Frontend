@@ -135,13 +135,17 @@ async function request<T>(
 ): Promise<ApiEnvelope<T>> {
   const requestId = uuid();
   const token = getAccessToken();
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
 
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
     Accept: "application/json",
     "x-request-id": requestId,
     ...opts?.headers,
   };
+
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
@@ -158,7 +162,8 @@ async function request<T>(
   const response = await fetch(url, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body:
+      body !== undefined ? (isFormData ? body : JSON.stringify(body)) : undefined,
     signal: opts?.signal,
   });
 
@@ -185,11 +190,27 @@ async function request<T>(
     let payload: Partial<ApiErrorPayload> = {};
     try {
       const json = await response.json();
+      let message = json.message ?? response.statusText;
+      let details: unknown = json.details ?? json.errors;
+      const errField = json.error;
+
+      if (typeof errField === "string") {
+        message = errField;
+      } else if (errField && typeof errField === "object") {
+        const errObj = errField as Record<string, unknown>;
+        if (typeof errObj.message === "string") {
+          message = errObj.message;
+        } else if (Array.isArray(errObj.message)) {
+          message = errObj.message.join(", ");
+        }
+        details = details ?? errObj;
+      }
+
       payload = {
         status: json.status ?? response.status,
-        code: json.code ?? json.error,
-        message: json.message ?? response.statusText,
-        details: json.details ?? json.errors,
+        code: json.code ?? (typeof errField === "string" ? errField : undefined),
+        message,
+        details,
       };
     } catch {
       payload = {
@@ -263,6 +284,10 @@ export const apiClient = {
 
   post<T>(path: string, body?: unknown, opts?: RequestOptions) {
     return request<T>("POST", path, body, opts);
+  },
+
+  postFormData<T>(path: string, formData: FormData, opts?: RequestOptions) {
+    return request<T>("POST", path, formData, opts);
   },
 
   put<T>(path: string, body?: unknown, opts?: RequestOptions) {

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useClientMounted } from "@/lib/use-client-mounted";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -22,6 +23,7 @@ import {
   LayoutGrid,
   LogIn,
   UserPlus,
+  Users,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { cn } from "@/lib/utils";
@@ -37,6 +39,7 @@ const MAIN_NAV = [
 
 const SECONDARY_NAV = [
   { key: "campaigns", href: "/campaigns", icon: Megaphone },
+  { key: "community", href: "/community", icon: Users },
   { key: "membership", href: "/membership", icon: Crown },
   { key: "gift", href: "/gift", icon: Gift },
   { key: "support", href: "/support", icon: HeadphonesIcon },
@@ -45,14 +48,10 @@ const SECONDARY_NAV = [
 export function MobileNav() {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useClientMounted();
   const { isAuthenticated, user } = useAuth();
   const pathname = usePathname();
   const path = pathname.replace(/^\/(vi|en)/, "") || "/";
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const initials =
     user?.fullName

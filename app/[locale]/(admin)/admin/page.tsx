@@ -1,23 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import { Ticket, Film, DollarSign, Building2, TrendingUp } from "lucide-react";
+
+const AdminDashboardCharts = dynamic(
+  () => import("@/components/admin/admin-dashboard-charts").then((m) => m.AdminDashboardCharts),
+  {
+    ssr: false,
+    loading: () => (
+      <>
+        <Skeleton className="h-80 w-full rounded-xl" />
+        <Skeleton className="h-80 w-full rounded-xl" />
+      </>
+    ),
+  },
+);
+import { Ticket, Film, DollarSign, Building2, TrendingUp, Users, Clock } from "lucide-react";
+import { useAuth } from "@/providers/auth-provider";
+import type { UserRole } from "@/types/domain";
 import {
   useAdminKPIs,
   useAdminRevenue,
@@ -34,6 +39,12 @@ import { format } from "date-fns";
 
 export default function AdminDashboardPage() {
   const t = useTranslations("admin");
+  const { user } = useAuth();
+  const role =
+    (user as { role?: UserRole } & { data?: { role?: UserRole } })?.role ??
+    (user as { data?: { role?: UserRole } })?.data?.role ??
+    "STAFF";
+  const isAdmin = role === "ADMIN";
   const [kpiRange] = useState("7d");
   const [chartRange] = useState("30d");
 
@@ -57,30 +68,47 @@ export default function AdminDashboardPage() {
       label: t("totalRevenue"),
       value: kpisLoading ? "--" : (kpis?.totalRevenue ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 }),
       icon: DollarSign,
+      show: true,
     },
     {
       label: t("totalBookings"),
       value: kpisLoading ? "--" : (kpis?.totalBookings ?? 0).toLocaleString(),
       icon: Ticket,
+      show: true,
+    },
+    {
+      label: t("totalUsers"),
+      value: kpisLoading ? "--" : (kpis?.totalUsers ?? 0).toLocaleString(),
+      icon: Users,
+      show: isAdmin,
     },
     {
       label: t("totalMovies"),
       value: kpisLoading ? "--" : (kpis?.totalMovies ?? 0).toString(),
       icon: Film,
+      show: isAdmin,
     },
     {
       label: t("cinemas"),
       value: kpisLoading ? "--" : (kpis?.totalCinemas ?? 0).toString(),
       icon: Building2,
+      show: isAdmin,
     },
     {
-      label: "Occupancy",
+      label: t("showtimes"),
+      value: kpisLoading ? "--" : (kpis?.totalShowtimes ?? 0).toLocaleString(),
+      icon: Clock,
+      show: isAdmin,
+    },
+    {
+      label: t("occupancy"),
       value: kpisLoading
         ? "--"
         : `${(kpis != null && kpis.occupancyRate <= 1 ? kpis.occupancyRate * 100 : (kpis?.occupancyRate ?? 0)).toFixed(1)}%`,
       icon: TrendingUp,
+      show: isAdmin,
     },
-  ];
+  ].filter((s) => s.show);
 
   return (
     <div>
@@ -90,9 +118,9 @@ export default function AdminDashboardPage() {
       />
 
       {/* KPI Cards */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.label} className="cinect-glass border">
+          <Card key={stat.label} className="cinect-admin-panel">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -110,73 +138,14 @@ export default function AdminDashboardPage() {
 
       {/* Charts & Recent Bookings */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="cinect-glass border">
-          <CardHeader>
-            <CardTitle className="text-lg">{t("revenue")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {revenueLoading ? (
-              <Skeleton className="h-64 w-full" />
-            ) : revenueData.length === 0 ? (
-              <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed text-sm">
-                {t("dashNoRevenueData")}
-              </div>
-            ) : (
-              <div className="h-64 w-full min-w-0">
-                <ResponsiveContainer width="100%" height={256} debounce={32}>
-                  <LineChart data={revenueData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" tickFormatter={(v) => format(new Date(v), "MM/dd")} />
-                    <YAxis />
-                    <Tooltip
-                      formatter={(value) => (value as number).toLocaleString()}
-                      labelFormatter={(v) => format(new Date(v), "MMM d, yyyy")}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="revenue"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <AdminDashboardCharts
+          revenueData={revenueData}
+          occupancyData={occupancyData}
+          revenueLoading={revenueLoading}
+          occupancyLoading={occupancyLoading}
+        />
 
-        <Card className="cinect-glass border">
-          <CardHeader>
-            <CardTitle className="text-lg">{t("occupancy")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {occupancyLoading ? (
-              <Skeleton className="h-64 w-full" />
-            ) : occupancyData.length === 0 ? (
-              <div className="text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed text-sm">
-                {t("dashNoOccupancyData")}
-              </div>
-            ) : (
-              <div className="h-64 w-full min-w-0">
-                <ResponsiveContainer width="100%" height={256} debounce={32}>
-                  <BarChart data={occupancyData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" tickFormatter={(v) => format(new Date(v), "MM/dd")} />
-                    <YAxis tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} />
-                    <Tooltip
-                      formatter={(value) => `${(Number(value) * 100).toFixed(1)}%`}
-                      labelFormatter={(v) => format(new Date(v), "MMM d, yyyy")}
-                    />
-                    <Bar dataKey="occupancy" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="cinect-glass border lg:col-span-2">
+        <Card className="cinect-admin-panel lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-lg">{t("recentBookings")}</CardTitle>
           </CardHeader>
@@ -203,7 +172,7 @@ export default function AdminDashboardPage() {
                 {recentBookings.map((b) => (
                   <div
                     key={b.id}
-                    className="flex items-center justify-between rounded-lg border p-3"
+                    className="cinect-admin-inset flex items-center justify-between rounded-lg p-3"
                   >
                     <div>
                       <p className="font-medium">{b.movieTitle}</p>

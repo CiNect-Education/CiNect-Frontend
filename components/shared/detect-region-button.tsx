@@ -1,18 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { persistSelectedBookingCity, bookingCityLabel } from "@/lib/booking-region";
-import {
-  detectBookingCityFromCoords,
-  getCurrentPositionCoords,
-} from "@/lib/detect-booking-region";
+import { detectBookingCityFromCoords } from "@/lib/detect-booking-region";
+import { locateUserPrecise } from "@/lib/user-location";
+import { useProvincesLegacy, useProvincesNew } from "@/hooks/queries/use-cinemas";
 import { Loader2, LocateFixed } from "lucide-react";
 
 type ButtonProps = React.ComponentProps<typeof Button>;
+
+function toList<T>(v: unknown): T[] {
+  if (!v) return [];
+  if (Array.isArray(v)) return v;
+  const d = v as { data?: unknown; items?: unknown };
+  const arr = d.data ?? d.items;
+  return Array.isArray(arr) ? arr : [];
+}
 
 export interface DetectRegionButtonProps {
   /** After city is saved; use to sync URL or local React state */
@@ -37,15 +44,43 @@ export function DetectRegionButton({
   const t = useTranslations("nav");
   const locale = useLocale();
   const [busy, setBusy] = useState(false);
+  const { data: provincesRes } = useProvincesNew();
+  const { data: legacyRes } = useProvincesLegacy();
+
+  const provincesNew = useMemo(
+    () => toList<{ code: string; nameVi: string; nameEn: string }>(provincesRes?.data),
+    [provincesRes?.data]
+  );
+  const provincesLegacy = useMemo(
+    () =>
+      toList<{
+        code: string;
+        nameVi: string;
+        nameEn: string;
+        provinceNew: { code: string; nameVi: string; nameEn: string };
+      }>(legacyRes?.data),
+    [legacyRes?.data]
+  );
+
+  const legacyForDetect = useMemo(
+    () =>
+      provincesLegacy.map((p) => ({
+        code: p.code,
+        nameVi: p.nameVi,
+        nameEn: p.nameEn,
+        mergedInto: p.provinceNew.code,
+      })),
+    [provincesLegacy]
+  );
 
   async function handleClick() {
     setBusy(true);
     try {
-      const pos = await getCurrentPositionCoords();
+      const located = await locateUserPrecise();
       const { cityId } = await detectBookingCityFromCoords(
-        pos.coords.latitude,
-        pos.coords.longitude,
-        { locale }
+        located.lat,
+        located.lng,
+        { locale, provincesNew, provincesLegacy: legacyForDetect }
       );
       if (!cityId) {
         toast.error(t("locationDetectFailed"));
@@ -54,7 +89,9 @@ export function DetectRegionButton({
       persistSelectedBookingCity(cityId);
       onApplied?.(cityId);
       toast.success(
-        t("regionDetectedToast", { city: bookingCityLabel(cityId, locale) })
+        t("regionDetectedToast", {
+          city: bookingCityLabel(cityId, locale, provincesNew, provincesLegacy),
+        })
       );
     } catch (e: unknown) {
       const geo = e as GeolocationPositionError;

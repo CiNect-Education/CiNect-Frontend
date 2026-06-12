@@ -363,7 +363,6 @@ export default function AdminSeatsPage() {
     <AdminPageShell
       title={t("seats")}
       description={t("descSeats")}
-      breadcrumbs={[{ label: t("title"), href: "/admin" }, { label: t("seats") }]}
     >
       {(cinemasError || roomsError || seatsError) ? (
         <ApiErrorState
@@ -376,7 +375,7 @@ export default function AdminSeatsPage() {
           className="py-10"
         />
       ) : null}
-      <Card className="cinect-glass mb-6 border">
+      <Card className="cinect-admin-panel mb-6">
         <CardHeader>
           <CardTitle className="text-lg">{t("seatMapEditorTitle")}</CardTitle>
           <CardDescription>{t("seatMapEditorDesc")}</CardDescription>
@@ -553,7 +552,7 @@ export default function AdminSeatsPage() {
         </CardContent>
       </Card>
 
-      <Card className="cinect-glass border">
+      <Card className="cinect-admin-panel">
         <CardHeader>
           <CardTitle className="text-lg">{t("seatTypesTitle")}</CardTitle>
         </CardHeader>

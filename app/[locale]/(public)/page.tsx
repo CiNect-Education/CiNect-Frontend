@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
-import { QuickBookingWidget } from "@/components/home/quick-booking-widget";
+import { CinectMovieQuickBooking } from "@/components/movies/cinect-movie-quick-booking";
 import { MovieCarousel } from "@/components/home/movie-carousel";
 import { HeroCarousel } from "@/components/home/hero-carousel";
 import { ComingSoonCarousel } from "@/components/home/coming-soon-carousel";
@@ -165,9 +165,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Quick Booking Widget */}
+      {/* Quick booking — Cinestar-style cascade (cinema → movie → date → showtime) */}
       <section className="relative z-10 mx-auto -mt-8 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <QuickBookingWidget />
+        <CinectMovieQuickBooking />
       </section>
 
       {/* Now Showing Grid */}
@@ -353,11 +353,11 @@ export default function HomePage() {
         ) : errorNews ? (
           <ApiErrorState error={errorNews} onRetry={refetchNews} compact />
         ) : news.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {news.map((article) => (
-              <Link key={article.id} href={`/news/${article.slug}`}>
-                <Card className="overflow-hidden transition-all hover:shadow-lg">
-                  <div className="bg-muted aspect-video overflow-hidden">
+              <Link key={article.id} href={`/news/${article.slug}`} className="block h-full">
+                <Card className="flex h-full flex-col overflow-hidden transition-all hover:shadow-lg">
+                  <div className="bg-muted aspect-video shrink-0 overflow-hidden">
                     {article.imageUrl ? (
                       <div className="relative h-full w-full">
                         <RemoteImage
@@ -375,13 +375,15 @@ export default function HomePage() {
                       </div>
                     )}
                   </div>
-                  <CardContent className="p-4">
+                  <CardContent className="flex flex-1 flex-col p-4">
                     <span className="text-primary text-xs font-medium">{article.category}</span>
-                    <h3 className="mt-1 line-clamp-2 font-semibold">{article.title}</h3>
-                    <p className="text-muted-foreground mt-2 line-clamp-2 text-sm">
+                    <h3 className="mt-1 line-clamp-2 min-h-[2.75rem] font-semibold leading-snug">
+                      {article.title}
+                    </h3>
+                    <p className="text-muted-foreground mt-2 line-clamp-2 min-h-[2.5rem] text-sm leading-snug">
                       {article.excerpt}
                     </p>
-                    <p className="text-muted-foreground mt-2 text-xs">
+                    <p className="text-muted-foreground mt-auto pt-3 text-xs">
                       {article.publishedAt
                         ? new Date(article.publishedAt).toLocaleDateString()
                         : ""}

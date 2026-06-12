@@ -22,7 +22,7 @@ export default function AdminPricingLoading() {
           </Card>
         ))}
       </div>
-      <Card>
+      <Card className="cinect-admin-panel">
         <CardHeader>
           <Skeleton className="h-5 w-28" />
         </CardHeader>

@@ -3,6 +3,14 @@ export type Coordinates = {
   lng: number;
 };
 
+export type GeolocationRequestOptions = {
+  highAccuracy?: boolean;
+  maximumAge?: number;
+  timeout?: number;
+};
+
+export type CoordinatesWithAccuracy = Coordinates & { accuracy?: number };
+
 export function haversineKm(from: Coordinates, to: Coordinates): number {
   const R = 6371;
   const dLat = ((to.lat - from.lat) * Math.PI) / 180;
@@ -22,7 +30,9 @@ export function formatDistanceKm(distanceKm: number): string {
   return `${Math.round(distanceKm)} km`;
 }
 
-export function getCurrentPositionCoords(): Promise<Coordinates> {
+export function getCurrentPositionCoords(
+  options?: GeolocationRequestOptions
+): Promise<CoordinatesWithAccuracy> {
   return new Promise((resolve, reject) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       reject(new Error("GEO_UNSUPPORTED"));
@@ -30,13 +40,17 @@ export function getCurrentPositionCoords(): Promise<Coordinates> {
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+        });
       },
       (err) => reject(err),
       {
-        enableHighAccuracy: false,
-        maximumAge: 300_000,
-        timeout: 18_000,
+        enableHighAccuracy: options?.highAccuracy ?? true,
+        maximumAge: options?.maximumAge ?? 60_000,
+        timeout: options?.timeout ?? 20_000,
       }
     );
   });

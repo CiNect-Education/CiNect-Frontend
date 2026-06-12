@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import { setAccessToken, setRefreshToken } from "@/lib/auth-storage";
+import { setAccessToken, setRefreshToken, setAuthPersistence } from "@/lib/auth-storage";
 import { Loader2 } from "lucide-react";
 import { getApiBaseUrl } from "@/lib/api-discovery";
 import { normalizeLocalizedPath, toLocalizedHref } from "@/lib/locale-path";
@@ -30,6 +30,7 @@ export default function OAuthCallbackPage() {
     const returnTo = normalizeLocalizedPath(searchParams.get("returnTo"));
 
     if (token && refreshToken) {
+      setAuthPersistence(true);
       setAccessToken(token);
       setRefreshToken(refreshToken);
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -9,93 +8,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
-import { useBookings } from "@/hooks/queries/use-bookings";
+import { useAccountNotifications } from "@/hooks/use-account-notifications";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
-import { Bell, CheckCheck, Ticket, Tag, Crown } from "lucide-react";
-import type { Booking } from "@/types/domain";
+import { Bell, CheckCheck, Ticket, Tag, Crown, Users, MessageSquare, Heart, RotateCcw } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-
-type UiNotification = {
-  id: string;
-  type: "booking" | "promo" | "membership";
-  title: string;
-  message: string;
-  createdAt: string;
-  href?: string;
-};
-
-const READ_AT_KEY = "cinect.notifications.readAt";
 
 export default function NotificationsPage() {
   const t = useTranslations("account");
-  const [readAt, setReadAt] = useState<Date>(() => {
-    if (typeof window === "undefined") return new Date(0);
-    const raw = window.localStorage.getItem(READ_AT_KEY);
-    if (!raw) return new Date(0);
-    const d = new Date(raw);
-    return isNaN(d.getTime()) ? new Date(0) : d;
-  });
-
-  const { data, isLoading, error, refetch } = useBookings({ limit: 200 });
-  const bookingsRaw = data?.data ?? data;
-  const bookings = useMemo(() => ((bookingsRaw as Booking[]) || []), [bookingsRaw]);
-
-  const notifications = useMemo<UiNotification[]>(() => {
-    const list: UiNotification[] = [];
-    const now = Date.now();
-    const movieFallback = t("notificationMovieFallback");
-    const cinemaFallback = t("notificationCinemaFallback");
-    for (const b of bookings) {
-      const showtimeTs = new Date(b.showtime).getTime();
-      const showtimeOk = !Number.isNaN(showtimeTs);
-      const isUpcoming = showtimeOk && showtimeTs > now;
-      const movie = (b.movieTitle && String(b.movieTitle).trim()) || movieFallback;
-      const cinema = (b.cinemaName && String(b.cinemaName).trim()) || cinemaFallback;
-      list.push({
-        id: `booking:${b.id}:${isUpcoming ? "upcoming" : "past"}`,
-        type: "booking",
-        title: isUpcoming ? t("notifUpcomingBookingTitle") : t("notifPastBookingTitle"),
-        message: isUpcoming
-          ? t("notifUpcomingBookingMsg", { movie, cinema })
-          : t("notifPastBookingMsg", { movie }),
-        createdAt: isUpcoming ? b.showtime : b.updatedAt ?? b.createdAt,
-        href: `/tickets/${b.id}`,
-      });
-    }
-
-    // Lightweight “system” hints (no backend required)
-    list.push({
-      id: "promo:checkout",
-      type: "promo",
-      title: t("notifPromoTipTitle"),
-      message: t("notifPromoTipMessage"),
-      createdAt: new Date().toISOString(),
-      href: "/movies",
-    });
-    list.push({
-      id: "membership:profile",
-      type: "membership",
-      title: t("notifMembershipTitle"),
-      message: t("notifMembershipMessage"),
-      createdAt: new Date().toISOString(),
-      href: "/account/profile",
-    });
-
-    return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [bookings, t]);
-
-  const unreadCount = useMemo(() => {
-    const readAtTs = readAt.getTime();
-    return notifications.filter((n) => new Date(n.createdAt).getTime() > readAtTs).length;
-  }, [notifications, readAt]);
+  const { notifications, unreadCount, isLoading, error, refetch, markAllRead, isUnread, isMarkingAllRead } =
+    useAccountNotifications({ limit: 50 });
 
   const handleMarkAllRead = () => {
-    const now = new Date();
-    setReadAt(now);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(READ_AT_KEY, now.toISOString());
-    }
+    markAllRead();
     toast.success(t("markAllReadToast"));
   };
 
@@ -104,12 +29,13 @@ export default function NotificationsPage() {
       <PageHeader
         title={t("notifications")}
         description={t("notificationsDesc")}
-        breadcrumbs={[
-          { label: t("title"), href: "/account/profile" },
-          { label: t("notifications") },
-        ]}
         actions={
-          <Button variant="outline" size="sm" onClick={handleMarkAllRead} disabled={unreadCount === 0}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleMarkAllRead}
+            disabled={unreadCount === 0 || isMarkingAllRead}
+          >
             <CheckCheck className="mr-2 h-4 w-4" />
             {t("markAllRead")}
             {unreadCount > 0 ? ` (${unreadCount})` : ""}
@@ -126,7 +52,7 @@ export default function NotificationsPage() {
       ) : error ? (
         <ApiErrorState error={error} onRetry={refetch} />
       ) : notifications.length === 0 ? (
-        <Card className="cinect-glass border">
+        <Card className="cinect-account-panel">
           <CardHeader>
             <CardTitle className="text-lg">{t("notificationsAllTitle")}</CardTitle>
           </CardHeader>
@@ -141,20 +67,42 @@ export default function NotificationsPage() {
       ) : (
         <div className="space-y-3">
           {notifications.map((n) => {
-            const isUnread = new Date(n.createdAt).getTime() > readAt.getTime();
-            const Icon = n.type === "booking" ? Ticket : n.type === "promo" ? Tag : Crown;
+            const unread = isUnread(n);
+            const Icon =
+              n.type === "booking"
+                ? Ticket
+                : n.type === "promo"
+                  ? Tag
+                  : n.type === "community"
+                    ? Users
+                    : n.type === "review"
+                      ? MessageSquare
+                      : n.type === "watchlist"
+                        ? Heart
+                        : n.type === "refund"
+                          ? RotateCcw
+                          : Crown;
             const badge =
               n.type === "booking"
                 ? t("badgeBooking")
                 : n.type === "promo"
                   ? t("badgePromo")
-                  : t("badgeMembership");
+                  : n.type === "community"
+                    ? t("badgeCommunity")
+                    : n.type === "review"
+                      ? t("badgeReview")
+                      : n.type === "watchlist"
+                        ? t("badgeWatchlist")
+                        : n.type === "refund"
+                          ? t("badgeRefund")
+                          : t("badgeMembership");
+
             return (
               <Card
                 key={n.id}
                 className={[
-                  "cinect-glass border transition-all hover:shadow-lg",
-                  isUnread ? "border-primary/30" : "",
+                  "cinect-account-row",
+                  unread ? "cinect-account-row--active" : "",
                 ].join(" ")}
               >
                 <CardContent className="flex items-start gap-3 p-4">
@@ -167,7 +115,7 @@ export default function NotificationsPage() {
                       <Badge variant="outline" className="text-[11px]">
                         {badge}
                       </Badge>
-                      {isUnread && (
+                      {unread && (
                         <Badge className="text-[11px]" variant="default">
                           {t("notifNewBadge")}
                         </Badge>

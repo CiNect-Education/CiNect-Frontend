@@ -30,8 +30,8 @@ export function AccountNav() {
             className={cn(
               "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors",
               isActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-muted/25 hover:text-foreground",
             )}
           >
             <item.icon className="h-4 w-4" />

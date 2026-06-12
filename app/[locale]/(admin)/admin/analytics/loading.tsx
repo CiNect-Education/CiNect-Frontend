@@ -15,7 +15,7 @@ export default function AdminAnalyticsLoading() {
         <Skeleton className="h-9 w-20" />
       </div>
       <div className="space-y-8">
-        <Card>
+        <Card className="cinect-admin-panel">
           <CardHeader>
             <Skeleton className="h-5 w-32" />
           </CardHeader>
@@ -24,7 +24,7 @@ export default function AdminAnalyticsLoading() {
           </CardContent>
         </Card>
         <div className="grid gap-8 lg:grid-cols-2">
-          <Card>
+          <Card className="cinect-admin-panel">
             <CardHeader>
               <Skeleton className="h-5 w-48" />
             </CardHeader>
@@ -32,7 +32,7 @@ export default function AdminAnalyticsLoading() {
               <Skeleton className="h-64 w-full rounded-lg" />
             </CardContent>
           </Card>
-          <Card>
+          <Card className="cinect-admin-panel">
             <CardHeader>
               <Skeleton className="h-5 w-40" />
             </CardHeader>
@@ -41,7 +41,7 @@ export default function AdminAnalyticsLoading() {
             </CardContent>
           </Card>
         </div>
-        <Card>
+        <Card className="cinect-admin-panel">
           <CardHeader>
             <Skeleton className="h-5 w-44" />
           </CardHeader>

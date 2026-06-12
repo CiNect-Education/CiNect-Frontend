@@ -34,13 +34,8 @@ export function TicketTypePicker({
   const isVi = locale.startsWith("vi");
 
   return (
-    <section
-      className={cn(
-        "rounded-xl border border-white/10 bg-gradient-to-br from-[#1a0f2e] via-[#120a22] to-[#0d0618] p-5 sm:p-6",
-        className,
-      )}
-    >
-      <h2 className="mb-5 text-center text-lg font-bold tracking-wide text-white uppercase sm:text-xl">
+    <section className={cn("space-y-5 py-2", className)}>
+      <h2 className="text-center text-lg font-bold tracking-wide uppercase sm:text-xl">
         {tb("selectTicketTypes")}
       </h2>
 
@@ -55,37 +50,37 @@ export function TicketTypePicker({
           return (
             <div
               key={product.code}
-              className="flex flex-col items-center gap-3 rounded-lg border border-white/25 px-4 py-5 text-center"
+              className="flex flex-col items-center px-4 py-5 text-center"
             >
-              <div>
-                <p className="text-base font-bold tracking-wide text-white uppercase">
+              <div className="flex min-h-[3.25rem] w-full flex-col items-center justify-center">
+                <p className="line-clamp-2 text-base leading-snug font-bold tracking-wide uppercase">
                   {label}
                 </p>
+              </div>
+              <div className="mt-1 flex min-h-[1.25rem] items-center justify-center">
                 {subLabel ? (
-                  <p className="mt-0.5 text-sm font-semibold text-[#f3ea28] uppercase">
-                    {subLabel}
-                  </p>
+                  <p className="text-primary text-sm font-semibold uppercase">{subLabel}</p>
                 ) : null}
               </div>
-              <p className="text-lg font-semibold text-white">
+              <p className="mt-3 text-lg font-semibold tabular-nums">
                 {formatVnd(product.unitPrice, locale)}
               </p>
-              <div className="flex items-center gap-0 overflow-hidden rounded border border-white/40 bg-white/10">
+              <div className="border-border/40 bg-muted/20 mt-3 flex items-center gap-0 overflow-hidden rounded-md border">
                 <button
                   type="button"
-                  className="flex h-9 w-10 items-center justify-center text-white transition hover:bg-white/15 disabled:opacity-40"
+                  className="hover:bg-muted/50 flex h-9 w-10 items-center justify-center transition disabled:opacity-40"
                   disabled={qty <= 0}
                   onClick={() => onChange(product.code, Math.max(0, qty - 1))}
                   aria-label={tb("decreaseTicket", { label })}
                 >
                   <Minus className="h-4 w-4" />
                 </button>
-                <span className="min-w-[2.5rem] px-2 text-center text-base font-semibold text-white">
+                <span className="min-w-[2.5rem] px-2 text-center text-base font-semibold tabular-nums">
                   {qty}
                 </span>
                 <button
                   type="button"
-                  className="flex h-9 w-10 items-center justify-center text-white transition hover:bg-white/15"
+                  className="hover:bg-muted/50 flex h-9 w-10 items-center justify-center transition"
                   onClick={() => onChange(product.code, qty + 1)}
                   aria-label={tb("increaseTicket", { label })}
                 >
