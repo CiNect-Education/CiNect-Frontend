@@ -95,7 +95,7 @@ export default function AccountStatisticsPage() {
       ) : (
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <Card className="cinect-glass border">
+            <Card className="cinect-account-panel">
               <CardHeader className="pb-2">
                 <CardDescription>{t("statsTotalBookings")}</CardDescription>
                 <CardTitle className="text-2xl">{analytics.total}</CardTitle>
@@ -106,7 +106,7 @@ export default function AccountStatisticsPage() {
               </CardContent>
             </Card>
 
-            <Card className="cinect-glass border">
+            <Card className="cinect-account-panel">
               <CardHeader className="pb-2">
                 <CardDescription>{t("statsActiveTickets")}</CardDescription>
                 <CardTitle className="text-2xl">{analytics.active}</CardTitle>
@@ -117,7 +117,7 @@ export default function AccountStatisticsPage() {
               </CardContent>
             </Card>
 
-            <Card className="cinect-glass border">
+            <Card className="cinect-account-panel">
               <CardHeader className="pb-2">
                 <CardDescription>{t("statsPaidOrders")}</CardDescription>
                 <CardTitle className="text-2xl">{analytics.paid}</CardTitle>
@@ -128,7 +128,7 @@ export default function AccountStatisticsPage() {
               </CardContent>
             </Card>
 
-            <Card className="cinect-glass border">
+            <Card className="cinect-account-panel">
               <CardHeader className="pb-2">
                 <CardDescription>{t("statsTotalSpent")}</CardDescription>
                 <CardTitle className="text-2xl">{formatVnd(analytics.totalSpent, locale)}</CardTitle>
@@ -141,7 +141,7 @@ export default function AccountStatisticsPage() {
           </div>
 
           <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-            <Card className="cinect-glass border">
+            <Card className="cinect-account-panel">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <BarChart3 className="h-5 w-5" />
@@ -175,21 +175,21 @@ export default function AccountStatisticsPage() {
               </CardContent>
             </Card>
 
-            <Card className="cinect-glass border">
+            <Card className="cinect-account-panel">
               <CardHeader>
                 <CardTitle>{t("statsHighlightsTitle")}</CardTitle>
                 <CardDescription>{t("statsHighlightsDesc")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
-                <div className="rounded-lg border p-3">
+                <div className="cinect-account-inset p-3">
                   <p className="text-muted-foreground text-xs">{t("statsAvgTicketValue")}</p>
                   <p className="mt-1 text-base font-semibold">{formatVnd(analytics.avgTicketValue, locale)}</p>
                 </div>
-                <div className="rounded-lg border p-3">
+                <div className="cinect-account-inset p-3">
                   <p className="text-muted-foreground text-xs">{t("statsLast30DaysOrders")}</p>
                   <p className="mt-1 text-base font-semibold">{analytics.last30}</p>
                 </div>
-                <div className="rounded-lg border p-3">
+                <div className="cinect-account-inset p-3">
                   <p className="text-muted-foreground text-xs">{t("statsTopCinema")}</p>
                   <p className="mt-1 text-base font-semibold flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
@@ -201,7 +201,7 @@ export default function AccountStatisticsPage() {
                     </Badge>
                   ) : null}
                 </div>
-                <div className="rounded-lg border p-3">
+                <div className="cinect-account-inset p-3">
                   <p className="text-muted-foreground text-xs">{t("statsLatestShowtime")}</p>
                   <p className="mt-1 text-base font-semibold">
                     {analytics.latestShowtime

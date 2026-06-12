@@ -188,9 +188,13 @@ export function useCommunityReviews(params?: QueryParams) {
   });
 }
 
-export function useCommunityPosts(params?: QueryParams) {
+export function useCommunityPosts(
+  params?: QueryParams,
+  options?: Pick<import("@/hooks/use-api-query").UseApiQueryOptions<z.infer<typeof communityPostSchema>[]>, "enabled">,
+) {
   return useApiQuery(["community", "posts", JSON.stringify(params ?? {})], "/community/posts", params, {
     schema: z.array(communityPostSchema) as unknown as z.ZodType<z.infer<typeof communityPostSchema>[]>,
+    ...options,
   });
 }
 
@@ -322,6 +326,7 @@ export function useDismissReviewPrompt() {
 
 export function useUploadReviewImage() {
   return useApiMutation<{ url: string }, FormData>("post", "/community/reviews/upload-image", {
+    schema: z.object({ url: z.string().min(1) }),
     showSuccessToast: false,
     showErrorToast: false,
   });

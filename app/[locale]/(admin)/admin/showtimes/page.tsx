@@ -343,7 +343,7 @@ export default function AdminShowtimesPage() {
           className="py-10"
         />
       ) : null}
-      <div className="cinect-glass mb-6 flex flex-wrap gap-3 rounded-lg border p-4">
+      <div className="cinect-admin-panel mb-6 flex flex-wrap gap-3 rounded-lg border p-4">
         <Select
           value={cinemaFilter || ALL_CINEMAS_VALUE}
           onValueChange={(v) => setCinemaFilter(v === ALL_CINEMAS_VALUE ? "" : v)}
@@ -376,7 +376,7 @@ export default function AdminShowtimesPage() {
 
       <div className="space-y-6">
         {(showtimesLoading || roomsLoading) && !showtimesError && !roomsError ? (
-          <div className="cinect-glass rounded-lg border p-4">
+          <div className="cinect-admin-panel rounded-lg p-4">
             <Skeleton className="mb-3 h-5 w-64" />
             <div className="flex flex-wrap gap-2">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -394,7 +394,7 @@ export default function AdminShowtimesPage() {
             roomShowtimes.find((s) => s.cinemaName)?.cinemaName ??
             room.cinemaId;
           return (
-            <div key={room.id} className="cinect-glass rounded-lg border p-4">
+            <div key={room.id} className="cinect-admin-panel rounded-lg p-4">
               <div className="mb-3 font-medium">
                 {cinemaLabel} — {room.name} ({room.format})
               </div>
@@ -439,14 +439,14 @@ export default function AdminShowtimesPage() {
           );
         })}
         {rooms.length === 0 && (
-          <div className="cinect-glass text-muted-foreground flex h-32 items-center justify-center rounded-lg border border-dashed">
+          <div className="cinect-admin-panel text-muted-foreground flex h-32 items-center justify-center rounded-lg border border-dashed">
             {t("showtimesSelectCinemaHint")}
           </div>
         )}
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="cinect-glass max-w-lg border">
+        <DialogContent className="cinect-admin-panel max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingShowtime ? t("editShowtime") : t("addShowtime")}</DialogTitle>
           </DialogHeader>
@@ -615,7 +615,7 @@ export default function AdminShowtimesPage() {
       </Dialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="cinect-glass border">
+        <AlertDialogContent className="cinect-admin-panel">
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deleteShowtime")}</AlertDialogTitle>
             <AlertDialogDescription>{t("deleteShowtimeConfirm")}</AlertDialogDescription>

@@ -10,6 +10,7 @@ import { useCinemas } from "@/hooks/queries/use-cinemas";
 import { useAuth } from "@/providers/auth-provider";
 import { ClientOnly } from "@/components/system/client-only";
 import { cn } from "@/lib/utils";
+import { useDeferredMount } from "@/lib/use-deferred-mount";
 import { Facebook, Gift, Instagram, Ticket, Youtube } from "lucide-react";
 import type { CinemaListItem } from "@/types/domain";
 
@@ -69,7 +70,8 @@ function FooterCinemaListFallback() {
 
 function FooterCinemaListContent() {
   const t = useTranslations("footer");
-  const { data, isLoading } = useCinemas();
+  const deferCinemas = useDeferredMount(1200);
+  const { data, isLoading } = useCinemas(undefined, { enabled: deferCinemas });
   const cinemas = (data?.data ?? data ?? []) as CinemaListItem[];
 
   return (

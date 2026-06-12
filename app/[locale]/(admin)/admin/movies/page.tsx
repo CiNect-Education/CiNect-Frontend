@@ -277,13 +277,13 @@ export default function AdminMoviesPage() {
         data={movies}
         searchKey="title"
         searchPlaceholder={t("searchMovies")}
-        className="cinect-glass rounded-lg border p-4"
+        className="cinect-admin-panel rounded-lg p-4"
         isLoading={moviesLoading}
         emptyMessage={t("emptyMovies")}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="cinect-glass max-w-lg border">
+        <DialogContent className="cinect-admin-panel max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingMovie ? t("editMovie") : t("addMovie")}</DialogTitle>
           </DialogHeader>
@@ -482,7 +482,7 @@ export default function AdminMoviesPage() {
       </Dialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="cinect-glass border">
+        <AlertDialogContent className="cinect-admin-panel">
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deleteMovie")}</AlertDialogTitle>
             <AlertDialogDescription>

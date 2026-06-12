@@ -16,7 +16,7 @@ export default function AdminCinemasLoading() {
           <Skeleton className="h-10 w-full" />
         </CardContent>
       </Card>
-      <Card>
+      <Card className="cinect-admin-panel">
         <CardHeader>
           <Skeleton className="h-5 w-28" />
         </CardHeader>

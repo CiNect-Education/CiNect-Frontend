@@ -17,7 +17,7 @@ import { Link } from "@/i18n/navigation";
 export default function NotificationsPage() {
   const t = useTranslations("account");
   const { notifications, unreadCount, isLoading, error, refetch, markAllRead, isUnread, isMarkingAllRead } =
-    useAccountNotifications();
+    useAccountNotifications({ limit: 50 });
 
   const handleMarkAllRead = () => {
     markAllRead();
@@ -52,7 +52,7 @@ export default function NotificationsPage() {
       ) : error ? (
         <ApiErrorState error={error} onRetry={refetch} />
       ) : notifications.length === 0 ? (
-        <Card className="cinect-glass border">
+        <Card className="cinect-account-panel">
           <CardHeader>
             <CardTitle className="text-lg">{t("notificationsAllTitle")}</CardTitle>
           </CardHeader>
@@ -101,8 +101,8 @@ export default function NotificationsPage() {
               <Card
                 key={n.id}
                 className={[
-                  "cinect-glass border transition-all hover:shadow-lg",
-                  unread ? "border-primary/30" : "",
+                  "cinect-account-row",
+                  unread ? "cinect-account-row--active" : "",
                 ].join(" ")}
               >
                 <CardContent className="flex items-start gap-3 p-4">

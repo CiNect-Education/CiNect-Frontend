@@ -217,10 +217,21 @@ export default function CheckoutPage() {
     }
   }, [holdShowtimeId, holdId, selectedSnacks, holdSeats, createBookingMutation]);
 
-  const handleApplyPromo = useCallback(() => {
-    if (!bookingId || !promoCode.trim()) return;
-    applyPromoMutation.mutate({ bookingId, promoCode: promoCode.trim() });
-  }, [bookingId, promoCode, applyPromoMutation]);
+  const handleApplyPromo = useCallback(
+    async (code: string) => {
+      const trimmed = code.trim();
+      if (!bookingId || !trimmed) return;
+      if (
+        booking?.promotionCode &&
+        booking.promotionCode.toUpperCase() === trimmed.toUpperCase()
+      ) {
+        return;
+      }
+      await applyPromoMutation.mutateAsync({ bookingId, promoCode: trimmed });
+      setPromoCode(trimmed);
+    },
+    [bookingId, booking?.promotionCode, applyPromoMutation],
+  );
 
   const handleApplyPoints = useCallback(() => {
     if (!bookingId || usePoints <= 0) return;
@@ -449,8 +460,8 @@ export default function CheckoutPage() {
                       onPayment={handlePayment}
                       isLoading={initiatePaymentMutation.isPending}
                       totalAmount={booking?.finalAmount ?? estimatedTotal}
-                      promoCode={promoCode}
-                      onPromoCodeChange={setPromoCode}
+                      orderAmount={booking?.totalAmount ?? estimatedTotal}
+                      appliedPromoCode={booking?.promotionCode}
                       onApplyPromo={handleApplyPromo}
                       isApplyingPromo={applyPromoMutation.isPending}
                       giftCardCode={giftCardCode}
@@ -462,12 +473,7 @@ export default function CheckoutPage() {
                       onApplyPoints={handleApplyPoints}
                       isApplyingPoints={applyPointsMutation.isPending}
                       availablePoints={availablePoints}
-                      eligiblePromotions={eligiblePromotions.map((p) => ({
-                        id: p.id,
-                        title: p.title,
-                        code: p.code,
-                        eligiblePaymentMethods: p.eligiblePaymentMethods,
-                      }))}
+                      eligiblePromotions={eligiblePromotions}
                     />
                   )}
                 </TabsContent>

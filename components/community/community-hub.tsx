@@ -77,12 +77,17 @@ export function CommunityHub() {
     refetch: refetchReviews,
   } = useCommunityReviews(reviewParams);
 
+  const [activeTab, setActiveTab] = useState("reviews");
+
   const {
     data: postsRes,
     isLoading: postsLoading,
     error: postsError,
     refetch: refetchPosts,
-  } = useCommunityPosts({ page: 1, limit: 20 });
+  } = useCommunityPosts(
+    { page: 1, limit: 20 },
+    { enabled: activeTab === "talk" },
+  );
 
   const reviews = useMemo(
     () => toList<CommunityReviewItem>(reviewsRes?.data ?? reviewsRes),
@@ -95,7 +100,7 @@ export function CommunityHub() {
 
   return (
     <section className="community-hub min-w-0">
-      <Tabs defaultValue="reviews" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="community-hub__head">
           <TabsList className="community-tabs-list">
             <TabsTrigger value="reviews" className="community-tab-trigger">

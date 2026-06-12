@@ -117,21 +117,21 @@ export default function AccountTicketsPage() {
         <ApiErrorState error={error} onRetry={refetch} />
       ) : (
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="space-y-4">
-          <TabsList className="cinect-glass border">
+          <TabsList className="cinect-account-tabs">
             <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
             <TabsTrigger value="past">Past</TabsTrigger>
           </TabsList>
 
           <TabsContent value="upcoming" className="space-y-3">
             {upcoming.length === 0 ? (
-              <Card className="cinect-glass border">
+              <Card className="cinect-account-panel">
                 <CardContent className="py-10 text-center text-sm text-muted-foreground">
                   No upcoming tickets. Once you complete a booking, it will appear here.
                 </CardContent>
               </Card>
             ) : (
               upcoming.map((b) => (
-                <Card key={b.id} className="cinect-glass overflow-hidden border transition-all hover:shadow-lg">
+                <Card key={b.id} className="cinect-account-row overflow-hidden">
                   <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="space-y-1">
                       <p className="text-sm font-semibold">{b.movieTitle}</p>
@@ -178,14 +178,14 @@ export default function AccountTicketsPage() {
 
           <TabsContent value="past" className="space-y-3">
             {past.length === 0 ? (
-              <Card className="cinect-glass border">
+              <Card className="cinect-account-panel">
                 <CardContent className="py-10 text-center text-sm text-muted-foreground">
                   No past tickets yet.
                 </CardContent>
               </Card>
             ) : (
               past.map((b) => (
-                <Card key={b.id} className="cinect-glass overflow-hidden border transition-all hover:shadow-lg">
+                <Card key={b.id} className="cinect-account-row overflow-hidden">
                   <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="space-y-1">
                       <p className="text-sm font-semibold">{b.movieTitle}</p>

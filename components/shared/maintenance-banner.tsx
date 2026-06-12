@@ -2,10 +2,12 @@
 
 import { useTranslations } from "next-intl";
 import { useMaintenanceMode } from "@/hooks/use-maintenance-mode";
+import { useDeferredMount } from "@/lib/use-deferred-mount";
 
 export function MaintenanceBanner() {
   const t = useTranslations("common");
-  const { data } = useMaintenanceMode();
+  const deferStatus = useDeferredMount(800);
+  const { data } = useMaintenanceMode(deferStatus);
   const payload = (
     data as { data?: { maintenance?: boolean; message?: string; estimatedEnd?: string } }
   )?.data;

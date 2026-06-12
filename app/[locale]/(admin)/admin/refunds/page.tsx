@@ -86,7 +86,7 @@ export default function AdminRefundsPage() {
           data={rows}
           searchKey="userName"
           searchPlaceholder={t("searchRefunds")}
-          className="cinect-glass rounded-lg border p-4"
+          className="cinect-admin-panel rounded-lg p-4"
           isLoading={isLoading}
           emptyMessage={t("emptyRefunds")}
         />

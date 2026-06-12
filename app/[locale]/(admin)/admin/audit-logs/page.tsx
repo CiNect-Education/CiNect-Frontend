@@ -202,7 +202,7 @@ export default function AdminAuditLogsPage() {
         }
       />
 
-      <div className="cinect-glass mb-4 flex flex-wrap gap-4 rounded-lg border p-4">
+      <div className="cinect-admin-panel mb-4 flex flex-wrap gap-4 rounded-lg border p-4">
         <Input
           placeholder={t("searchAuditUser")}
           value={search}
@@ -254,7 +254,7 @@ export default function AdminAuditLogsPage() {
         data={logs}
         pageSize={50}
         hidePagination
-        className="cinect-glass rounded-lg border p-4"
+        className="cinect-admin-panel rounded-lg p-4"
         isLoading={logsLoading}
         emptyMessage={t("emptyAuditLogs")}
       />

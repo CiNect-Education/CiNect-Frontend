@@ -57,9 +57,26 @@ export function remoteImageUnoptimized(src: string | null | undefined): boolean 
   }
 }
 
+/** Map backend upload URLs to same-origin paths (proxied via next.config rewrites). */
+export function normalizeReviewImageSrc(src: string): string {
+  const trimmed = src.trim();
+  if (!trimmed) return trimmed;
+  if (trimmed.startsWith("/uploads/reviews/")) return trimmed;
+  try {
+    const pathname = new URL(trimmed).pathname;
+    if (pathname.startsWith("/uploads/reviews/")) return pathname;
+  } catch {
+    if (trimmed.startsWith("uploads/reviews/")) return `/${trimmed}`;
+  }
+  return trimmed;
+}
+
 /** Encode `@` in Amazon CDN paths so browsers load posters reliably. */
 export function normalizeRemoteImageSrc(src: string): string {
   if (!src) return src;
+  if (src.includes("/uploads/reviews/")) {
+    return normalizeReviewImageSrc(src);
+  }
   if (/media-amazon\.com/i.test(src) && src.includes("@")) {
     return src.replace(/@/g, "%40");
   }

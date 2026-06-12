@@ -191,7 +191,7 @@ export default function OrdersPage() {
   const renderTicketCard = (booking: Booking, isUpcoming: boolean) => (
     <Card
       key={booking.id}
-      className="cinect-glass group overflow-hidden border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+      className="cinect-account-row group overflow-hidden"
     >
       <CardContent className="p-0">
         <div className="from-primary/10 via-primary/5 to-transparent h-1 w-full bg-gradient-to-r" />
@@ -280,7 +280,7 @@ export default function OrdersPage() {
         description={t("ticketsPageDesc")}
       />
 
-      <Card className="cinect-glass mb-6 border">
+      <Card className="cinect-account-filter mb-6">
         <CardContent className="pt-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative min-w-0 flex-1">
@@ -333,7 +333,7 @@ export default function OrdersPage() {
         <ApiErrorState error={error} onRetry={refetch} />
       ) : (
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="space-y-4">
-          <TabsList className="cinect-glass border">
+          <TabsList className="cinect-account-tabs">
             <TabsTrigger value="upcoming">{t("upcomingTickets")}</TabsTrigger>
             <TabsTrigger value="past">{t("pastTickets")}</TabsTrigger>
             <TabsTrigger value="refunds">{t("refundHistoryTab")}</TabsTrigger>
@@ -341,7 +341,7 @@ export default function OrdersPage() {
 
           <TabsContent value="upcoming" className="space-y-3">
             {upcoming.length === 0 ? (
-              <Card className="cinect-glass border">
+              <Card className="cinect-account-panel">
                 <CardContent className="py-10 text-center text-sm text-muted-foreground">
                   {t("noUpcomingTickets")}
                 </CardContent>
@@ -353,7 +353,7 @@ export default function OrdersPage() {
 
           <TabsContent value="past" className="space-y-3">
             {past.length === 0 ? (
-              <Card className="cinect-glass border">
+              <Card className="cinect-account-panel">
                 <CardContent className="py-10 text-center text-sm text-muted-foreground">
                   {t("noPastTickets")}
                 </CardContent>
@@ -373,7 +373,7 @@ export default function OrdersPage() {
             ) : refundsError ? (
               <ApiErrorState error={refundsError} onRetry={refetchRefunds} />
             ) : refunds.length === 0 ? (
-              <Card className="cinect-glass border">
+              <Card className="cinect-account-panel">
                 <CardContent className="py-10 text-center text-sm text-muted-foreground">
                   {t("refundHistoryEmpty")}
                 </CardContent>
@@ -386,7 +386,7 @@ export default function OrdersPage() {
                   : null;
 
                 return (
-                <Card key={refund.id} className="cinect-glass border">
+                <Card key={refund.id} className="cinect-account-panel">
                   <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0 space-y-1">
                       <p className="font-medium">{refund.movieTitle ?? t("refundUnknownMovie")}</p>

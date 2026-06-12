@@ -1,10 +1,10 @@
 import { useApiQuery } from "@/hooks/use-api-query";
 
-export function useMaintenanceMode() {
+export function useMaintenanceMode(enabled = true) {
   return useApiQuery<{ maintenance: boolean; message?: string; estimatedEnd?: string }>(
     ["maintenance"],
     "/status",
     undefined,
-    { retry: false, staleTime: 60000 }
+    { enabled, retry: false, staleTime: 5 * 60 * 1000 },
   );
 }

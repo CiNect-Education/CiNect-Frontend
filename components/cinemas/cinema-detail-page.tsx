@@ -1,5 +1,7 @@
 "use client";
 
+import "@/app/cinect-cinema-detail.css";
+
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";

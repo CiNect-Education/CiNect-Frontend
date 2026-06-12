@@ -318,14 +318,14 @@ export default function AdminUsersPage() {
           data={actualUsers}
           searchKey="fullName"
           searchPlaceholder={t("searchUsers")}
-          className="cinect-glass rounded-lg border p-4"
+          className="cinect-admin-panel rounded-lg p-4"
           isLoading={usersLoading}
           emptyMessage={t("emptyUsers")}
         />
       )}
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="cinect-glass max-w-lg border">
+        <DialogContent className="cinect-admin-panel max-w-lg">
           <DialogHeader>
             <DialogTitle>{t("createUser")}</DialogTitle>
           </DialogHeader>
@@ -419,7 +419,7 @@ export default function AdminUsersPage() {
       </Dialog>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="cinect-glass max-w-lg border">
+        <DialogContent className="cinect-admin-panel max-w-lg">
           <DialogHeader>
             <DialogTitle>{t("editUser")}</DialogTitle>
           </DialogHeader>
@@ -549,7 +549,7 @@ export default function AdminUsersPage() {
       </Dialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="cinect-glass border">
+        <AlertDialogContent className="cinect-admin-panel">
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deleteUser")}</AlertDialogTitle>
             <AlertDialogDescription>

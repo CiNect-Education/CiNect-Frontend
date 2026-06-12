@@ -78,7 +78,7 @@ export default function AccountMembershipPage() {
     return (
       <div>
         <PageHeader title={t("title")} />
-        <Card className="cinect-glass border">
+        <Card className="cinect-account-panel">
           <CardContent className="py-12 text-center">
             <Crown className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
             <p className="text-muted-foreground">{tAccount("noMembershipData")}</p>
@@ -114,7 +114,7 @@ export default function AccountMembershipPage() {
 
       <div className="flex flex-col gap-6">
         {/* Animated Tier Badge Card */}
-        <Card className="cinect-glass border-primary/20 overflow-hidden border">
+        <Card className="cinect-account-panel cinect-account-highlight overflow-hidden">
           <div className="from-primary/10 via-primary/5 relative bg-gradient-to-br to-transparent p-8">
             <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
               {/* Animated Badge */}
@@ -164,7 +164,7 @@ export default function AccountMembershipPage() {
 
               {/* Discount badge */}
               {currentTier?.discountPercent && (
-                <div className="bg-background/50 rounded-lg border p-4 text-center">
+                <div className="cinect-account-inset bg-background/40 p-4 text-center">
                   <p className="text-primary text-3xl font-bold">{currentTier.discountPercent}%</p>
                   <p className="text-muted-foreground text-xs">{t("discountLabel")}</p>
                 </div>
@@ -175,7 +175,7 @@ export default function AccountMembershipPage() {
 
         {/* Stats Grid */}
         <div className="grid gap-4 sm:grid-cols-3">
-          <Card className="cinect-glass border">
+          <Card className="cinect-account-panel">
             <CardContent className="flex items-center gap-4 pt-6">
               <div className="bg-primary/10 rounded-full p-3">
                 <TrendingUp className="text-primary h-5 w-5" />
@@ -186,7 +186,7 @@ export default function AccountMembershipPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="cinect-glass border">
+          <Card className="cinect-account-panel">
             <CardContent className="flex items-center gap-4 pt-6">
               <div className="bg-primary/10 rounded-full p-3">
                 <Ticket className="text-primary h-5 w-5" />
@@ -197,7 +197,7 @@ export default function AccountMembershipPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="cinect-glass border">
+          <Card className="cinect-account-panel">
             <CardContent className="flex items-center gap-4 pt-6">
               <div className="bg-primary/10 rounded-full p-3">
                 <Star className="text-primary h-5 w-5" />
@@ -211,7 +211,7 @@ export default function AccountMembershipPage() {
         </div>
 
         {/* Birthday Gift Section */}
-        <Card className="cinect-glass border-primary/20 from-primary/10 via-primary/5 border bg-gradient-to-r to-transparent">
+        <Card className="cinect-account-panel bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
           <CardContent className="flex items-center gap-4 p-6">
             <div className="bg-primary/10 rounded-full p-3">
               <Cake className="text-primary h-6 w-6" />
@@ -228,7 +228,7 @@ export default function AccountMembershipPage() {
         </Card>
 
         {/* Coupons with Countdown */}
-        <Card className="cinect-glass border">
+        <Card className="cinect-account-panel">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Ticket className="h-5 w-5" />
@@ -247,10 +247,10 @@ export default function AccountMembershipPage() {
                   return (
                     <div
                       key={coupon.id}
-                      className={`rounded-lg border p-4 ${
+                      className={`cinect-account-inset p-4 ${
                         isExpired
-                          ? "border-muted bg-muted/30 opacity-60"
-                          : "border-primary/30 bg-primary/5 border-dashed"
+                          ? "opacity-60"
+                          : "border-primary/20 border-dashed bg-primary/5"
                       }`}
                     >
                       <div className="mb-1 flex items-center justify-between">
@@ -311,7 +311,7 @@ export default function AccountMembershipPage() {
         </Card>
 
         {/* Points History */}
-        <Card className="cinect-glass border">
+        <Card className="cinect-account-panel">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <TrendingUp className="h-5 w-5" />

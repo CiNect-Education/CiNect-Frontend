@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -34,7 +35,13 @@ import {
   USER_LOCATION_CHANGED_EVENT,
 } from "@/lib/user-location";
 import { DetectRegionButton } from "@/components/shared/detect-region-button";
-import { CinemaVietnamMap } from "@/components/cinemas/cinema-vietnam-map";
+const CinemaVietnamMap = dynamic(
+  () => import("@/components/cinemas/cinema-vietnam-map").then((m) => m.CinemaVietnamMap),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[320px] w-full rounded-xl" />,
+  },
+);
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];

@@ -147,7 +147,7 @@ export default function AdminRolesPage() {
         </Button>
       }
     >
-      <Card className="cinect-glass border">
+      <Card className="cinect-admin-panel">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Shield className="text-primary h-5 w-5" />

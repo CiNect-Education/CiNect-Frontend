@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RemoteImage } from "@/components/shared/remote-image";
+import { ReviewImage } from "@/components/reviews/review-image";
 import { REVIEW_EMOTION_TAG_KEYS } from "@/lib/review-emotion-tags";
 import { useUploadReviewImage } from "@/hooks/queries/use-community";
 import type { CreateReviewInput } from "@/lib/schemas/movie";
@@ -60,8 +60,10 @@ export function RichReviewForm({ onSubmit, isSubmitting, submitLabel }: RichRevi
     setUploading(true);
     try {
       const res = await upload.mutateAsync(fd);
-      const url = res.data?.url;
+      const payload = res.data as { url?: string } | undefined;
+      const url = payload?.url?.trim();
       if (url) setImageUrls((prev) => [...prev, url]);
+      else toast.error(t("reviewImageUploadError"));
     } catch {
       toast.error(t("reviewImageUploadError"));
     } finally {
@@ -138,7 +140,7 @@ export function RichReviewForm({ onSubmit, isSubmitting, submitLabel }: RichRevi
         <div className="flex flex-wrap gap-2">
           {imageUrls.map((url) => (
             <div key={url} className="relative h-20 w-20 overflow-hidden rounded-md bg-muted">
-              <RemoteImage src={url} alt="" fill className="object-cover" sizes="80px" />
+              <ReviewImage src={url} alt="" className="absolute inset-0" />
               <button
                 type="button"
                 className="bg-background/80 absolute right-0.5 top-0.5 rounded-full p-0.5"

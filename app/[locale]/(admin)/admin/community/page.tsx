@@ -110,7 +110,7 @@ export default function AdminCommunityPage() {
 
   function renderPendingCard(item: PendingItem) {
     return (
-      <Card key={`${item.kind}-${item.id}`}>
+      <Card key={`${item.kind}-${item.id}`} className="cinect-admin-panel">
         <CardContent className="space-y-3 p-4">
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-semibold">{item.title}</p>
@@ -150,25 +150,25 @@ export default function AdminCommunityPage() {
       <PageHeader title={t("communityModeration")} description={t("descCommunityModeration")} />
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="cinect-admin-panel">
           <CardContent className="p-4">
             <p className="text-muted-foreground text-sm">{t("communityPendingReviews")}</p>
             <p className="text-2xl font-bold">{stats?.pendingReviews ?? "—"}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cinect-admin-panel">
           <CardContent className="p-4">
             <p className="text-muted-foreground text-sm">{t("communityVerifiedTotal")}</p>
             <p className="text-2xl font-bold">{stats?.verifiedReviews ?? "—"}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cinect-admin-panel">
           <CardContent className="p-4">
             <p className="text-muted-foreground text-sm">{t("communityOpenTickets")}</p>
             <p className="text-2xl font-bold">{stats?.openTickets ?? "—"}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cinect-admin-panel">
           <CardContent className="p-4">
             <p className="text-muted-foreground text-sm">{t("refundsTotal")}</p>
             <p className="text-2xl font-bold">{stats?.totalRefunds ?? "—"}</p>
@@ -195,7 +195,7 @@ export default function AdminCommunityPage() {
           ) : error ? (
             <ApiErrorState error={error} onRetry={refetch} />
           ) : reviews.length === 0 ? (
-            <Card>
+            <Card className="cinect-admin-panel">
               <CardContent className="text-muted-foreground p-6 text-sm">{t("communityNoPendingReviews")}</CardContent>
             </Card>
           ) : (
@@ -221,7 +221,7 @@ export default function AdminCommunityPage() {
           ) : supportError ? (
             <ApiErrorState error={supportError} onRetry={refetchSupport} />
           ) : tickets.length === 0 ? (
-            <Card>
+            <Card className="cinect-admin-panel">
               <CardContent className="text-muted-foreground p-6 text-sm">{t("communityNoTickets")}</CardContent>
             </Card>
           ) : (

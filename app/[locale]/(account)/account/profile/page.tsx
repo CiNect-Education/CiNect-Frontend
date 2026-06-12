@@ -180,7 +180,7 @@ export default function ProfilePage() {
 
       <div className="grid gap-6 xl:grid-cols-[1.45fr_0.85fr]">
         <div className="space-y-6">
-          <Card className="cinect-glass border overflow-hidden">
+          <Card className="cinect-account-panel overflow-hidden">
             <div className="from-primary/10 via-background to-background bg-gradient-to-r">
               <CardContent className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center">
                 <div className="relative">
@@ -254,7 +254,7 @@ export default function ProfilePage() {
             </div>
           </Card>
 
-          <Card className="cinect-glass border">
+          <Card className="cinect-account-panel">
             <CardHeader>
               <div className="flex items-center gap-1.5">
                 <CardTitle className="text-lg">{t("personalInfoCardTitle")}</CardTitle>
@@ -383,7 +383,7 @@ export default function ProfilePage() {
                       name="profilePublic"
                       render={({ field }) => (
                         <FormItem className="sm:col-span-2">
-                          <div className="flex items-center justify-between rounded-lg border p-3">
+                          <div className="flex items-center justify-between cinect-account-inset p-3">
                             <div className="space-y-1">
                               <FormLabel>{t("profilePublicLabel")}</FormLabel>
                               <p className="text-xs text-muted-foreground">{t("profilePublicDesc")}</p>
@@ -432,7 +432,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="space-y-6">
-          <Card className="cinect-glass border">
+          <Card className="cinect-account-panel">
             <CardHeader>
               <div className="flex items-center gap-1.5">
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -444,7 +444,7 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-                <div className="rounded-xl border p-4">
+                <div className="cinect-account-inset p-4">
                   <p className="text-muted-foreground text-sm">{t("membershipTierLabel")}</p>
                   <div className="mt-2 flex items-center gap-2">
                     <UserRound className="text-primary h-4 w-4" />
@@ -453,7 +453,7 @@ export default function ProfilePage() {
                     </span>
                   </div>
                 </div>
-                <div className="rounded-xl border p-4">
+                <div className="cinect-account-inset p-4">
                   <p className="text-muted-foreground text-sm">{t("membershipPointsLabel")}</p>
                   <div className="mt-2 flex items-center gap-2">
                     <Sparkles className="text-primary h-4 w-4" />

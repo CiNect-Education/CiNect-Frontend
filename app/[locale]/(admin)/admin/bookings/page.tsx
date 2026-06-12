@@ -248,7 +248,7 @@ export default function AdminBookingsPage() {
         </Button>
       }
     >
-      <div className="cinect-glass mb-6 flex flex-wrap gap-3 rounded-lg border p-4">
+      <div className="cinect-admin-panel mb-6 flex flex-wrap gap-3 rounded-lg border p-4">
         <div className="relative min-w-[200px] flex-1">
           <Input
             placeholder={t("searchBookings")}
@@ -296,14 +296,14 @@ export default function AdminBookingsPage() {
           data={filteredBookings}
           searchKey="movieTitle"
           searchPlaceholder={t("searchBookingsMovie")}
-          className="cinect-glass rounded-lg border p-4"
+          className="cinect-admin-panel rounded-lg p-4"
           isLoading={bookingsLoading}
           emptyMessage={t("emptyBookings")}
         />
       )}
 
       <AlertDialog open={!!cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)}>
-        <AlertDialogContent className="cinect-glass border">
+        <AlertDialogContent className="cinect-admin-panel">
           <AlertDialogHeader>
             <AlertDialogTitle>{t("cancelBookingTitle")}</AlertDialogTitle>
             <AlertDialogDescription>{t("cancelBookingDesc")}</AlertDialogDescription>

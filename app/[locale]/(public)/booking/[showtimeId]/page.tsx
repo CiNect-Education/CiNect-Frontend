@@ -2,8 +2,17 @@
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "@/i18n/navigation";
-import { SeatMap } from "@/components/booking/seat-map";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const SeatMap = dynamic(
+  () => import("@/components/booking/seat-map").then((m) => m.SeatMap),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="mx-auto h-[280px] w-full max-w-3xl rounded-lg" />,
+  },
+);
 import {
   TicketTypePicker,
   buildTicketLinesPayload,
@@ -21,7 +30,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ApiErrorState } from "@/components/system/api-error-state";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   useShowtimeSeats,
   useShowtimeTicketProducts,
@@ -128,6 +136,11 @@ export default function BookingPage() {
   const [conflictedSeatIds, setConflictedSeatIds] = useState<string[]>([]);
   const [expireModalOpen, setExpireModalOpen] = useState(false);
   const [seatNoticeMessage, setSeatNoticeMessage] = useState<string | null>(null);
+  const [concessionNoticeOpen, setConcessionNoticeOpen] = useState(false);
+  const [pendingConcessionQty, setPendingConcessionQty] = useState<{
+    previous: number;
+    next: number;
+  } | null>(null);
 
   const expiringRef = useRef(false);
 
@@ -161,21 +174,6 @@ export default function BookingPage() {
     return Array.isArray(raw) ? (raw as TicketProduct[]) : [];
   }, [ticketProductsRes]);
 
-  useEffect(() => {
-    if (ticketProducts.length === 0) return;
-    setTicketQuantities((prev) => {
-      const validCodes = new Set(ticketProducts.map((p) => p.code));
-      const pruned = Object.fromEntries(
-        Object.entries(prev).filter(([code]) => validCodes.has(code as TicketProductCode)),
-      ) as Partial<Record<TicketProductCode, number>>;
-      const hasSelection = ticketProducts.some((p) => (pruned[p.code] ?? 0) > 0);
-      if (hasSelection) return pruned;
-      const defaultProduct =
-        ticketProducts.find((p) => p.code === "ADULT_SINGLE") ?? ticketProducts[0];
-      return { [defaultProduct.code]: 1 };
-    });
-  }, [ticketProducts]);
-
   const { data: seatsData, isLoading, error, refetch } = useShowtimeSeats(showtimeId);
   const seatsPayload = (seatsData?.data ?? seatsData) as ShowtimeSeatsPayload | Seat[] | null;
   const seatsPayloadShowtime =
@@ -190,14 +188,42 @@ export default function BookingPage() {
     ? seatsPayload
     : ((seatsPayload as ShowtimeSeatsPayload | null)?.seats ?? []);
 
+  const hasCoupleSeatsInRoom = useMemo(
+    () => seats.some((seat) => String(seat.type).toUpperCase() === "COUPLE"),
+    [seats],
+  );
+
+  const visibleTicketProducts = useMemo(() => {
+    if (seats.length > 0 && !hasCoupleSeatsInRoom) {
+      return ticketProducts.filter((product) => product.code !== "ADULT_DOUBLE");
+    }
+    return ticketProducts;
+  }, [ticketProducts, hasCoupleSeatsInRoom, seats.length]);
+
+  useEffect(() => {
+    if (visibleTicketProducts.length === 0) return;
+    setTicketQuantities((prev) => {
+      const validCodes = new Set(visibleTicketProducts.map((p) => p.code));
+      const pruned = Object.fromEntries(
+        Object.entries(prev).filter(([code]) => validCodes.has(code as TicketProductCode)),
+      ) as Partial<Record<TicketProductCode, number>>;
+      const hasSelection = visibleTicketProducts.some((p) => (pruned[p.code] ?? 0) > 0);
+      if (hasSelection) return pruned;
+      const defaultProduct =
+        visibleTicketProducts.find((p) => p.code === "ADULT_SINGLE") ??
+        visibleTicketProducts[0];
+      return { [defaultProduct.code]: 1 };
+    });
+  }, [visibleTicketProducts]);
+
   const ticketSeatPlan = useMemo(
     () => analyzeTicketSeatPlan(ticketQuantities),
     [ticketQuantities],
   );
   const requiredDisplayUnits = ticketSeatPlan.totalDisplayUnits;
   const ticketTotal = useMemo(
-    () => ticketLinesTotal(ticketProducts, ticketQuantities),
-    [ticketProducts, ticketQuantities],
+    () => ticketLinesTotal(visibleTicketProducts, ticketQuantities),
+    [visibleTicketProducts, ticketQuantities],
   );
 
   const seatArray: Seat[] = useMemo(
@@ -298,12 +324,34 @@ export default function BookingPage() {
     [seatById, ticketSeatPlan, selectedSeatDetails, tb, toggleSeatSelection],
   );
 
-  const handleTicketQtyChange = (code: TicketProductCode, quantity: number) => {
+  const applyTicketQtyChange = useCallback((code: TicketProductCode, quantity: number) => {
     setTicketQuantities((prev) => ({ ...prev, [code]: quantity }));
     setSelectedSeats([]);
     setHoldId(null);
     setExpiresAt(null);
+  }, []);
+
+  const handleTicketQtyChange = (code: TicketProductCode, quantity: number) => {
+    if (code === "CONCESSION_SINGLE") {
+      const previous = ticketQuantities.CONCESSION_SINGLE ?? 0;
+      if (quantity > previous) {
+        setPendingConcessionQty({ previous, next: quantity });
+        setConcessionNoticeOpen(true);
+        return;
+      }
+    }
+    applyTicketQtyChange(code, quantity);
   };
+
+  const handleConfirmConcessionNotice = useCallback(() => {
+    if (!pendingConcessionQty) return;
+    applyTicketQtyChange("CONCESSION_SINGLE", pendingConcessionQty.next);
+    setPendingConcessionQty(null);
+  }, [applyTicketQtyChange, pendingConcessionQty]);
+
+  const handleCancelConcessionNotice = useCallback(() => {
+    setPendingConcessionQty(null);
+  }, []);
 
   const totalPrice =
     bookingStep === "seats" && selectedSeatDetails.length > 0
@@ -313,7 +361,7 @@ export default function BookingPage() {
   const handleHoldSeats = useCallback(async () => {
     if (selectedSeats.length === 0) return;
     const ticketError = validateTicketSeatSelection(
-      ticketProducts,
+      visibleTicketProducts,
       ticketQuantities,
       selectedSeatDetails,
     );
@@ -386,7 +434,7 @@ export default function BookingPage() {
     holdMutation,
     router,
     ticketQuantities,
-    ticketProducts,
+    visibleTicketProducts,
     refetch,
     tb,
     clearRealtimeConflicts,
@@ -445,13 +493,13 @@ export default function BookingPage() {
 
   const selectedTicketLines = useMemo(
     () =>
-      ticketProducts
+      visibleTicketProducts
         .map((product) => ({
           product,
           quantity: ticketQuantities[product.code] ?? 0,
         }))
         .filter((line) => line.quantity > 0),
-    [ticketProducts, ticketQuantities],
+    [visibleTicketProducts, ticketQuantities],
   );
 
   const seatTypeStats = useMemo(() => {
@@ -658,7 +706,7 @@ export default function BookingPage() {
         <div className="lg:col-span-2">
           {bookingStep === "tickets" ? (
             <TicketTypePicker
-              products={ticketProducts}
+              products={visibleTicketProducts}
               quantities={ticketQuantities}
               onChange={handleTicketQtyChange}
             />
@@ -896,6 +944,16 @@ export default function BookingPage() {
           if (!open) setSeatNoticeMessage(null);
         }}
         message={seatNoticeMessage ?? ""}
+      />
+
+      <CinestarNoticeDialog
+        open={concessionNoticeOpen}
+        onOpenChange={setConcessionNoticeOpen}
+        title={null}
+        message={tb("cinestarNoticeConcession")}
+        showCancel
+        onConfirm={handleConfirmConcessionNotice}
+        onCancel={handleCancelConcessionNotice}
       />
 
       {/* Hold expiration modal */}

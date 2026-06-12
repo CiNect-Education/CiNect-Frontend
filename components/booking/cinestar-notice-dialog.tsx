@@ -12,22 +12,34 @@ interface CinestarNoticeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   message: string;
-  title?: string;
+  title?: string | null;
+  showCancel?: boolean;
+  onConfirm?: () => void;
+  onCancel?: () => void;
 }
 
-/** Modal thông báo kiểu Cinestar (gradient tím–xanh, nút OK viền vàng). */
+/** Modal thông báo kiểu Cinestar (gradient tím–xanh, nút viền vàng). */
 export function CinestarNoticeDialog({
   open,
   onOpenChange,
   message,
   title,
+  showCancel = false,
+  onConfirm,
+  onCancel,
 }: CinestarNoticeDialogProps) {
   const tb = useTranslations("booking");
+  const tCommon = useTranslations("common");
 
   const handleOpenChange = (next: boolean) => {
     if (next) return;
+    if (showCancel) {
+      onCancel?.();
+    }
     onOpenChange(false);
   };
+
+  const resolvedTitle = title === undefined ? tb("cinestarNoticeTitle") : title;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -42,20 +54,47 @@ export function CinestarNoticeDialog({
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <div className="px-8 py-10 text-center text-white">
-          <DialogTitle className="text-xl font-bold tracking-wide text-white uppercase">
-            {title ?? tb("cinestarNoticeTitle")}
-          </DialogTitle>
+          {resolvedTitle ? (
+            <DialogTitle className="text-xl font-bold tracking-wide text-white uppercase">
+              {resolvedTitle}
+            </DialogTitle>
+          ) : (
+            <DialogTitle className="sr-only">{tb("cinestarNoticeTitle")}</DialogTitle>
+          )}
           <p
             id="cinestar-notice-message"
-            className="mt-5 text-base leading-relaxed text-white/95"
+            className={cn(
+              "text-base leading-relaxed text-white/95",
+              resolvedTitle ? "mt-5" : "mt-0",
+            )}
           >
             {message}
           </p>
-          <div className="mt-8 flex justify-center">
+          <div
+            className={cn(
+              "mt-8 flex justify-center gap-3",
+              showCancel ? "flex-row" : "",
+            )}
+          >
+            {showCancel && (
+              <button
+                type="button"
+                className="min-w-[5.5rem] rounded border-2 border-[#f3ea28] bg-transparent px-5 py-1.5 text-sm font-bold tracking-wide text-[#f3ea28] uppercase transition hover:bg-[#f3ea28]/10"
+                onClick={() => {
+                  onCancel?.();
+                  onOpenChange(false);
+                }}
+              >
+                {tCommon("cancel")}
+              </button>
+            )}
             <button
               type="button"
-              className="min-w-[5.5rem] rounded border-2 border-[#f3ea28] bg-transparent px-6 py-1.5 text-base font-bold text-[#f3ea28] transition hover:bg-[#f3ea28]/10"
-              onClick={() => onOpenChange(false)}
+              className="min-w-[5.5rem] rounded border-2 border-[#f3ea28] bg-transparent px-6 py-1.5 text-sm font-bold tracking-wide text-[#f3ea28] uppercase transition hover:bg-[#f3ea28]/10"
+              onClick={() => {
+                onConfirm?.();
+                onOpenChange(false);
+              }}
             >
               {tb("ok")}
             </button>

@@ -36,8 +36,13 @@ function mapNotificationType(type: NotificationType): UiNotification["type"] {
   }
 }
 
-export function useAccountNotifications() {
-  const { data, isLoading, error, refetch } = useNotifications({ limit: 200, page: 1 });
+type UseAccountNotificationsOptions = {
+  limit?: number;
+};
+
+export function useAccountNotifications(options?: UseAccountNotificationsOptions) {
+  const limit = options?.limit ?? 12;
+  const { data, isLoading, error, refetch } = useNotifications({ limit, page: 1 });
   const markAll = useMarkAllNotificationsRead();
 
   const notifications = useMemo<UiNotification[]>(() => {

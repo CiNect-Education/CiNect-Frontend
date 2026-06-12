@@ -241,13 +241,13 @@ export default function AdminPricingPage() {
         columns={columns}
         data={rules}
         searchPlaceholder={t("searchRules")}
-        className="cinect-glass rounded-lg border p-4"
+        className="cinect-admin-panel rounded-lg p-4"
         isLoading={rulesLoading}
         emptyMessage={t("emptyPricing")}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="cinect-glass max-w-lg border">
+        <DialogContent className="cinect-admin-panel max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingRule ? t("editRule") : t("addRule")}</DialogTitle>
           </DialogHeader>
@@ -439,7 +439,7 @@ export default function AdminPricingPage() {
       </Dialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="cinect-glass border">
+        <AlertDialogContent className="cinect-admin-panel">
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deletePricingRule")}</AlertDialogTitle>
             <AlertDialogDescription>{t("deletePricingRuleDesc")}</AlertDialogDescription>

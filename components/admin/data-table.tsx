@@ -122,12 +122,7 @@ export function DataTable<TData, TValue>({
         </div>
       )}
 
-      <div
-        className={cn(
-          "rounded-md border bg-background/40 backdrop-blur supports-[backdrop-filter]:bg-background/20",
-          tableClassName
-        )}
-      >
+      <div className={cn("cinect-admin-inset overflow-hidden rounded-md", tableClassName)}>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

@@ -164,7 +164,11 @@ export function AdminSidebar() {
   if (!open) return null;
 
   return (
-    <Sidebar collapsible="none" className="sticky top-0 h-svh self-start border-r">
+    <Sidebar
+      collapsible="none"
+      data-sidebar="sidebar"
+      className="cinect-admin-sidebar sticky top-0 h-svh self-start border-r-0 !bg-transparent"
+    >
       <SidebarHeader className="border-b px-5 py-5">
         <Link href="/admin" className="flex items-center gap-3 text-lg font-bold">
           <LayoutDashboard className="text-primary h-6 w-6" />

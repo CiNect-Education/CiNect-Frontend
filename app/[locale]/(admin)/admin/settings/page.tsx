@@ -13,7 +13,7 @@ export default function AdminSettingsPage() {
 
   return (
     <AdminPageShell title={t("settings")} description={t("descSettings")}>
-      <Card className="cinect-glass max-w-2xl border">
+      <Card className="cinect-admin-panel max-w-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <MapPin className="h-5 w-5" />
