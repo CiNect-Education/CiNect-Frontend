@@ -59,7 +59,7 @@ export default function OrdersPage() {
   const dateFnsLocale = locale.startsWith("vi") ? viDateLocale : enUS;
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<BookingStatus | "ALL">("ALL");
-  const [tab, setTab] = useState<"upcoming" | "past" | "refunds">("upcoming");
+  const [tab, setTab] = useState<"all" | "upcoming" | "past" | "cancelled" | "refunds">("all");
   const [sortBy, setSortBy] = useState<"showtime-desc" | "showtime-asc" | "amount-desc">(
     "showtime-desc"
   );
@@ -112,16 +112,30 @@ export default function OrdersPage() {
   }, [bookings, query, status]);
 
   const now = new Date();
-  const { upcoming, past } = useMemo(() => {
+  const { all, upcoming, past, cancelled } = useMemo(() => {
+    const allList: Booking[] = [];
     const upcomingList: Booking[] = [];
     const pastList: Booking[] = [];
+    const cancelledList: Booking[] = [];
 
     for (const booking of filtered) {
       const showtimeDate = new Date(booking.showtime);
+      const isCancelled = booking.status === "CANCELLED";
+      const isCompleted = booking.status === "COMPLETED";
+      const isConfirmed = booking.status === "CONFIRMED";
       const isUpcoming =
         isValid(showtimeDate) &&
         showtimeDate >= now &&
         (booking.status === "PENDING" || booking.status === "CONFIRMED" || booking.status === "HELD");
+
+      if (isConfirmed || isCompleted || isCancelled) {
+        allList.push(booking);
+      }
+
+      if (isCancelled) {
+        cancelledList.push(booking);
+        continue;
+      }
 
       if (isUpcoming) {
         upcomingList.push(booking);
@@ -137,8 +151,10 @@ export default function OrdersPage() {
     };
 
     return {
+      all: allList.sort(sorter),
       upcoming: upcomingList.sort(sorter),
       past: pastList.sort(sorter),
+      cancelled: cancelledList.sort(sorter),
     };
   }, [filtered, now, sortBy]);
 
@@ -334,10 +350,24 @@ export default function OrdersPage() {
       ) : (
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="space-y-4">
           <TabsList className="cinect-account-tabs">
+            <TabsTrigger value="all">{t("allTickets")}</TabsTrigger>
             <TabsTrigger value="upcoming">{t("upcomingTickets")}</TabsTrigger>
             <TabsTrigger value="past">{t("pastTickets")}</TabsTrigger>
+            <TabsTrigger value="cancelled">{t("cancelledTickets")}</TabsTrigger>
             <TabsTrigger value="refunds">{t("refundHistoryTab")}</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="all" className="space-y-3">
+            {all.length === 0 ? (
+              <Card className="cinect-account-panel">
+                <CardContent className="py-10 text-center text-sm text-muted-foreground">
+                  {t("noAllTickets")}
+                </CardContent>
+              </Card>
+            ) : (
+              all.map((booking) => renderTicketCard(booking, false))
+            )}
+          </TabsContent>
 
           <TabsContent value="upcoming" className="space-y-3">
             {upcoming.length === 0 ? (
@@ -360,6 +390,18 @@ export default function OrdersPage() {
               </Card>
             ) : (
               past.map((booking) => renderTicketCard(booking, false))
+            )}
+          </TabsContent>
+
+          <TabsContent value="cancelled" className="space-y-3">
+            {cancelled.length === 0 ? (
+              <Card className="cinect-account-panel">
+                <CardContent className="py-10 text-center text-sm text-muted-foreground">
+                  {t("noCancelledTickets")}
+                </CardContent>
+              </Card>
+            ) : (
+              cancelled.map((booking) => renderTicketCard(booking, false))
             )}
           </TabsContent>
 

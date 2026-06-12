@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -16,11 +17,18 @@ import { useNews } from "@/hooks/queries/use-news";
 import { useBanners, useTrendingPromotions } from "@/hooks/queries/use-campaigns";
 import { useAuth } from "@/providers/auth-provider";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
-import { BannerCarousel } from "@/components/home/banner-carousel";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RemoteImage } from "@/components/shared/remote-image";
+
+const BannerCarousel = dynamic(
+  () => import("@/components/home/banner-carousel").then((mod) => mod.BannerCarousel),
+  {
+    ssr: false,
+    loading: () => <div className="bg-muted/30 rounded-lg border border-dashed p-12 text-center" />,
+  }
+);
 
 function toList<T>(v: unknown): T[] {
   if (!v) return [];

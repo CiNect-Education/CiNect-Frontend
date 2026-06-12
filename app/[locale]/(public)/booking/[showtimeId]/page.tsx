@@ -112,6 +112,8 @@ function normalizeIsoDate(value: unknown): string | null {
   return null;
 }
 
+const CONCESSION_NOTICE_STORAGE_KEY = "cinect_concession_notice_seen_v1";
+
 export default function BookingPage() {
   const params = useParams();
   const router = useRouter();
@@ -141,8 +143,26 @@ export default function BookingPage() {
     previous: number;
     next: number;
   } | null>(null);
+  const [hasSeenConcessionNotice, setHasSeenConcessionNotice] = useState(false);
 
   const expiringRef = useRef(false);
+
+  useEffect(() => {
+    try {
+      setHasSeenConcessionNotice(window.localStorage.getItem(CONCESSION_NOTICE_STORAGE_KEY) === "1");
+    } catch {
+      setHasSeenConcessionNotice(false);
+    }
+  }, []);
+
+  const markConcessionNoticeSeen = useCallback(() => {
+    setHasSeenConcessionNotice(true);
+    try {
+      window.localStorage.setItem(CONCESSION_NOTICE_STORAGE_KEY, "1");
+    } catch {
+      // Ignore storage failures and keep the in-memory guard.
+    }
+  }, []);
 
   useEffect(() => {
     if (authLoading || isAuthenticated) return;
@@ -334,7 +354,7 @@ export default function BookingPage() {
   const handleTicketQtyChange = (code: TicketProductCode, quantity: number) => {
     if (code === "CONCESSION_SINGLE") {
       const previous = ticketQuantities.CONCESSION_SINGLE ?? 0;
-      if (quantity > previous) {
+      if (quantity > previous && !hasSeenConcessionNotice) {
         setPendingConcessionQty({ previous, next: quantity });
         setConcessionNoticeOpen(true);
         return;
@@ -345,13 +365,15 @@ export default function BookingPage() {
 
   const handleConfirmConcessionNotice = useCallback(() => {
     if (!pendingConcessionQty) return;
+    markConcessionNoticeSeen();
     applyTicketQtyChange("CONCESSION_SINGLE", pendingConcessionQty.next);
     setPendingConcessionQty(null);
-  }, [applyTicketQtyChange, pendingConcessionQty]);
+  }, [applyTicketQtyChange, markConcessionNoticeSeen, pendingConcessionQty]);
 
   const handleCancelConcessionNotice = useCallback(() => {
+    markConcessionNoticeSeen();
     setPendingConcessionQty(null);
-  }, []);
+  }, [markConcessionNoticeSeen]);
 
   const totalPrice =
     bookingStep === "seats" && selectedSeatDetails.length > 0

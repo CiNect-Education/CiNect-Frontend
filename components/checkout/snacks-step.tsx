@@ -14,6 +14,7 @@ interface SnacksStepProps {
   selectedSnacks: Array<{ snackId: string; quantity: number }>;
   onSnackChange: (snackId: string, quantity: number) => void;
   onContinue: () => void;
+  isContinueDisabled?: boolean;
   onSaveFavorite?: () => void;
   onApplyFavorite?: () => void;
   hasFavorite?: boolean;
@@ -24,6 +25,7 @@ export function SnacksStep({
   selectedSnacks,
   onSnackChange,
   onContinue,
+  isContinueDisabled,
   onSaveFavorite,
   onApplyFavorite,
   hasFavorite,
@@ -165,7 +167,7 @@ export function SnacksStep({
           )}
         </div>
         <div className="flex flex-1 gap-2">
-          <Button type="button" className="flex-1" onClick={onContinue}>
+          <Button type="button" className="flex-1" onClick={onContinue} disabled={isContinueDisabled}>
             {t("continueToPayment")}
           </Button>
         </div>
