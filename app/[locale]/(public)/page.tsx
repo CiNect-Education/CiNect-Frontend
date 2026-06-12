@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +41,7 @@ function toList<T>(v: unknown): T[] {
 export default function HomePage() {
   const t = useTranslations("home");
   const tGift = useTranslations("gift");
+  const [isMounted, setIsMounted] = useState(false);
 
   const {
     data: nowShowingRes,
@@ -85,6 +86,10 @@ export default function HomePage() {
   } = usePullToRefresh({ onRefresh: handleRefresh });
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
     const el = document.body;
     el.addEventListener("touchstart", handleTouchStart, { passive: true });
     el.addEventListener("touchmove", handleTouchMove, { passive: true });
@@ -116,6 +121,7 @@ export default function HomePage() {
     discountType: string;
     imageUrl?: string;
   }>(trendingRes?.data ?? trendingRes);
+  const showLoadingNow = isMounted && loadingNow;
 
   return (
     <div className="flex flex-col">
@@ -150,7 +156,7 @@ export default function HomePage() {
           </div>
           {banners.length > 0 ? (
             <BannerCarousel banners={banners} />
-          ) : loadingNow ? (
+          ) : showLoadingNow ? (
             <div className="bg-muted cinect-banner-carousel__slide w-full animate-pulse rounded-lg" />
           ) : errorNow ? (
             <ApiErrorState error={errorNow} onRetry={refetchNow} compact />
@@ -180,7 +186,7 @@ export default function HomePage() {
 
       {/* Now Showing Grid */}
       <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        {loadingNow ? (
+        {showLoadingNow ? (
           <div className="space-y-4">
             <Skeleton className="mx-auto h-8 w-56" />
             <div className="flex gap-3 overflow-hidden sm:gap-4">

@@ -1,10 +1,14 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { getApiBaseUrl } from "@/lib/api-discovery";
+import { normalizeLocalizedPath } from "@/lib/locale-path";
+
+const LAST_NON_AUTH_ROUTE_KEY = "cinect-last-non-auth-route";
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -98,9 +102,16 @@ export function SocialLoginButtons({ variant = "card" }: { variant?: "card" | "p
   const t = useTranslations("auth");
   const panel = variant === "panel";
   const dividerBg = panel ? "bg-white" : "bg-card";
+  const returnTo = useMemo(() => {
+    try {
+      return normalizeLocalizedPath(window.sessionStorage.getItem(LAST_NON_AUTH_ROUTE_KEY));
+    } catch {
+      return "/";
+    }
+  }, []);
 
   const handleSocialLogin = (provider: string) => {
-    window.location.href = `${getApiBaseUrl()}/auth/${provider}`;
+    window.location.href = `${getApiBaseUrl()}/auth/${provider}?returnTo=${encodeURIComponent(returnTo)}`;
   };
 
   const providers: {

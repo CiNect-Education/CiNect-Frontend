@@ -10,6 +10,7 @@ import {
   localCalendarDate,
   normalizeBookingCityId,
 } from "@/lib/booking-region";
+import { apiClient } from "@/lib/api-client";
 import {
   groupShowtimesForShowtimesPage,
   uniqueCinemasFromShowtimes,
@@ -39,12 +40,57 @@ export function useShowtimesPage() {
     setStoredCity(normalizeBookingCityId(localStorage.getItem(SELECTED_CITY_STORAGE_KEY) || ""));
   }, []);
 
+  // Code quan trọng: Tự động tìm kiếm ngày có suất chiếu gần nhất của phim (movieId) và chọn ngày đó.
   useEffect(() => {
-    if (!mounted || dateFromParams) return;
+    if (!mounted || dateFromParams || !movieId) return;
+
+    let active = true;
+    async function fetchNearestDate() {
+      try {
+        const params: Record<string, string> = { movieId };
+        const cityId = normalizeBookingCityId(localStorage.getItem(SELECTED_CITY_STORAGE_KEY) || "");
+        if (cityId) params.city = cityId;
+
+        // Gọi API showtimes không truyền ngày, backend sẽ tìm trong 30 ngày (vì có movieId)
+        const res = await apiClient.get<any[]>("/showtimes", params);
+        const list = res.data ?? res;
+
+        if (active && Array.isArray(list) && list.length > 0) {
+          const firstShowtime = list[0];
+          if (firstShowtime?.startTime) {
+            // Chuyển startTime của suất chiếu gần nhất thành định dạng YYYY-MM-DD
+            const nearestDate = localCalendarDate(new Date(firstShowtime.startTime));
+            const p = new URLSearchParams(window.location.search);
+            p.set("date", nearestDate);
+            router.replace(`?${p.toString()}`);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch nearest date for showtimes", err);
+      }
+
+      // Fallback: Nếu không tìm thấy suất chiếu nào hoặc API lỗi, chọn ngày hôm nay
+      if (active) {
+        const p = new URLSearchParams(window.location.search);
+        p.set("date", localCalendarDate(new Date()));
+        router.replace(`?${p.toString()}`);
+      }
+    }
+
+    fetchNearestDate();
+    return () => {
+      active = false;
+    };
+  }, [mounted, dateFromParams, movieId, router]);
+
+  // Code quan trọng: Fallback chọn ngày hôm nay khi chưa có date và không lọc theo phim
+  useEffect(() => {
+    if (!mounted || dateFromParams || movieId) return;
     const p = new URLSearchParams(searchParams.toString());
     p.set("date", localCalendarDate(new Date()));
     router.replace(`?${p.toString()}`);
-  }, [mounted, dateFromParams, router, searchParams]);
+  }, [mounted, dateFromParams, movieId, router, searchParams]);
 
   useEffect(() => {
     function sync() {
