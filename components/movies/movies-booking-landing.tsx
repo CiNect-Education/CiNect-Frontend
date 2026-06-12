@@ -2,6 +2,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 import { MovieCarousel } from "@/components/home/movie-carousel";
 import { ComingSoonCarousel } from "@/components/home/coming-soon-carousel";
 import { CinectMovieQuickBooking } from "@/components/movies/cinect-movie-quick-booking";
@@ -21,6 +22,7 @@ function toList<T>(v: unknown): T[] {
 export function MoviesBookingLanding() {
   const t = useTranslations("home");
   const tMovies = useTranslations("movies");
+  const [isMounted, setIsMounted] = useState(false);
 
   const {
     data: nowShowingRes,
@@ -35,8 +37,13 @@ export function MoviesBookingLanding() {
     refetch: refetchComing,
   } = useComingSoonMovies(24);
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const nowShowing = toList<MovieListItem>(nowShowingRes);
   const comingSoon = toList<MovieListItem>(comingSoonRes);
+  const showLoadingNow = isMounted && loadingNow;
 
   return (
     <div className="flex flex-col">
@@ -45,7 +52,7 @@ export function MoviesBookingLanding() {
       </div>
 
       <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-10 sm:px-6 lg:px-8">
-        {loadingNow ? (
+        {showLoadingNow ? (
           <div className="space-y-4">
             <Skeleton className="mx-auto h-8 w-56" />
             <div className="flex gap-3 overflow-hidden sm:gap-4">

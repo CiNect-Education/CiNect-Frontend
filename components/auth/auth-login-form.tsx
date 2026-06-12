@@ -35,6 +35,7 @@ import {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 const REMEMBER_EMAIL_KEY = "cinect-remember-login-email";
+const LAST_NON_AUTH_ROUTE_KEY = "cinect-last-non-auth-route";
 
 type LoginFormValues = { email: string; password: string };
 
@@ -90,8 +91,14 @@ export function AuthLoginForm() {
         returnToRef.current = normalizeLocalizedPath(path);
         return;
       }
+
+      const storedReturnTo = window.sessionStorage.getItem(LAST_NON_AUTH_ROUTE_KEY);
+      if (storedReturnTo) {
+        returnToRef.current = normalizeLocalizedPath(storedReturnTo);
+        return;
+      }
     } catch {
-      // Ignore malformed referrer URL and fallback to home page.
+      // Ignore malformed referrer URL and storage access failures.
     }
 
     returnToRef.current = "/";
