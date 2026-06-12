@@ -1062,7 +1062,7 @@
     "contactSubmit": "GỬI NGAY",
     "contactDefaultSubject": "Liên hệ từ trang hỗ trợ",
     "chatbotTitle": "Trợ lý AI CiNect",
-    "chatbotHint": "Hỏi về phim, lịch chiếu, rạp, khuyến mãi và tin tức mới. Câu trả lời dựa trên dữ liệu database hiện tại.",
+    "chatbotHint": "Hỏi về phim, suất chiếu, rạp, khuyến mãi — mình trả lời dựa trên dữ liệu CiNect nhé.",
     "chatbotEmpty": "Hãy bắt đầu bằng một câu hỏi, ví dụ: \"Hôm nay có khuyến mãi nào đang hoạt động?\"",
     "chatbotPlaceholder": "Nhập câu hỏi của bạn...",
     "chatbotSend": "Gửi",
