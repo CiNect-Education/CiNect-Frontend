@@ -326,7 +326,7 @@ export function GlobalSearch({ variant = "icon", className }: GlobalSearchProps)
           setTimeout(() => inputRef.current?.focus(), 50);
         }}
         className={cn(
-          "cinect-hd-search-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-white text-white transition-colors hover:text-[#f3ea28] lg:hidden",
+          "cinect-hd-search-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 lg:hidden",
           className
         )}
         aria-label={tCommon("searchAria")}
@@ -343,7 +343,7 @@ export function GlobalSearch({ variant = "icon", className }: GlobalSearchProps)
             aria-label={tCommon("close")}
             onClick={closePanel}
           />
-          <div className="cinect-hd-search-block absolute top-[var(--cinect-header-height,4.5rem)] right-0 left-0 border-b border-white/10 bg-[#0f172a] p-4 shadow-lg">
+          <div className="cinect-hd-search-block absolute top-[var(--cinect-header-height,4.5rem)] right-0 left-0 border-b p-4 shadow-lg">
             {searchField}
           </div>
         </div>

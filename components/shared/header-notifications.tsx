@@ -75,7 +75,7 @@ export function HeaderNotifications({ className }: Props) {
           variant="ghost"
           size="icon"
           className={cn(
-            "relative h-9 w-9 rounded-full text-white hover:bg-white/10 hover:text-[#f3ea28]",
+            "relative h-9 w-9 rounded-full text-foreground hover:bg-muted/60 hover:text-accent dark:text-white dark:hover:bg-white/10 dark:hover:text-[#f3ea28]",
             className
           )}
           aria-label={tNav("notifications")}

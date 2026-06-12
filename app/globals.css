@@ -8,7 +8,7 @@
 /* â”€â”€â”€ CiNect design tokens (dark theme; light = adapted) â”€â”€â”€ */
 @layer base {
   :root {
-    --background: 228 32% 97%;
+    --background: 0 0% 100%;
     --foreground: 248 42% 16%;
     --card: 0 0% 100%;
     --card-foreground: 248 42% 16%;
@@ -59,11 +59,19 @@
     --admin-sidebar-plum-wash: 272 42% 34% / 0.07;
     --admin-sidebar-edge: 272 38% 42% / 0.14;
 
-    --header-top: 228 28% 96%;
-    --header-main: 0 0% 100%;
+    --header-top: 0 0% 100%;
+    --header-main: 248 32% 99%;
     --header-nav-mid: 272 42% 34%;
     --header-nav-end: 228 48% 32%;
     --header-nav-foreground: 0 0% 98%;
+
+    /* Light page/header — white base with soft plum/lavender wash */
+    --cinect-light-surface-from: 0 0% 100%;
+    --cinect-light-surface-mid: 248 32% 99%;
+    --cinect-light-surface-to: 260 38% 97%;
+    --cinect-light-plum-wash: 272 42% 34% / 0.06;
+    --cinect-light-blue-wash: 228 55% 42% / 0.05;
+    --cinect-light-gold-wash: 49 90% 60% / 0.07;
     --footer-from: 248 40% 34%;
     --footer-mid: 258 44% 28%;
     --footer-to: 228 50% 24%;
@@ -244,12 +252,29 @@
   }
 
   :root .cinect-page-bg {
-    background-image: linear-gradient(
-      180deg,
-      hsl(228 35% 97%) 0%,
-      hsl(248 28% 96%) 45%,
-      hsl(228 30% 95%) 100%
-    );
+    background-color: hsl(0 0% 100%);
+    background-image:
+      linear-gradient(
+        180deg,
+        hsl(var(--cinect-light-surface-from)) 0%,
+        hsl(var(--cinect-light-surface-mid)) 46%,
+        hsl(var(--cinect-light-surface-to)) 100%
+      ),
+      radial-gradient(
+        ellipse 90% 55% at 100% 0%,
+        hsl(var(--cinect-light-plum-wash)),
+        transparent 58%
+      ),
+      radial-gradient(
+        ellipse 75% 50% at 0% 100%,
+        hsl(var(--cinect-light-blue-wash)),
+        transparent 52%
+      ),
+      radial-gradient(
+        ellipse 60% 40% at 50% 0%,
+        hsl(var(--cinect-light-gold-wash)),
+        transparent 55%
+      );
   }
 
   .dark .cinect-page-bg {
@@ -464,14 +489,20 @@
   }
 
   .cinect-admin-header {
-    background: hsl(var(--glass-bg) / 0.32);
+    background: hsl(0 0% 100% / 0.78);
+    background-image: linear-gradient(
+      180deg,
+      hsl(var(--cinect-light-surface-from) / 0.96) 0%,
+      hsl(var(--cinect-light-surface-mid) / 0.9) 100%
+    );
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
-    border-color: hsl(var(--border) / 0.18);
+    border-color: hsl(var(--border) / 0.4);
   }
 
   .dark .cinect-admin-header {
     background: hsl(222 47% 11% / 0.35);
+    background-image: none;
   }
 
   .cinect-admin-panel {
@@ -615,6 +646,46 @@
     position: relative;
   }
 
+  /* Light ambient — subtle wash behind white pages */
+  html:not(.dark) .cinect-ambient-bg {
+    background: linear-gradient(
+      180deg,
+      hsl(0 0% 100%) 0%,
+      hsl(var(--cinect-light-surface-mid)) 100%
+    );
+    z-index: -1;
+  }
+
+  html:not(.dark) .cinect-ambient-orb {
+    aspect-ratio: 1;
+    display: block;
+    pointer-events: none;
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(4.5rem);
+  }
+
+  html:not(.dark) .cinect-ambient-orb--primary {
+    background: hsl(var(--cinect-light-gold-wash));
+    left: 10%;
+    top: min(28rem, 38vh);
+    width: min(42rem, 75vw);
+  }
+
+  html:not(.dark) .cinect-ambient-orb--plum-left {
+    background: hsl(var(--cinect-light-plum-wash));
+    left: -6%;
+    top: 52%;
+    width: min(34rem, 58vw);
+  }
+
+  html:not(.dark) .cinect-ambient-orb--blue-right {
+    background: hsl(var(--cinect-light-blue-wash));
+    right: -4%;
+    top: 28%;
+    width: min(38rem, 52vw);
+  }
+
   /* Ambient orb + 183deg plum gradient (above #0f172a base, z-index -3) */
   .dark .cinect-ambient-bg {
     background-attachment: fixed;
@@ -679,12 +750,22 @@
     --cinect-header-height: 4.25rem;
     --cinect-header-sub-height: 0px;
     --cinect-header-total-height: var(--cinect-header-height);
-    background: #0f172a;
-    color: hsl(0 0% 98%);
+    background-color: hsl(0 0% 100%);
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--cinect-light-surface-from)) 0%,
+      hsl(var(--cinect-light-surface-mid)) 52%,
+      hsl(var(--cinect-light-surface-to)) 100%
+    );
+    color: hsl(var(--foreground));
+    box-shadow: 0 1px 0 hsl(var(--border) / 0.55);
   }
 
   .dark .cinect-header-shell {
     background: var(--cinect-bg);
+    background-image: none;
+    color: hsl(0 0% 98%);
+    box-shadow: none;
   }
 
   @media (min-width: 640px) {
@@ -727,40 +808,65 @@
   }
 
   .cinect-header-main {
-    background: #0f172a;
-    border-color: hsl(0 0% 100% / 0.08);
+    background: transparent;
+    border-color: hsl(var(--border) / 0.42);
     box-shadow: none;
   }
 
   .dark .cinect-header-main {
     background: var(--cinect-bg);
+    border-color: hsl(0 0% 100% / 0.08);
   }
 
   .cinect-header-sub {
-    background: #0f172a;
-    color: hsl(0 0% 98% / 0.92);
+    background: linear-gradient(
+      90deg,
+      hsl(0 0% 100% / 0.96) 0%,
+      hsl(var(--cinect-light-surface-mid) / 0.98) 48%,
+      hsl(var(--cinect-light-surface-to) / 0.96) 100%
+    );
+    color: hsl(var(--foreground) / 0.88);
+    border-color: hsl(var(--border) / 0.42);
   }
 
   .dark .cinect-header-sub {
     background: var(--cinect-bg);
+    color: hsl(0 0% 98% / 0.92);
+    border-color: hsl(0 0% 100% / 0.08);
   }
 
   .cinect-header-sub-link {
-    color: hsl(0 0% 98% / 0.9);
+    color: hsl(var(--foreground) / 0.82);
     transition: color 0.25s ease;
+  }
+
+  .dark .cinect-header-sub-link {
+    color: hsl(0 0% 98% / 0.9);
   }
 
   @media (hover: hover) {
     .cinect-header-sub-link:hover {
+      color: hsl(var(--accent));
+    }
+
+    .dark .cinect-header-sub-link:hover {
       color: #f3ea28;
     }
 
     .cinect-header-auth:hover {
+      color: hsl(var(--accent));
+    }
+
+    .dark .cinect-header-auth:hover {
       color: #f3ea28;
     }
   }
 
   .cinect-header-auth {
+    color: hsl(var(--foreground));
+  }
+
+  .dark .cinect-header-auth {
     color: hsl(0 0% 100%);
   }
 
@@ -777,11 +883,15 @@
     align-items: center;
     background: transparent;
     border: 0;
-    color: #f8fafc;
+    color: hsl(var(--foreground));
     cursor: pointer;
     display: flex;
     outline: none;
     padding: 0;
+  }
+
+  .dark .cinect-lg-trigger {
+    color: #f8fafc;
   }
 
   .cinect-lg-popup {
@@ -818,7 +928,7 @@
 
   .cinect-lg-txt {
     background: transparent;
-    color: #f8fafc;
+    color: hsl(var(--foreground));
     font-size: 14px;
     font-weight: 400;
     letter-spacing: normal;
@@ -830,6 +940,10 @@
     transition: color 0.3s ease;
   }
 
+  .dark .cinect-lg-txt {
+    color: #f8fafc;
+  }
+
   .cinect-lg-arr {
     display: inline-block;
     flex-shrink: 0;
@@ -838,10 +952,14 @@
     margin-top: 2px;
     background: currentColor;
     clip-path: polygon(50% 100%, 0 0, 100% 0);
-    color: #f8fafc;
+    color: hsl(var(--muted-foreground));
     transition:
       color 0.3s ease,
       transform 0.2s ease;
+  }
+
+  .dark .cinect-lg-arr {
+    color: #f8fafc;
   }
 
   /* Dropdown: Cinestar .lg-action-popup — blur + blue glass, single alternate locale */
@@ -1148,6 +1266,11 @@
 
   .cinect-lg-action.is-open .cinect-lg-txt,
   .cinect-lg-action.is-open .cinect-lg-arr {
+    color: hsl(var(--accent));
+  }
+
+  .dark .cinect-lg-action.is-open .cinect-lg-txt,
+  .dark .cinect-lg-action.is-open .cinect-lg-arr {
     color: #f3ea28;
   }
 
@@ -1177,17 +1300,42 @@
 
   .cinect-hd-search-icon {
     transition: color 0.3s ease, border-color 0.3s ease;
+    border-color: hsl(var(--border) / 0.55);
+    color: hsl(var(--foreground));
   }
 
   @media (hover: hover) {
     .cinect-hd-search-icon:hover {
+      border-color: hsl(var(--primary));
+      color: hsl(var(--accent));
+    }
+
+    .dark .cinect-hd-search-icon:hover {
       border-color: #f3ea28;
       color: #f3ea28;
     }
   }
 
+  .dark .cinect-hd-search-icon {
+    border-color: hsl(0 0% 100%);
+    color: hsl(0 0% 100%);
+  }
+
   .cinect-hd-search-block {
     animation: cinect-search-slide 0.3s ease-in-out;
+    background: hsl(0 0% 100%);
+    background-image: linear-gradient(
+      180deg,
+      hsl(var(--cinect-light-surface-from)) 0%,
+      hsl(var(--cinect-light-surface-mid)) 100%
+    );
+    border-color: hsl(var(--border) / 0.45);
+  }
+
+  .dark .cinect-hd-search-block {
+    background: #0f172a;
+    background-image: none;
+    border-color: hsl(0 0% 100% / 0.08);
   }
 
   @keyframes cinect-search-slide {

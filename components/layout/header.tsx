@@ -31,14 +31,14 @@ export function Header() {
 
   return (
     <header className="cinect-header-shell sticky top-0 z-50 w-full">
-      <div className="cinect-header-main border-b border-white/10">
+      <div className="cinect-header-main border-b border-border/45 dark:border-white/10">
         <div className="mx-auto flex h-[4.25rem] max-w-[1400px] items-center gap-2 px-3 sm:h-[4.5rem] sm:gap-3 sm:px-5 lg:px-8">
           <div className="shrink-0 lg:hidden">
             <MobileNav />
           </div>
 
           <Link href="/" className="flex shrink-0 items-center">
-            <CinectBrandLogo size="header" surface="on-dark" priority plain />
+            <CinectBrandLogo size="header" surface="auto" priority plain />
             <span className="sr-only">CiNect</span>
           </Link>
 
@@ -66,12 +66,12 @@ export function Header() {
           <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3 lg:ml-0">
             <div className="lg:hidden">
               <ClientOnly>
-                <GlobalSearch variant="icon" className="text-white hover:bg-white/10" />
+                <GlobalSearch variant="icon" className="dark:text-white dark:hover:bg-white/10" />
               </ClientOnly>
             </div>
             <div className="hidden lg:block">
               <ClientOnly>
-                <SettingsPanel triggerClassName="text-white hover:text-[#f3ea28]" />
+                <SettingsPanel triggerClassName="text-foreground hover:text-accent dark:text-white dark:hover:text-[#f3ea28]" />
               </ClientOnly>
             </div>
             <div className="cinect-header-auth-lang">
@@ -104,7 +104,7 @@ export function Header() {
         </div>
       </div>
 
-      <div className="cinect-header-sub hidden border-b border-white/10 lg:block">
+      <div className="cinect-header-sub hidden border-b border-border/45 dark:border-white/10 lg:block">
         <div className="mx-auto flex h-10 max-w-[1400px] items-center justify-between px-5 lg:px-8">
           <nav className="flex items-center gap-6">
             <ClientOnly>
