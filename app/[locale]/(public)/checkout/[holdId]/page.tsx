@@ -1,20 +1,22 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
 import { SnacksStep } from "@/components/checkout/snacks-step";
 import { PaymentStep } from "@/components/checkout/payment-step";
 import { OrderSummary } from "@/components/checkout/order-summary";
+import { CheckoutSessionBanner } from "@/components/checkout/checkout-session-banner";
+import { SessionExpiredDialog } from "@/components/checkout/session-expired-dialog";
 import {
   useHold,
   useCreateBooking,
   useBooking,
+  useReleaseHold,
   useSnacks,
   useEligiblePromotions,
   useApplyPromo,
@@ -32,6 +34,7 @@ import { apiClient } from "@/lib/api-client";
 import { localizeRoomName } from "@/lib/showtime-display";
 import { getApiBaseUrl } from "@/lib/api-discovery";
 import { useAuth } from "@/providers/auth-provider";
+import { SeatSelectionList } from "@/components/booking/seat-selection-list";
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -58,8 +61,11 @@ export default function CheckoutPage() {
   const [usePoints, setUsePoints] = useState(0);
   const [giftCardCode, setGiftCardCode] = useState("");
   const [hasFavoriteCombo, setHasFavoriteCombo] = useState(false);
+  const [sessionExpiredOpen, setSessionExpiredOpen] = useState(false);
+  const sessionExpiredRef = useRef(false);
 
   const FAVORITE_COMBO_KEY = "cinect_favorite_combo";
+  const SESSION_REFETCH_MS = 15_000;
 
   useEffect(() => {
     if (authLoading || isAuthenticated) return;
@@ -68,11 +74,14 @@ export default function CheckoutPage() {
     router.replace(`/login?returnTo=${encodeURIComponent(returnTo)}`);
   }, [authLoading, isAuthenticated, pathname, router, searchParams]);
 
-  const { data: holdRes, isLoading: holdLoading, error: holdError } = useHold(holdId);
+  const { data: holdRes, isLoading: holdLoading, error: holdError } = useHold(holdId, {
+    refetchInterval: SESSION_REFETCH_MS,
+  });
   const hold = holdRes?.data as import("@/types/domain").HoldDetails | undefined;
   const holdShowtimeId = hold?.showtimeId;
   const cinemaId = hold?.showtime?.cinemaId;
   const holdSeats = hold?.seats ?? [];
+  const holdSeatGroups = hold?.seatGroups;
 
   const { data: snacksRes, isLoading: snacksLoading, error: snacksError } = useSnacks(cinemaId);
   const snacksData = snacksRes?.data ?? snacksRes;
@@ -82,8 +91,44 @@ export default function CheckoutPage() {
   const profile = membershipRes?.data as import("@/types/domain").MembershipProfile | undefined;
   const availablePoints = profile?.currentPoints ?? 0;
 
-  const { data: bookingRes } = useBooking(bookingId ?? undefined);
+  const { data: bookingRes } = useBooking(bookingId ?? undefined, {
+    refetchInterval: bookingId ? SESSION_REFETCH_MS : undefined,
+  });
   const booking = bookingRes?.data as import("@/types/domain").Booking | undefined;
+  const sessionExpiresAt = booking?.expiresAt ?? hold?.expiresAt ?? null;
+
+  const releaseMutation = useReleaseHold();
+
+  const handleSessionExpire = useCallback(async () => {
+    if (sessionExpiredRef.current) return;
+    sessionExpiredRef.current = true;
+    setSessionExpiredOpen(true);
+    if (!bookingId) {
+      try {
+        await releaseMutation.mutateAsync(holdId);
+      } catch {
+        // hold may already be expired server-side
+      }
+    }
+  }, [bookingId, holdId, releaseMutation]);
+
+  const handleReturnToSeats = useCallback(() => {
+    if (holdShowtimeId) router.push(`/booking/${holdShowtimeId}`);
+    else router.push("/");
+  }, [holdShowtimeId, router]);
+
+  useEffect(() => {
+    if (!sessionExpiresAt || sessionExpiredRef.current) return;
+    if (new Date(sessionExpiresAt).getTime() <= Date.now()) {
+      void handleSessionExpire();
+    }
+  }, [sessionExpiresAt, handleSessionExpire]);
+
+  useEffect(() => {
+    if (booking?.status === "CANCELLED" && !sessionExpiredRef.current) {
+      void handleSessionExpire();
+    }
+  }, [booking?.status, handleSessionExpire]);
 
   const { data: promotionsRes } = useEligiblePromotions(bookingId ?? undefined);
   const promotionsData = promotionsRes?.data ?? promotionsRes;
@@ -254,7 +299,10 @@ export default function CheckoutPage() {
     0
   );
 
-  const seatsTotal = holdSeats.reduce((s, seat) => s + (seat.price ?? 0), 0);
+  const seatsTotal =
+    hold?.ticketsTotal ??
+    holdSeatGroups?.reduce((s, g) => s + (g.price ?? 0), 0) ??
+    holdSeats.reduce((s, seat) => s + (seat.price ?? 0), 0);
   const estimatedTotal = seatsTotal + snacksTotal;
 
   if (authLoading || !isAuthenticated || holdLoading || (step === 2 && !hold)) {
@@ -282,9 +330,17 @@ export default function CheckoutPage() {
     );
   }
 
+  const sessionLocked = sessionExpiredOpen;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <div className="cinect-glass mb-6 rounded-xl border p-5">
+      {sessionExpiresAt && !sessionExpiredOpen && (
+        <CheckoutSessionBanner expiresAt={sessionExpiresAt} onExpire={handleSessionExpire} />
+      )}
+      <SessionExpiredDialog open={sessionExpiredOpen} onReturn={handleReturnToSeats} />
+
+      <div className={sessionLocked ? "pointer-events-none opacity-50" : undefined}>
+      <div className="cinect-flow-divider mb-8 pb-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="text-muted-foreground text-xs font-semibold tracking-[0.22em] uppercase">
@@ -303,10 +359,8 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <Card className="cinect-glass border">
-            <CardContent className="pt-6">
               <Tabs
                 value={String(step)}
                 onValueChange={(v) => {
@@ -352,9 +406,13 @@ export default function CheckoutPage() {
                     </div>
                     <div>
                       <h4 className="text-sm font-medium">{tCheckout("seatsCountLabel")}</h4>
-                      <p className="text-muted-foreground">
-                        {holdSeats.map((s) => `${s.row}${s.number}`).join(", ")}
-                      </p>
+                      {holdSeatGroups && holdSeatGroups.length > 0 ? (
+                        <SeatSelectionList units={holdSeatGroups} />
+                      ) : (
+                        <p className="text-muted-foreground">
+                          {holdSeats.map((s) => `${s.row}${s.number}`).join(", ")}
+                        </p>
+                      )}
                     </div>
                     <Button onClick={handleContinueFromReview}>{tBookingFlow("continueToSnacks")}</Button>
                   </div>
@@ -414,14 +472,15 @@ export default function CheckoutPage() {
                   )}
                 </TabsContent>
               </Tabs>
-            </CardContent>
-          </Card>
         </div>
 
-        <div>
+        <div className="lg:border-l lg:border-border/20 lg:pl-8">
           <OrderSummary
             holdId={holdId}
             holdSeats={holdSeats}
+            seatGroups={holdSeatGroups}
+            ticketLines={hold?.ticketLines}
+            ticketsTotal={hold?.ticketsTotal}
             selectedSnacks={selectedSnackDetails}
             snacksTotal={snacksTotal}
             promoCode={promoCode}
@@ -430,6 +489,7 @@ export default function CheckoutPage() {
             booking={booking}
           />
         </div>
+      </div>
       </div>
     </div>
   );

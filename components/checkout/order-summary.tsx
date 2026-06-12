@@ -2,13 +2,16 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { formatVnd } from "@/lib/showtime-display";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import type { Booking } from "@/types/domain";
+import { SeatSelectionList } from "@/components/booking/seat-selection-list";
+import type { Booking, HoldSeatGroup, HoldTicketLine } from "@/types/domain";
 
 interface OrderSummaryProps {
   holdId?: string;
   holdSeats?: Array<{ row: string; number: number; type?: string; price?: number }>;
+  seatGroups?: HoldSeatGroup[];
+  ticketLines?: HoldTicketLine[];
+  ticketsTotal?: number;
   selectedSnacks: Array<{
     snackId: string;
     quantity: number;
@@ -23,6 +26,9 @@ interface OrderSummaryProps {
 
 export function OrderSummary({
   holdSeats = [],
+  seatGroups,
+  ticketLines,
+  ticketsTotal,
   selectedSnacks,
   snacksTotal,
   promoCode,
@@ -31,6 +37,7 @@ export function OrderSummary({
   booking,
 }: OrderSummaryProps) {
   const t = useTranslations("checkout");
+  const tb = useTranslations("booking");
   const locale = useLocale();
   const fmt = (n: number) => formatVnd(n, locale);
   const toNumber = (v: unknown): number => {
@@ -44,9 +51,16 @@ export function OrderSummary({
 
   const hasBooking = !!booking?.id;
 
+  const holdSeatUnits =
+    seatGroups && seatGroups.length > 0
+      ? seatGroups
+      : undefined;
+
   const seatsTotal = hasBooking
     ? (booking.seats?.reduce((s, seat) => s + toNumber(seat.price), 0) ?? 0)
-    : holdSeats.reduce((s, seat) => s + toNumber(seat.price), 0);
+    : ticketsTotal ??
+      holdSeatUnits?.reduce((s, g) => s + toNumber(g.price), 0) ??
+      holdSeats.reduce((s, seat) => s + toNumber(seat.price), 0);
 
   const baseTotal = hasBooking
     ? (toNumber(booking.totalAmount) || seatsTotal + snacksTotal)
@@ -54,9 +68,19 @@ export function OrderSummary({
 
   const total = hasBooking ? (toNumber(booking.finalAmount) || baseTotal) : baseTotal;
 
-  const seatCount = holdSeats.length || booking?.seats?.length || 0;
+  const seatUnitCount =
+    holdSeatUnits?.length || holdSeats.length || booking?.seats?.length || 0;
   const seatLabel =
-    seatCount > 0 ? t("ticketsCount", { count: seatCount }) : t("seatsOnlyLabel");
+    seatUnitCount > 0 ? t("ticketsCount", { count: seatUnitCount }) : t("seatsOnlyLabel");
+
+  const ticketLineLabel = (line: HoldTicketLine) => {
+    const main =
+      locale.startsWith("vi")
+        ? (line.labelVi ?? line.productCode)
+        : (line.labelEn ?? line.productCode);
+    const sub = locale.startsWith("vi") ? line.subLabelVi : line.subLabelEn;
+    return sub ? `${main} · ${sub}` : main;
+  };
 
   const appliedPromoCode = booking?.promotionCode ?? promoCode;
   const appliedPoints = booking?.pointsUsed ?? usePoints;
@@ -64,90 +88,99 @@ export function OrderSummary({
   const pointsDiscountAmount = Math.max(0, toNumber(appliedPoints) * 10);
 
   return (
-    <Card className="cinect-glass border">
-      <CardHeader>
-        <CardTitle>{t("orderSummary")}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <div className="mb-1 flex justify-between text-sm">
-            <span className="text-muted-foreground">{seatLabel}</span>
-            <span className="font-medium">{fmt(seatsTotal)}</span>
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold">{t("orderSummary")}</h2>
+
+      <div>
+        <div className="mb-1 flex justify-between text-sm">
+          <span className="text-muted-foreground">{seatLabel}</span>
+          <span className="font-medium">{fmt(seatsTotal)}</span>
+        </div>
+        {holdSeatUnits && holdSeatUnits.length > 0 ? (
+          <SeatSelectionList units={holdSeatUnits} compact />
+        ) : (holdSeats.length > 0 || (booking?.seats?.length ?? 0) > 0) ? (
+          <p className="text-muted-foreground text-xs">
+            {(holdSeats.length ? holdSeats : (booking?.seats ?? []))
+              .map((s) => `${s.row}${s.number}`)
+              .join(", ")}
+          </p>
+        ) : null}
+        {!hasBooking && ticketLines && ticketLines.length > 0 && (
+          <div className="text-muted-foreground mt-2 space-y-0.5 text-xs">
+            <p className="font-medium text-foreground/80">{tb("selectedTicketTypes")}</p>
+            {ticketLines.map((line) => (
+              <p key={line.productCode}>
+                {line.quantity}× {ticketLineLabel(line)}
+              </p>
+            ))}
           </div>
-          {(holdSeats.length > 0 || (booking?.seats?.length ?? 0) > 0) && (
-            <p className="text-muted-foreground text-xs">
-              {(holdSeats.length ? holdSeats : (booking?.seats ?? []))
-                .map((s) => `${s.row}${s.number}`)
-                .join(", ")}
-            </p>
+        )}
+      </div>
+
+      {selectedSnacks.length > 0 && (
+        <>
+          <Separator className="bg-border/30" />
+          <div>
+            <div className="mb-2 flex justify-between text-sm">
+              <span className="text-muted-foreground">{t("snacksDrinks")}</span>
+              <span className="font-medium">{fmt(snacksTotal)}</span>
+            </div>
+            <div className="space-y-1">
+              {selectedSnacks.map((item) => {
+                const price = toNumber(item.snack?.unitPrice ?? item.snack?.price);
+                return (
+                  <div
+                    key={item.snackId}
+                    className="text-muted-foreground flex justify-between text-xs"
+                  >
+                    <span>
+                      {item.quantity}x {item.snack?.name || t("snackLineItemFallback")}
+                    </span>
+                    <span>{fmt(price * item.quantity)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+
+      <Separator className="bg-border/30" />
+
+      <div className="flex justify-between text-sm">
+        <span className="text-muted-foreground">{t("subtotal")}</span>
+        <span className="font-medium">{fmt(baseTotal)}</span>
+      </div>
+
+      {hasBooking && toNumber(booking.discountAmount) > 0 && (
+        <div className="text-primary space-y-1 text-sm">
+          <div className="flex justify-between">
+            <span>{t("discount")}</span>
+            <span>-{fmt(toNumber(booking.discountAmount))}</span>
+          </div>
+          {(appliedPromoCode || (appliedPoints ?? 0) > 0 || appliedGiftCardCode) && (
+            <div className="text-muted-foreground space-y-0.5 text-xs">
+              {appliedPromoCode && <p>{t("promoApplied", { code: appliedPromoCode })}</p>}
+              {appliedPoints && appliedPoints > 0 && (
+                <p>
+                  {t("pointsUsed", { points: appliedPoints.toLocaleString() })} (
+                  {t("pointsDiscountAmount", { amount: fmt(pointsDiscountAmount) })})
+                </p>
+              )}
+              {appliedGiftCardCode && (
+                <p>{t("giftCardApplied", { code: appliedGiftCardCode })}</p>
+              )}
+            </div>
           )}
         </div>
+      )}
 
-        {selectedSnacks.length > 0 && (
-          <>
-            <Separator />
-            <div>
-              <div className="mb-2 flex justify-between text-sm">
-                <span className="text-muted-foreground">{t("snacksDrinks")}</span>
-                <span className="font-medium">{fmt(snacksTotal)}</span>
-              </div>
-              <div className="space-y-1">
-                {selectedSnacks.map((item) => {
-                  const price = toNumber(item.snack?.unitPrice ?? item.snack?.price);
-                  return (
-                    <div
-                      key={item.snackId}
-                      className="text-muted-foreground flex justify-between text-xs"
-                    >
-                      <span>
-                        {item.quantity}x {item.snack?.name || t("snackLineItemFallback")}
-                      </span>
-                      <span>{fmt(price * item.quantity)}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </>
-        )}
+      <Separator className="bg-border/30" />
 
-        <Separator />
-
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">{t("subtotal")}</span>
-          <span className="font-medium">{fmt(baseTotal)}</span>
-        </div>
-
-        {hasBooking && toNumber(booking.discountAmount) > 0 && (
-          <div className="text-primary space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span>{t("discount")}</span>
-              <span>-{fmt(toNumber(booking.discountAmount))}</span>
-            </div>
-            {(appliedPromoCode || (appliedPoints ?? 0) > 0 || appliedGiftCardCode) && (
-              <div className="text-muted-foreground space-y-0.5 text-xs">
-                {appliedPromoCode && <p>{t("promoApplied", { code: appliedPromoCode })}</p>}
-                {appliedPoints && appliedPoints > 0 && (
-                  <p>
-                    {t("pointsUsed", { points: appliedPoints.toLocaleString() })} (
-                    {t("pointsDiscountAmount", { amount: fmt(pointsDiscountAmount) })})
-                  </p>
-                )}
-                {appliedGiftCardCode && (
-                  <p>{t("giftCardApplied", { code: appliedGiftCardCode })}</p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        <Separator />
-
-        <div className="flex justify-between">
-          <span className="font-semibold">{t("total")}</span>
-          <span className="text-2xl font-bold tabular-nums">{fmt(total)}</span>
-        </div>
-      </CardContent>
-    </Card>
+      <div className="flex justify-between">
+        <span className="font-semibold">{t("total")}</span>
+        <span className="text-2xl font-bold tabular-nums">{fmt(total)}</span>
+      </div>
+    </div>
   );
 }

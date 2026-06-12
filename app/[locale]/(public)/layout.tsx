@@ -5,6 +5,7 @@ import { BottomNav } from "@/components/layout/bottom-nav";
 import { PwaInstallPrompt } from "@/components/shared/pwa-install-prompt";
 import { MaintenanceBanner } from "@/components/shared/maintenance-banner";
 import { ChatbotWidget } from "@/components/shared/chatbot-widget";
+import { PostShowReviewPrompt } from "@/components/community/post-show-review-prompt";
 import { ClientOnly } from "@/components/system/client-only";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -19,6 +20,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <BottomNav />
       <ClientOnly>
         <ChatbotWidget />
+        <PostShowReviewPrompt />
       </ClientOnly>
     </div>
   );

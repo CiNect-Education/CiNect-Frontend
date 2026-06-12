@@ -67,7 +67,7 @@ export function useReleaseHold() {
 
 export type { HoldDetails };
 
-export function useHold(holdId?: string) {
+export function useHold(holdId?: string, options?: { refetchInterval?: number }) {
   return useQuery({
     queryKey: ["holds", holdId],
     queryFn: async ({ signal }) => {
@@ -79,6 +79,7 @@ export function useHold(holdId?: string) {
       } as ApiEnvelope<HoldDetails>;
     },
     enabled: !!holdId,
+    refetchInterval: options?.refetchInterval,
   });
 }
 
@@ -126,11 +127,12 @@ export function useCreateBooking() {
 }
 
 // Get booking
-export function useBooking(bookingId?: string) {
+export function useBooking(bookingId?: string, options?: { refetchInterval?: number }) {
   return useQuery({
     queryKey: ["bookings", bookingId],
     queryFn: () => apiClient.get<Booking>(`/bookings/${bookingId}`),
     enabled: !!bookingId,
+    refetchInterval: options?.refetchInterval,
   });
 }
 

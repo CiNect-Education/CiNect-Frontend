@@ -1,11 +1,63 @@
 import { z } from "zod";
 import { useApiMutation } from "@/hooks/use-api-mutation";
 import { useApiQuery } from "@/hooks/use-api-query";
-import { reviewSchema } from "@/lib/schemas/movie";
 import type { QueryParams } from "@/types/api";
 
 const n = <T extends z.ZodTypeAny>(schema: T) =>
   schema.optional().nullable().transform((v) => v ?? undefined);
+
+const communityReviewSchema = z
+  .object({
+    id: z.string(),
+    userId: z.string(),
+    movieId: z.string(),
+    cinemaId: n(z.string()),
+    title: n(z.string()),
+    rating: z.number(),
+    content: z.string(),
+    tags: n(z.array(z.string())),
+    imageUrls: n(z.array(z.string())),
+    hasSpoiler: n(z.boolean()),
+    isVerified: z.boolean(),
+    helpfulCount: z.number(),
+    createdAt: z.string(),
+    userName: z.string(),
+    userAvatar: n(z.string()),
+    movie: n(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        slug: z.string(),
+        posterUrl: n(z.string()),
+      }),
+    ),
+    cinema: n(z.object({ id: z.string(), name: z.string(), slug: z.string() })),
+  })
+  .passthrough();
+
+const communityCommentSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  userName: z.string(),
+  userAvatar: n(z.string()),
+  content: z.string(),
+  hasSpoiler: n(z.boolean()),
+  createdAt: z.coerce.string(),
+});
+
+const reviewPromptSchema = z.object({
+  bookingId: z.string(),
+  movieId: z.string(),
+  sentAt: z.coerce.string(),
+  movie: n(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      slug: z.string(),
+      posterUrl: n(z.string()),
+    }),
+  ),
+});
 
 const pollOptionSchema = z.object({
   id: z.string(),
@@ -23,6 +75,7 @@ const communityPostSchema = z
     type: n(z.string()),
     hashtags: n(z.array(z.string())),
     pollOptions: n(z.array(pollOptionSchema)),
+    hasSpoiler: n(z.boolean()),
     likeCount: n(z.number()),
     createdAt: z.string(),
     movie: n(z.object({ id: z.string(), title: z.string(), slug: z.string() })),
@@ -114,9 +167,24 @@ const supportTicketSchema = z
   })
   .passthrough();
 
+const communityStatsSchema = z.object({
+  verifiedReviews: z.number(),
+  posts: z.number(),
+  photos: z.number(),
+  activeReviewers: z.number(),
+});
+
+export function useCommunityStats() {
+  return useApiQuery(["community", "stats"], "/community/stats", undefined, {
+    schema: communityStatsSchema,
+  });
+}
+
 export function useCommunityReviews(params?: QueryParams) {
   return useApiQuery(["community", "reviews", JSON.stringify(params ?? {})], "/community/reviews", params, {
-    schema: z.array(reviewSchema) as unknown as z.ZodType<z.infer<typeof reviewSchema>[]>,
+    schema: z.array(communityReviewSchema) as unknown as z.ZodType<
+      z.infer<typeof communityReviewSchema>[]
+    >,
   });
 }
 
@@ -128,7 +196,9 @@ export function useCommunityPosts(params?: QueryParams) {
 
 export function useCreateCommunityPost() {
   return useApiMutation("post", "/community/posts", {
-    invalidateKeys: [["community", "posts"]],
+    invalidateKeys: [["community", "posts"], ["community", "stats"]],
+    showSuccessToast: false,
+    showErrorToast: false,
   });
 }
 
@@ -138,6 +208,8 @@ export function useVoteCommunityPost() {
     (v) => `/community/posts/${v.id}/vote`,
     {
       invalidateKeys: [["community", "posts"]],
+      showSuccessToast: false,
+      showErrorToast: false,
     }
   );
 }
@@ -150,7 +222,9 @@ export function useCommunityPhotos(params?: QueryParams) {
 
 export function useCreateCommunityPhoto() {
   return useApiMutation("post", "/community/photos", {
-    invalidateKeys: [["community", "photos"]],
+    invalidateKeys: [["community", "photos"], ["community", "stats"]],
+    showSuccessToast: false,
+    showErrorToast: false,
   });
 }
 
@@ -198,6 +272,59 @@ export function useReviewReaction() {
       invalidateKeys: [["movie-reviews"], ["community", "reviews"]],
     }
   );
+}
+
+export function useCommunityComments(targetType: "REVIEW" | "POST", targetId: string) {
+  return useApiQuery(
+    ["community", "comments", targetType, targetId],
+    "/community/comments",
+    { targetType, targetId },
+    {
+      enabled: !!targetId,
+      schema: z.array(communityCommentSchema) as unknown as z.ZodType<
+        z.infer<typeof communityCommentSchema>[]
+      >,
+    },
+  );
+}
+
+export function useCreateCommunityComment() {
+  return useApiMutation("post", "/community/comments", {
+    invalidateKeys: [["community", "comments"]],
+    showSuccessToast: false,
+    showErrorToast: false,
+  });
+}
+
+export function useCreateContentReport() {
+  return useApiMutation("post", "/community/reports", {
+    showSuccessToast: false,
+    showErrorToast: false,
+  });
+}
+
+export function usePendingReviewPrompts(enabled = true) {
+  return useApiQuery(["community", "review-prompts"], "/community/review-prompts/pending", undefined, {
+    enabled,
+    schema: z.array(reviewPromptSchema) as unknown as z.ZodType<
+      z.infer<typeof reviewPromptSchema>[]
+    >,
+  });
+}
+
+export function useDismissReviewPrompt() {
+  return useApiMutation("post", (v: { bookingId: string }) => `/community/review-prompts/${v.bookingId}/dismiss`, {
+    invalidateKeys: [["community", "review-prompts"]],
+    showSuccessToast: false,
+    showErrorToast: false,
+  });
+}
+
+export function useUploadReviewImage() {
+  return useApiMutation<{ url: string }, FormData>("post", "/community/reviews/upload-image", {
+    showSuccessToast: false,
+    showErrorToast: false,
+  });
 }
 
 export function useAdminCommunityPending() {

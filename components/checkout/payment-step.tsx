@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { CreditCard, Wallet, Gift, Tag, Smartphone, Building2, Banknote } from "lucide-react";
 import type { PaymentMethod } from "@/types/domain";
 
@@ -116,7 +116,7 @@ export function PaymentStep({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {eligiblePromotions.length > 0 && (
-        <Card className="cinect-glass p-4">
+        <div className="cinect-flow-divider space-y-3 pb-6">
           <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
             <Tag className="h-4 w-4" />
             {t("availablePromotions")}
@@ -130,7 +130,7 @@ export function PaymentStep({
               <button
                 key={p.id}
                 type="button"
-                className="hover:bg-muted/70 flex w-full items-center justify-between rounded-md border p-2 text-left text-sm transition-colors"
+                className="cinect-flow-interactive flex w-full items-center justify-between p-2 text-left text-sm"
                 onClick={() => {
                   if (!p.code) return;
                   onPromoCodeChange(p.code);
@@ -151,10 +151,10 @@ export function PaymentStep({
               </button>
             ))}
           </div>
-        </Card>
+        </div>
       )}
 
-      <Card className="cinect-glass p-4">
+      <div className="cinect-flow-divider space-y-3 pb-6">
         <Label htmlFor="promo" className="mb-2 flex items-center gap-2 text-sm font-medium">
           <Tag className="h-4 w-4" />
           {t("promoCodeLabel")}
@@ -175,9 +175,9 @@ export function PaymentStep({
             {isApplyingPromo ? tCommon("applying") : tCommon("apply")}
           </Button>
         </div>
-      </Card>
+      </div>
 
-      <Card className="cinect-glass p-4">
+      <div className="cinect-flow-divider space-y-3 pb-6">
         <Label htmlFor="gift" className="mb-2 flex items-center gap-2 text-sm font-medium">
           <Gift className="h-4 w-4" />
           {t("giftCardLabel")}
@@ -198,9 +198,9 @@ export function PaymentStep({
             {isApplyingGiftCard ? tCommon("applying") : tCommon("apply")}
           </Button>
         </div>
-      </Card>
+      </div>
 
-      <Card className="cinect-glass p-4">
+      <div className="cinect-flow-divider space-y-3 pb-6">
         <Label htmlFor="points" className="mb-2 flex items-center gap-2 text-sm font-medium">
           <Banknote className="h-4 w-4" />
           {t("useLoyaltyPoints")}
@@ -227,14 +227,20 @@ export function PaymentStep({
         <p className="text-muted-foreground mt-1 text-xs">
           {t("pointsAvailable", { points: availablePoints.toLocaleString() })}
         </p>
-      </Card>
+      </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 pt-2">
         <Label className="text-sm font-medium">{t("paymentMethod")}</Label>
         <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
           <div className="grid gap-2 sm:grid-cols-2">
             {paymentMethods.map((m) => (
-              <Card key={m.value} className="cinect-glass p-4">
+              <div
+                key={m.value}
+                className={cn(
+                  "cinect-flow-interactive p-4",
+                  paymentMethod === m.value && "cinect-flow-interactive-selected",
+                )}
+              >
                 <div className="flex items-center space-x-3">
                   <RadioGroupItem value={m.value} id={m.value} />
                   <Label htmlFor={m.value} className="flex flex-1 cursor-pointer items-center gap-2">
@@ -242,7 +248,7 @@ export function PaymentStep({
                     {m.label}
                   </Label>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         </RadioGroup>

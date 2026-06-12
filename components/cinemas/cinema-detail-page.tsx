@@ -53,7 +53,9 @@ export function CinemaDetailPage() {
 
   const showtimes = toList<Showtime>(showtimesRes?.data ?? showtimesRes);
   const comingSoon = toList<MovieListItem>(comingSoonRes);
-  const promotions = toList(promosRes?.data ?? promosRes);
+  const promotions = toList<{ id: string; title: string; imageUrl?: string | null }>(
+    promosRes?.data ?? promosRes
+  );
 
   const movieGroups = useMemo(() => groupShowtimesByMovie(showtimes), [showtimes]);
 

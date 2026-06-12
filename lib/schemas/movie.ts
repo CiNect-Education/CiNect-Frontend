@@ -41,6 +41,9 @@ export const movieSchema = z
     cast: z.array(castMemberSchema).optional().default([]),
     language: n(z.string()),
     subtitles: n(z.string()),
+    imdbId: n(z.string()),
+    imdbRating: n(z.number()),
+    metacriticScore: n(z.number()),
     rating: n(z.number()),
     ratingCount: n(z.number()),
     ageRating: n(z.string()),
@@ -62,6 +65,8 @@ export const movieListItemSchema = z
     genres: z.array(genreSchema).optional().default([]),
     ageRating: n(z.string()),
     formats: z.array(z.string()).optional().default([]),
+    imdbRating: n(z.number()),
+    metacriticScore: n(z.number()),
     rating: n(z.number()),
     status: z.string(),
   })
@@ -73,17 +78,27 @@ export const reviewSchema = z.object({
   userName: z.string(),
   userAvatar: n(z.string()),
   movieId: z.string(),
+  cinemaId: n(z.string()),
+  title: n(z.string()),
   rating: z.number().min(1).max(10),
   content: z.string(),
+  tags: n(z.array(z.string())),
+  imageUrls: n(z.array(z.string())),
+  hasSpoiler: n(z.boolean()),
   isVerified: n(z.boolean()),
   helpfulCount: n(z.number()),
   createdAt: z.string(),
   updatedAt: z.string(),
+  cinema: n(z.object({ id: z.string(), name: z.string(), slug: z.string() })),
 });
 
 export const createReviewSchema = z.object({
+  title: z.string().min(2).max(120).optional(),
   rating: z.number().min(1, "Rating is required").max(10),
   content: z.string().min(10, "Review must be at least 10 characters"),
+  tags: z.array(z.string()).optional(),
+  imageUrls: z.array(z.string()).max(3).optional(),
+  hasSpoiler: z.boolean().optional(),
 });
 
 export type CreateReviewInput = z.infer<typeof createReviewSchema>;

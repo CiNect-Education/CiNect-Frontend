@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCinemas } from "@/hooks/queries/use-cinemas";
 import { useAuth } from "@/providers/auth-provider";
+import { ClientOnly } from "@/components/system/client-only";
 import { cn } from "@/lib/utils";
 import { Facebook, Gift, Instagram, Ticket, Youtube } from "lucide-react";
 import type { CinemaListItem } from "@/types/domain";
@@ -42,14 +43,37 @@ function FooterLink({ href, children }: { href: string; children: React.ReactNod
   );
 }
 
-function FooterCinemaList() {
+function FooterCinemaListShell({ children }: { children: React.ReactNode }) {
+  const t = useTranslations("footer");
+
+  return (
+    <div className="min-w-[11rem] sm:col-span-2 lg:col-span-1">
+      <h4 className="cinect-footer-heading">{t("cinemaSystem")}</h4>
+      {children}
+      <Link href="/cinemas" className="cinect-footer-link mt-3 text-sm font-semibold text-primary">
+        {t("viewAllCinemas")} →
+      </Link>
+    </div>
+  );
+}
+
+function FooterCinemaListFallback() {
+  const t = useTranslations("footer");
+
+  return (
+    <FooterCinemaListShell>
+      <p className="text-sm text-white/60">{t("cinemasLoading")}</p>
+    </FooterCinemaListShell>
+  );
+}
+
+function FooterCinemaListContent() {
   const t = useTranslations("footer");
   const { data, isLoading } = useCinemas();
   const cinemas = (data?.data ?? data ?? []) as CinemaListItem[];
 
   return (
-    <div className="min-w-[11rem] sm:col-span-2 lg:col-span-1">
-      <h4 className="cinect-footer-heading">{t("cinemaSystem")}</h4>
+    <FooterCinemaListShell>
       {isLoading ? (
         <p className="text-sm text-white/60">{t("cinemasLoading")}</p>
       ) : cinemas.length === 0 ? (
@@ -68,11 +92,45 @@ function FooterCinemaList() {
           ))}
         </ul>
       )}
-      <Link href="/cinemas" className="cinect-footer-link mt-3 text-sm font-semibold text-primary">
-        {t("viewAllCinemas")} →
-      </Link>
-    </div>
+    </FooterCinemaListShell>
   );
+}
+
+function FooterCinemaList() {
+  return (
+    <ClientOnly fallback={<FooterCinemaListFallback />}>
+      <FooterCinemaListContent />
+    </ClientOnly>
+  );
+}
+
+function FooterAccountLinksGuest() {
+  const t = useTranslations("footer");
+
+  return (
+    <>
+      <FooterLink href="/login">{t("login")}</FooterLink>
+      <FooterLink href="/register">{t("register")}</FooterLink>
+      <FooterLink href="/membership">{t("membership")}</FooterLink>
+    </>
+  );
+}
+
+function FooterAccountLinks() {
+  const t = useTranslations("footer");
+  const { isAuthenticated } = useAuth();
+
+  if (isAuthenticated) {
+    return (
+      <>
+        <FooterLink href="/account/profile">{t("myProfile")}</FooterLink>
+        <FooterLink href="/account/orders">{t("myOrders")}</FooterLink>
+        <FooterLink href="/account/membership">{t("membership")}</FooterLink>
+      </>
+    );
+  }
+
+  return <FooterAccountLinksGuest />;
 }
 
 export function Footer() {
@@ -82,8 +140,6 @@ export function Footer() {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated } = useAuth();
-
   return (
     <footer className="cinect-footer border-t border-white/10">
       <div className="mx-auto max-w-7xl px-4 py-12 lg:px-6 lg:py-14">
@@ -157,19 +213,9 @@ export function Footer() {
 
           <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 sm:gap-x-8 lg:grid-cols-5 lg:gap-x-8">
           <FooterColumn title={t("account")}>
-            {isAuthenticated ? (
-              <>
-                <FooterLink href="/account/profile">{t("myProfile")}</FooterLink>
-                <FooterLink href="/account/orders">{t("myOrders")}</FooterLink>
-                <FooterLink href="/account/membership">{t("membership")}</FooterLink>
-              </>
-            ) : (
-              <>
-                <FooterLink href="/login">{t("login")}</FooterLink>
-                <FooterLink href="/register">{t("register")}</FooterLink>
-                <FooterLink href="/membership">{t("membership")}</FooterLink>
-              </>
-            )}
+            <ClientOnly fallback={<FooterAccountLinksGuest />}>
+              <FooterAccountLinks />
+            </ClientOnly>
           </FooterColumn>
 
           <FooterColumn title={t("watchMovies")}>

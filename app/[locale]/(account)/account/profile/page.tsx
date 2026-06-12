@@ -404,25 +404,6 @@ export default function ProfilePage() {
                     ))}
                   </datalist>
 
-                  <FormField
-                    control={form.control}
-                    name="profilePublic"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-1">
-                            <FormLabel>{t("profilePublicLabel")}</FormLabel>
-                            <p className="text-xs text-muted-foreground">{t("profilePublicDesc")}</p>
-                          </div>
-                          <FormControl>
-                            <Switch checked={!!field.value} onCheckedChange={field.onChange} />
-                          </FormControl>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
                   <Separator />
 
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

@@ -21,7 +21,7 @@ export function useMarkNotificationRead() {
 }
 
 export function useMarkAllNotificationsRead() {
-  return useApiMutation<void>("patch", "/notifications/read-all", {
+  return useApiMutation<void, void>("patch", "/notifications/read-all", {
     successMessage: "All notifications marked as read",
     invalidateKeys: [["notifications"]],
   });

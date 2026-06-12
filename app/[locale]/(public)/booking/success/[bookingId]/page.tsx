@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/system/api-error-state";
@@ -63,8 +62,7 @@ export default function BookingSuccessPage() {
         </div>
       </div>
 
-      <Card className="cinect-glass border">
-        <CardContent className="space-y-6 pt-6">
+      <div className="cinect-flow-divider space-y-6 pb-8">
           {/* Booking Info */}
           <div>
             <div className="mb-4 flex items-center justify-between">
@@ -210,8 +208,7 @@ export default function BookingSuccessPage() {
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+      </div>
 
       <div className="mt-6 text-center">
         <Button variant="ghost" asChild>

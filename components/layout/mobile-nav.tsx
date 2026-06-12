@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useClientMounted } from "@/lib/use-client-mounted";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -47,14 +48,10 @@ const SECONDARY_NAV = [
 export function MobileNav() {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useClientMounted();
   const { isAuthenticated, user } = useAuth();
   const pathname = usePathname();
   const path = pathname.replace(/^\/(vi|en)/, "") || "/";
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const initials =
     user?.fullName

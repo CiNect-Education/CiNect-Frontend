@@ -7,13 +7,11 @@ import { ShowtimesFilterBar } from "./showtimes-filter-bar";
 import { ShowtimesMovieBlock } from "./showtimes-movie-block";
 import { ShowtimesScrollTop } from "./showtimes-scroll-top";
 import { ShowtimesResultsSkeleton } from "./showtimes-results-skeleton";
-import { ShowtimesSkeleton } from "./showtimes-skeleton";
 import { useShowtimesPage } from "./use-showtimes-page";
 
 export function ShowtimesPage() {
   const t = useTranslations("showtimes");
   const {
-    mounted,
     date,
     movieId,
     cinemaId,
@@ -28,10 +26,6 @@ export function ShowtimesPage() {
     setMovie,
     setCinema,
   } = useShowtimesPage();
-
-  if (!mounted) {
-    return <ShowtimesSkeleton />;
-  }
 
   return (
     <div className="cinect-showtimes">

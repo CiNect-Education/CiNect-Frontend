@@ -111,11 +111,11 @@ export default function NewsPage() {
         </div>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {articles.map((article) => (
-              <Link key={article.id} href={`/news/${article.slug}`}>
-                <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
-                  <div className="bg-muted aspect-video overflow-hidden">
+              <Link key={article.id} href={`/news/${article.slug}`} className="block h-full">
+                <Card className="flex h-full flex-col overflow-hidden transition-all hover:shadow-lg">
+                  <div className="bg-muted aspect-video shrink-0 overflow-hidden">
                     {article.imageUrl ? (
                       <div className="relative h-full w-full">
                         <RemoteImage
@@ -133,15 +133,17 @@ export default function NewsPage() {
                       </div>
                     )}
                   </div>
-                  <CardContent className="p-4">
-                    <Badge variant="secondary" className="mb-2">
+                  <CardContent className="flex flex-1 flex-col p-4">
+                    <Badge variant="secondary" className="mb-2 w-fit">
                       {article.category}
                     </Badge>
-                    <h3 className="mb-2 line-clamp-2 font-semibold">{article.title}</h3>
-                    <p className="text-muted-foreground mb-3 line-clamp-2 text-sm">
+                    <h3 className="line-clamp-2 min-h-[2.75rem] font-semibold leading-snug">
+                      {article.title}
+                    </h3>
+                    <p className="text-muted-foreground mt-2 line-clamp-2 min-h-[2.5rem] text-sm leading-snug">
                       {article.excerpt}
                     </p>
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-muted-foreground mt-auto pt-3 text-xs">
                       {article.publishedAt
                         ? new Date(article.publishedAt).toLocaleDateString()
                         : ""}{" "}

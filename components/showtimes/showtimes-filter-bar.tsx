@@ -16,6 +16,10 @@ import { cn } from "@/lib/utils";
 const AUTO_OPEN_DELAY_MS = 160;
 const ALL = "__ALL__";
 
+function stepLabelText(heading: string) {
+  return heading.replace(/^\d+\.\s*/, "");
+}
+
 type ShowtimesFilterBarProps = {
   date: string;
   movieId: string;
@@ -43,7 +47,6 @@ export function ShowtimesFilterBar({
 }: ShowtimesFilterBarProps) {
   const t = useTranslations("showtimes");
   const tHome = useTranslations("home");
-  const tCinemas = useTranslations("cinemas");
   const locale = useLocale();
 
   const [openStep, setOpenStep] = useState<number | null>(null);
@@ -152,63 +155,88 @@ export function ShowtimesFilterBar({
     },
   ] as const;
 
+  const completedCount = steps.filter((s) => s.done).length;
+
   return (
-    <section className="showtime-filter" aria-label={t("title")}>
-      <div className="showtime-filter-items">
+    <section className="st-filter" aria-label={t("title")}>
+      <div className="st-filter__ambient" aria-hidden />
+      <div className="st-filter__progress" aria-hidden>
+        <span
+          className="st-filter__progress-fill"
+          style={{ width: `${(completedCount / steps.length) * 100}%` }}
+        />
+      </div>
+
+      <div className="st-filter__track">
         {steps.map((step, index) => {
           const Icon = step.icon;
           const canOpen = !step.disabled && !(index === 1 && moviesLoading);
+          const isActive = openStep === index;
 
           return (
             <div
               key={step.key}
               className={cn(
-                "showtime-filter-item",
-                step.large && "showtime-filter-item--large",
+                "st-filter__step",
+                step.large && "st-filter__step--wide",
+                step.done && "st-filter__step--done",
+                isActive && "st-filter__step--active",
+                step.disabled && "st-filter__step--disabled",
               )}
             >
-              <div className="showtime-filter-heading">
-                <span>{step.heading}</span>
-                <Icon aria-hidden />
+              <div className="st-filter__card">
+                <div className="st-filter__card-shine" aria-hidden />
+                <div className="st-filter__head">
+                  <span className="st-filter__badge">{index + 1}</span>
+                  <span className="st-filter__label">{stepLabelText(step.heading)}</span>
+                  <span className="st-filter__icon" aria-hidden>
+                    <Icon />
+                  </span>
+                </div>
+
+                <div className="st-filter__control">
+                  <Select
+                    value={step.value}
+                    open={canOpen && isActive}
+                    onValueChange={step.onChange}
+                    disabled={step.disabled}
+                    onOpenChange={(open) => {
+                      if (open) {
+                        clearAutoOpenTimer();
+                        pendingAutoOpen.current = null;
+                        setOpenStep(index);
+                        return;
+                      }
+                      if (openStep === index) setOpenStep(null);
+                    }}
+                  >
+                    <SelectTrigger className="st-filter__trigger shadow-none focus:ring-0 focus:ring-offset-0">
+                      <SelectValue placeholder={step.placeholder} />
+                    </SelectTrigger>
+                    <SelectContent className="cinect-dropdown-panel cinect-dropdown-scroll max-h-72">
+                      {step.options.map((opt) => (
+                        <SelectItem
+                          key={opt.value}
+                          value={opt.value}
+                          className="cinect-dropdown-item"
+                        >
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div
-                className={cn(
-                  "showtime-filter-select",
-                  step.done && "showtime-filter-select--done",
-                  openStep === index && "showtime-filter-select--active",
-                )}
-              >
-                <Select
-                  value={step.value}
-                  open={canOpen && openStep === index}
-                  onValueChange={step.onChange}
-                  disabled={step.disabled}
-                  onOpenChange={(open) => {
-                    if (open) {
-                      clearAutoOpenTimer();
-                      pendingAutoOpen.current = null;
-                      setOpenStep(index);
-                      return;
-                    }
-                    if (openStep === index) setOpenStep(null);
-                  }}
-                >
-                  <SelectTrigger className="showtime-filter-trigger shadow-none focus:ring-0 focus:ring-offset-0">
-                    <SelectValue placeholder={step.placeholder} />
-                  </SelectTrigger>
-                  <SelectContent className="cinect-dropdown-panel cinect-dropdown-scroll max-h-72">
-                    {step.options.map((opt) => (
-                      <SelectItem
-                        key={opt.value}
-                        value={opt.value}
-                        className="cinect-dropdown-item"
-                      >
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+
+              {index < steps.length - 1 ? (
+                <span
+                  className={cn(
+                    "st-filter__connector",
+                    step.done && "st-filter__connector--lit",
+                  )}
+                  aria-hidden
+                />
+              ) : null}
             </div>
           );
         })}

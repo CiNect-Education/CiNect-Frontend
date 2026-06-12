@@ -2,16 +2,15 @@
 
 import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { Clock, Film, Globe, Tag } from "lucide-react";
+import { CirclePlay, Clock, Film, Globe, Subtitles, Tag } from "lucide-react";
 import type { ReactNode } from "react";
 import { countryLabelForLanguage } from "@/lib/movie-display";
-import { localizeAudioLabel } from "@/lib/showtime-display";
+import { localizeAudioLabel, localizeRoomFormat } from "@/lib/showtime-display";
 import {
   formatShowtimeClock,
   type ShowtimeMovieBlock,
 } from "@/lib/showtimes-page-utils";
 import { ageRatingMessageKey } from "@/components/cinemas/cinema-detail-utils";
-import { cn } from "@/lib/utils";
 
 function MetaRow({ icon: Icon, children }: { icon: typeof Tag; children: ReactNode }) {
   return (
@@ -52,6 +51,17 @@ export function ShowtimesMovieBlock({ block }: ShowtimesMovieBlockProps) {
   const audio = block.movieLanguage
     ? localizeAudioLabel(block.movieLanguage, (k) => tShow(k))
     : null;
+  const subtitles = block.movieSubtitles
+    ? localizeAudioLabel(block.movieSubtitles, (k) => tShow(k))
+    : null;
+  const sampleShowtime = block.theaters[0]
+    ? Object.values(block.theaters[0].byFormat)[0]?.[0]
+    : undefined;
+  const formatLabel = sampleShowtime?.format
+    ? localizeRoomFormat(String(sampleShowtime.format), (k) => tShow(k))
+    : null;
+
+  const hasTheaters = block.theaters.length > 0;
 
   return (
     <article className="movies-showtime row">
@@ -73,40 +83,51 @@ export function ShowtimesMovieBlock({ block }: ShowtimesMovieBlockProps) {
           <ul>
             {genres ? <MetaRow icon={Tag}>{genres}</MetaRow> : null}
             {block.movieDuration ? (
-              <MetaRow icon={Clock}>{block.movieDuration}</MetaRow>
+              <MetaRow icon={Clock}>{block.movieDuration}&apos;</MetaRow>
             ) : null}
             {country ? <MetaRow icon={Globe}>{country}</MetaRow> : null}
             {audio ? <MetaRow icon={Film}>{audio}</MetaRow> : null}
+            {subtitles ? <MetaRow icon={Subtitles}>{subtitles}</MetaRow> : null}
+            {formatLabel ? <MetaRow icon={Film}>{formatLabel}</MetaRow> : null}
             {ageDesc ? <MetaRow icon={Tag}>{ageDesc}</MetaRow> : null}
           </ul>
         </div>
       </div>
 
       <div className="sec-showtimes-right col">
-        {block.theaters.map((theater) => (
-          <div key={theater.cinemaId} className="movies-list row">
-            <h3 className="theater-heading">{theater.cinemaName}</h3>
-            {theater.cinemaAddress ? (
-              <p className="theater-sub">{theater.cinemaAddress}</p>
-            ) : null}
-            {Object.entries(theater.byFormat).map(([fmt, times]) => (
-              <div key={fmt} className="movies-rp-item">
-                <p className="movies-rp-title">{fmt}</p>
-                <div className="movies-time-list">
-                  {times.map((st, idx) => (
-                    <Link
-                      key={st.id}
-                      href={`/booking/${st.id}`}
-                      className={cn("movies-time-item", idx === 0 && "active")}
-                    >
-                      {formatShowtimeClock(st.startTime, locale)}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ))}
+        {!hasTheaters ? (
+          <div className="showtimes-no-slots">
+            <span className="showtimes-no-slots__icon" aria-hidden>
+              <CirclePlay />
+            </span>
+            <span>{tMovies("noShowtimes")}</span>
           </div>
-        ))}
+        ) : (
+          block.theaters.map((theater) => (
+            <div key={theater.cinemaId} className="movies-list row">
+              <h3 className="theater-heading">{theater.cinemaName}</h3>
+              {theater.cinemaAddress ? (
+                <p className="theater-sub">{theater.cinemaAddress}</p>
+              ) : null}
+              {Object.entries(theater.byFormat).map(([fmt, times]) => (
+                <div key={fmt} className="movies-time">
+                  <p className="movies-rp-title">{fmt}</p>
+                  <div className="movies-time-items">
+                    {times.map((st) => (
+                      <Link
+                        key={st.id}
+                        href={`/booking/${st.id}`}
+                        className="movies-time-item"
+                      >
+                        {formatShowtimeClock(st.startTime, locale)}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))
+        )}
       </div>
     </article>
   );

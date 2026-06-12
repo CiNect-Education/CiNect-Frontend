@@ -157,7 +157,7 @@ export default function AdminCampaignsPage() {
         <Alert variant="destructive" className="mb-4">
           <AlertTitle>{tCommon("error")}</AlertTitle>
           <AlertDescription>
-            {error instanceof ApiError ? error.toastMessage : String(error?.message ?? "Request failed")}
+            {error instanceof ApiError ? error.toastMessage : tCommon("error")}
           </AlertDescription>
         </Alert>
       )}

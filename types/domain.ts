@@ -43,8 +43,8 @@ export interface User {
   profilePublic?: boolean;
   isActive?: boolean;
   emailVerified?: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Genre {
@@ -77,6 +77,9 @@ export interface Movie {
   cast: CastMember[];
   language: string;
   subtitles?: string;
+  imdbId?: string;
+  imdbRating?: number;
+  metacriticScore?: number;
   rating?: number;
   ratingCount?: number;
   ageRating: AgeRating;
@@ -92,6 +95,7 @@ export interface MovieListItem {
   title: string;
   slug: string;
   posterUrl: string;
+  bannerUrl?: string;
   duration: number;
   releaseDate: string;
   genres: Genre[];
@@ -103,6 +107,8 @@ export interface MovieListItem {
   description?: string;
   director?: string;
   subtitles?: string;
+  imdbRating?: number;
+  metacriticScore?: number;
   rating?: number;
   status: MovieStatus;
 }
@@ -181,10 +187,17 @@ export interface Seat {
 }
 
 export interface ShowtimeSeatsPayload {
-  showtime?: { id: string; basePrice?: number };
+  showtime?: {
+    id: string;
+    startTime?: string;
+    endTime?: string;
+    basePrice?: number;
+    format?: string;
+  };
   room?: {
     id: string;
     name?: string;
+    format?: string;
     layoutTemplate?: string;
     aisleAfterCol?: number | null;
   };
@@ -222,11 +235,21 @@ export interface HoldTicketLine {
   subLabelEn?: string | null;
 }
 
+export interface HoldSeatGroup {
+  kind: "single" | "couple";
+  label: string;
+  seatType: string;
+  seatIds: string[];
+  price: number;
+}
+
 export interface HoldDetails {
   holdId: string;
   showtimeId: string;
   expiresAt: string;
   seats: Array<{ id: string; row: string; number: number; type: string; price?: number }>;
+  seatGroups?: HoldSeatGroup[];
+  ticketsTotal?: number;
   ticketLines?: HoldTicketLine[];
   showtime?: {
     movieTitle?: string;

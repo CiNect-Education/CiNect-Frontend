@@ -87,7 +87,7 @@ export default function AdminMoviesPage() {
         ageRating: z.enum(["P", "C13", "C16", "C18"]),
         language: z.string().optional(),
         director: z.string().optional(),
-        genreIds: z.array(z.string()).default([]),
+        genreIds: z.array(z.string()),
       }),
     [t]
   );
@@ -157,7 +157,7 @@ export default function AdminMoviesPage() {
         new Map(
           movies
             .flatMap((m) => m.genres ?? [])
-            .filter((g): g is { id: string; name: string } => !!g?.id && !!g?.name)
+            .filter((g) => !!g?.id && !!g?.name)
             .map((g) => [g.id, g])
         ).values()
       ).sort((a, b) => a.name.localeCompare(b.name)),

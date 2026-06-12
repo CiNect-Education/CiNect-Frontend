@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useClientMounted } from "@/lib/use-client-mounted";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useShowtimes } from "@/hooks/queries/use-cinemas";
 import {
@@ -27,15 +28,14 @@ function toList<T>(v: unknown): T[] {
 export function useShowtimesPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const mounted = useClientMounted();
   const [storedCity, setStoredCity] = useState("");
-  const [mounted, setMounted] = useState(false);
 
   const dateFromParams = searchParams.get("date") || "";
   const movieId = searchParams.get("movie") || "";
   const cinemaId = searchParams.get("cinema") || "";
 
   useEffect(() => {
-    setMounted(true);
     setStoredCity(normalizeBookingCityId(localStorage.getItem(SELECTED_CITY_STORAGE_KEY) || ""));
   }, []);
 

@@ -1,4 +1,5 @@
-import type { HoldDetails, HoldTicketLine, TicketProductCode } from "@/types/domain";
+import type { HoldDetails, HoldSeatGroup, HoldTicketLine, TicketProductCode } from "@/types/domain";
+import { groupSeatsForDisplay } from "@/lib/seat-selection";
 
 function num(v: unknown): number | undefined {
   if (v == null) return undefined;
@@ -24,7 +25,7 @@ function mapTicketLines(raw: unknown): HoldTicketLine[] | undefined {
       const quantity = Number(x.quantity ?? 0);
       const unitPrice = num(x.unitPrice) ?? 0;
       if (!productCode || quantity <= 0) return null;
-      return {
+      const line: HoldTicketLine = {
         productCode,
         quantity,
         unitPrice,
@@ -32,9 +33,10 @@ function mapTicketLines(raw: unknown): HoldTicketLine[] | undefined {
         labelEn: x.labelEn != null ? String(x.labelEn) : undefined,
         subLabelVi: x.subLabelVi != null ? String(x.subLabelVi) : null,
         subLabelEn: x.subLabelEn != null ? String(x.subLabelEn) : null,
-      } satisfies HoldTicketLine;
+      };
+      return line;
     })
-    .filter((l): l is HoldTicketLine => l != null);
+    .filter((l): l is HoldTicketLine => l !== null);
   return lines.length > 0 ? lines : undefined;
 }
 
@@ -88,7 +90,9 @@ export function normalizeHoldDetails(raw: unknown): HoldDetails | null {
     }
 
     const ticketLines = mapTicketLines(o.ticketLines);
-    return { holdId, showtimeId, expiresAt, seats, showtime, ticketLines };
+    const seatGroups = mapSeatGroups(o.seatGroups, seats);
+    const ticketsTotal = num(o.ticketsTotal) ?? seats.reduce((s, x) => s + (x.price ?? 0), 0);
+    return { holdId, showtimeId, expiresAt, seats, seatGroups, ticketsTotal, showtime, ticketLines };
   }
 
   const holdSeats = Array.isArray(o.holdSeats) ? o.holdSeats : [];
@@ -121,5 +125,44 @@ export function normalizeHoldDetails(raw: unknown): HoldDetails | null {
   }
 
   const ticketLines = mapTicketLines(o.ticketLines);
-  return { holdId, showtimeId, expiresAt, seats, showtime, ticketLines };
+  const seatGroups = mapSeatGroups(o.seatGroups, seats);
+  const ticketsTotal = num(o.ticketsTotal) ?? seats.reduce((s, x) => s + (x.price ?? 0), 0);
+  return { holdId, showtimeId, expiresAt, seats, seatGroups, ticketsTotal, showtime, ticketLines };
+}
+
+function mapSeatGroups(
+  raw: unknown,
+  seats: HoldDetails["seats"],
+): HoldSeatGroup[] | undefined {
+  if (Array.isArray(raw) && raw.length > 0) {
+    return raw
+      .map((item) => {
+        if (!item || typeof item !== "object") return null;
+        const g = item as Record<string, unknown>;
+        return {
+          kind: g.kind === "couple" ? "couple" : "single",
+          label: String(g.label ?? ""),
+          seatType: String(g.seatType ?? "STANDARD"),
+          seatIds: Array.isArray(g.seatIds) ? g.seatIds.map(String) : [],
+          price: num(g.price) ?? 0,
+        } satisfies HoldSeatGroup;
+      })
+      .filter((g): g is HoldSeatGroup => g !== null);
+  }
+  if (!seats.length) return undefined;
+  return groupSeatsForDisplay(
+    seats.map((s) => ({
+      id: s.id,
+      row: s.row,
+      number: s.number,
+      type: s.type as "STANDARD" | "VIP" | "COUPLE" | "DISABLED",
+      price: s.price,
+    })),
+  ).map((u) => ({
+    kind: u.kind,
+    label: u.label,
+    seatType: u.seatType,
+    seatIds: u.seatIds,
+    price: u.price,
+  }));
 }

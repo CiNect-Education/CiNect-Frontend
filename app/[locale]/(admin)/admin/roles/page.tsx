@@ -35,7 +35,7 @@ const PERMISSION_ROWS = [
   ["analytics.read", "permAnalyticsRead"],
 ] as const;
 
-const KNOWN_PERMISSION_KEYS = new Set(PERMISSION_ROWS.map(([key]) => key));
+const KNOWN_PERMISSION_KEYS = new Set<string>(PERMISSION_ROWS.map(([key]) => key));
 
 /** Legacy seed used colon-separated keys (e.g. movies:read); UI rows use dots (movies.read). */
 function normalizePermissionsFromApi(raw: string[] | undefined): string[] {

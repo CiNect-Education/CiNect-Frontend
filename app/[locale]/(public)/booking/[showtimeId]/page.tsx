@@ -7,13 +7,11 @@ import { SeatMap } from "@/components/booking/seat-map";
 import {
   TicketTypePicker,
   buildTicketLinesPayload,
-  requiredSeatCountFromTickets,
   ticketLinesTotal,
 } from "@/components/booking/ticket-type-picker";
 import { CountdownTimer } from "@/components/booking/countdown-timer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -43,9 +41,24 @@ import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import { vi as viDateLocale } from "date-fns/locale";
 import { useLocale, useTranslations } from "next-intl";
-import { formatVnd, localizeAudioLabel, localizeRoomName } from "@/lib/showtime-display";
+import {
+  formatVnd,
+  localizeAudioLabel,
+  localizeRoomFormat,
+  localizeRoomName,
+} from "@/lib/showtime-display";
 import { useAuth } from "@/providers/auth-provider";
 import { toast } from "sonner";
+import {
+  analyzeTicketSeatPlan,
+  getSeatClickBlockReason,
+  groupSeatsForDisplay,
+  resolveBookingNoticeMessage,
+  sumSeatPrices,
+  validateTicketSeatSelection,
+} from "@/lib/seat-selection";
+import { SeatSelectionList } from "@/components/booking/seat-selection-list";
+import { CinestarNoticeDialog } from "@/components/booking/cinestar-notice-dialog";
 
 function getSeatUiStatus(seat: Seat): string {
   return String((seat as { status?: string }).status ?? seat.status ?? "AVAILABLE");
@@ -108,12 +121,13 @@ export default function BookingPage() {
   const [bookingStep, setBookingStep] = useState<"tickets" | "seats">("tickets");
   const [ticketQuantities, setTicketQuantities] = useState<
     Partial<Record<TicketProductCode, number>>
-  >({ ADULT_SINGLE: 1 });
+  >({});
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [holdId, setHoldId] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [conflictedSeatIds, setConflictedSeatIds] = useState<string[]>([]);
   const [expireModalOpen, setExpireModalOpen] = useState(false);
+  const [seatNoticeMessage, setSeatNoticeMessage] = useState<string | null>(null);
 
   const expiringRef = useRef(false);
 
@@ -147,8 +161,27 @@ export default function BookingPage() {
     return Array.isArray(raw) ? (raw as TicketProduct[]) : [];
   }, [ticketProductsRes]);
 
+  useEffect(() => {
+    if (ticketProducts.length === 0) return;
+    setTicketQuantities((prev) => {
+      const validCodes = new Set(ticketProducts.map((p) => p.code));
+      const pruned = Object.fromEntries(
+        Object.entries(prev).filter(([code]) => validCodes.has(code as TicketProductCode)),
+      ) as Partial<Record<TicketProductCode, number>>;
+      const hasSelection = ticketProducts.some((p) => (pruned[p.code] ?? 0) > 0);
+      if (hasSelection) return pruned;
+      const defaultProduct =
+        ticketProducts.find((p) => p.code === "ADULT_SINGLE") ?? ticketProducts[0];
+      return { [defaultProduct.code]: 1 };
+    });
+  }, [ticketProducts]);
+
   const { data: seatsData, isLoading, error, refetch } = useShowtimeSeats(showtimeId);
   const seatsPayload = (seatsData?.data ?? seatsData) as ShowtimeSeatsPayload | Seat[] | null;
+  const seatsPayloadShowtime =
+    seatsPayload && !Array.isArray(seatsPayload) && typeof seatsPayload === "object"
+      ? seatsPayload.showtime
+      : undefined;
   const roomMeta =
     seatsPayload && !Array.isArray(seatsPayload) && typeof seatsPayload === "object"
       ? seatsPayload.room
@@ -157,10 +190,11 @@ export default function BookingPage() {
     ? seatsPayload
     : ((seatsPayload as ShowtimeSeatsPayload | null)?.seats ?? []);
 
-  const requiredSeatCount = useMemo(
-    () => requiredSeatCountFromTickets(ticketProducts, ticketQuantities),
-    [ticketProducts, ticketQuantities],
+  const ticketSeatPlan = useMemo(
+    () => analyzeTicketSeatPlan(ticketQuantities),
+    [ticketQuantities],
   );
+  const requiredDisplayUnits = ticketSeatPlan.totalDisplayUnits;
   const ticketTotal = useMemo(
     () => ticketLinesTotal(ticketProducts, ticketQuantities),
     [ticketProducts, ticketQuantities],
@@ -203,6 +237,15 @@ export default function BookingPage() {
 
   const seatById = useMemo(() => new Map(seatArray.map((s) => [s.id, s])), [seatArray]);
 
+  const selectedSeatDetails = useMemo(
+    () => seatArray.filter((s) => selectedSeats.includes(s.id)),
+    [seatArray, selectedSeats],
+  );
+  const selectedSeatUnits = useMemo(
+    () => groupSeatsForDisplay(selectedSeatDetails),
+    [selectedSeatDetails],
+  );
+
   const toggleSeatSelection = useCallback(
     (seatId: string) => {
       setConflictedSeatIds([]);
@@ -222,18 +265,38 @@ export default function BookingPage() {
         }
 
         const addIds = partnerId ? [seatId, partnerId] : [seatId];
-        const cap = requiredSeatCount > 0 ? requiredSeatCount : undefined;
-        if (cap != null && ids.size + addIds.length > cap) {
+        const nextSeats = seatArray.filter((s) => ids.has(s.id) || addIds.includes(s.id));
+        const nextUnits = groupSeatsForDisplay(nextSeats);
+        if (
+          requiredDisplayUnits > 0 &&
+          nextUnits.length > requiredDisplayUnits
+        ) {
           return prev;
         }
         for (const id of addIds) ids.add(id);
         return [...ids];
       });
     },
-    [seatById, clearRealtimeConflicts, requiredSeatCount],
+    [seatById, clearRealtimeConflicts, requiredDisplayUnits, seatArray],
   );
 
-  const handleSeatClick = toggleSeatSelection;
+  const handleSeatClick = useCallback(
+    (seatId: string) => {
+      const seat = seatById.get(seatId);
+      if (!seat) return;
+      const blockReason = getSeatClickBlockReason(
+        ticketSeatPlan,
+        seat,
+        selectedSeatDetails,
+      );
+      if (blockReason) {
+        setSeatNoticeMessage(resolveBookingNoticeMessage(tb, blockReason));
+        return;
+      }
+      toggleSeatSelection(seatId);
+    },
+    [seatById, ticketSeatPlan, selectedSeatDetails, tb, toggleSeatSelection],
+  );
 
   const handleTicketQtyChange = (code: TicketProductCode, quantity: number) => {
     setTicketQuantities((prev) => ({ ...prev, [code]: quantity }));
@@ -242,8 +305,22 @@ export default function BookingPage() {
     setExpiresAt(null);
   };
 
+  const totalPrice =
+    bookingStep === "seats" && selectedSeatDetails.length > 0
+      ? sumSeatPrices(selectedSeatDetails)
+      : ticketTotal;
+
   const handleHoldSeats = useCallback(async () => {
     if (selectedSeats.length === 0) return;
+    const ticketError = validateTicketSeatSelection(
+      ticketProducts,
+      ticketQuantities,
+      selectedSeatDetails,
+    );
+    if (ticketError) {
+      setSeatNoticeMessage(resolveBookingNoticeMessage(tb, ticketError));
+      return;
+    }
     setConflictedSeatIds([]);
     try {
       const freshResult = await refetch();
@@ -292,6 +369,8 @@ export default function BookingPage() {
         setConflictedSeatIds(failed);
         setSelectedSeats((prev) => prev.filter((id) => !failed.includes(id)));
         toast.error(tb("seatsConflictMessage"));
+      } else if (err instanceof ApiError && err.status === 400) {
+        setSeatNoticeMessage(err.message || resolveBookingNoticeMessage(tb, "seatCountMismatch"));
       } else {
         setSelectedSeats([]);
         toast.error(
@@ -300,7 +379,18 @@ export default function BookingPage() {
       }
       void refetch();
     }
-  }, [selectedSeats, showtimeId, holdMutation, router, ticketQuantities, refetch, tb, clearRealtimeConflicts]);
+  }, [
+    selectedSeats,
+    selectedSeatDetails,
+    showtimeId,
+    holdMutation,
+    router,
+    ticketQuantities,
+    ticketProducts,
+    refetch,
+    tb,
+    clearRealtimeConflicts,
+  ]);
 
   const handleExpire = useCallback(async () => {
     if (expiringRef.current) return;
@@ -336,11 +426,33 @@ export default function BookingPage() {
   // Holds are time-limited server-side; releasing on unmount can cause loops if the
   // page remounts during dev/hydration transitions.
 
-  const selectedSeatDetails = seatArray.filter((s) => selectedSeats.includes(s.id));
-  const totalPrice =
-    ticketProducts.length > 0 && requiredSeatCount > 0
-      ? ticketTotal
-      : selectedSeatDetails.reduce((sum, seat) => sum + (seat.price ?? 0), 0);
+  const liveAvailableCount = useMemo(
+    () => seatArray.filter((seat) => getSeatUiStatus(seat) === "AVAILABLE").length,
+    [seatArray],
+  );
+
+  const displayRoomName = useMemo(() => {
+    const raw = showtime?.roomName ?? roomMeta?.name;
+    if (!raw) return null;
+    return localizeRoomName(raw, (k, v) => tShow(k, v));
+  }, [showtime?.roomName, roomMeta?.name, tShow]);
+
+  const displayFormat = useMemo(() => {
+    const raw = showtime?.format ?? seatsPayloadShowtime?.format ?? roomMeta?.format;
+    if (!raw) return null;
+    return localizeRoomFormat(raw, (k) => tShow(k));
+  }, [showtime?.format, seatsPayloadShowtime?.format, roomMeta?.format, tShow]);
+
+  const selectedTicketLines = useMemo(
+    () =>
+      ticketProducts
+        .map((product) => ({
+          product,
+          quantity: ticketQuantities[product.code] ?? 0,
+        }))
+        .filter((line) => line.quantity > 0),
+    [ticketProducts, ticketQuantities],
+  );
 
   const seatTypeStats = useMemo(() => {
     const byType = new Map<string, { count: number; min: number; max: number }>();
@@ -366,18 +478,24 @@ export default function BookingPage() {
 
   const seatTypeLabel = (typeKey: string) => {
     if (typeKey === "VIP") return tb("vip");
-    if (typeKey === "COUPLE") return tb("couple");
+    if (typeKey === "COUPLE") return tb("coupleSeatType");
     if (typeKey === "DISABLED") return tb("disabled");
     if (typeKey === "WHEELCHAIR") return tb("wheelchair");
     return tb("standard");
   };
 
   const startDate = useMemo(() => {
-    const raw = showtime?.startTime;
+    const raw = showtime?.startTime ?? seatsPayloadShowtime?.startTime;
     if (!raw) return null;
     const d = new Date(raw);
     return Number.isFinite(d.getTime()) ? d : null;
-  }, [showtime?.startTime]);
+  }, [showtime?.startTime, seatsPayloadShowtime?.startTime]);
+
+  const ticketProductLabel = useCallback(
+    (product: TicketProduct) =>
+      locale.startsWith("vi") ? product.labelVi : product.labelEn,
+    [locale],
+  );
 
   const pageLoading =
     authLoading || !isAuthenticated || isLoading || (bookingStep === "tickets" && ticketsLoading);
@@ -430,7 +548,7 @@ export default function BookingPage() {
         {/* Showtime header */}
         <div className="mb-6 grid gap-4 lg:grid-cols-[auto,minmax(0,1fr)] lg:items-start">
           <div className="hidden shrink-0 lg:block">
-            <Card className="w-36 overflow-hidden shadow-md xl:w-40">
+            <div className="w-36 overflow-hidden rounded-lg xl:w-40">
               <div className="bg-muted relative aspect-[2/3]">
                 {showtime?.moviePosterUrl ? (
                   <RemoteImage
@@ -446,11 +564,10 @@ export default function BookingPage() {
                   </div>
                 )}
               </div>
-            </Card>
+            </div>
           </div>
 
-          <Card className="cinect-glass border-border/60">
-            <CardContent className="p-5">
+          <div className="min-w-0 pb-2">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1">
                   <div className="text-muted-foreground flex items-center gap-2 text-xs font-semibold tracking-[0.22em] uppercase">
@@ -465,9 +582,7 @@ export default function BookingPage() {
                       <span className="inline-flex items-center gap-1.5">
                         <MapPin className="h-4 w-4" />
                         {showtime.cinemaName}
-                        {showtime?.roomName
-                          ? ` • ${localizeRoomName(showtime.roomName, (k, v) => tShow(k, v))}`
-                          : ""}
+                        {displayRoomName ? ` • ${displayRoomName}` : ""}
                       </span>
                     )}
                     {startDate && (
@@ -486,15 +601,19 @@ export default function BookingPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  {showtime?.format && <Badge variant="outline">{showtime.format}</Badge>}
+                  {displayFormat && <Badge variant="outline">{displayFormat}</Badge>}
                   {showtime?.language && (
                     <Badge variant="outline">
-                      {localizeAudioLabel(showtime.language, (k) => tShow(k))}
+                      {tb("audioLanguage", {
+                        language: localizeAudioLabel(showtime.language, (k) => tShow(k)),
+                      })}
                     </Badge>
                   )}
                   {showtime?.subtitles && (
                     <Badge variant="outline">
-                      {localizeAudioLabel(showtime.subtitles, (k) => tShow(k))}
+                      {tb("subtitlesLanguage", {
+                        language: localizeAudioLabel(showtime.subtitles, (k) => tShow(k)),
+                      })}
                     </Badge>
                   )}
                   {showtime?.memberExclusive && <Badge>{tb("membersBadge")}</Badge>}
@@ -505,19 +624,12 @@ export default function BookingPage() {
 
               <div className="flex flex-wrap items-center justify-end gap-2">
                 <Badge variant="outline">
-                  {typeof showtime?.availableSeats === "number"
-                    ? tb("availableSeatsCount", { count: showtime.availableSeats })
+                  {seatArray.length > 0
+                    ? tb("availableSeatsCount", { count: liveAvailableCount })
                     : tb("liveAvailability")}
-                </Badge>
-                <Badge variant="outline">
-                  {tb("baseFrom")}{" "}
-                  {typeof showtime?.basePrice === "number" && Number.isFinite(showtime.basePrice)
-                    ? formatPrice(showtime.basePrice)
-                    : "—"}
                 </Badge>
               </div>
 
-              {/* Pricing chips */}
               {seatTypeStats.size > 0 && (
                 <div className="mt-4 flex flex-wrap gap-2">
                   {["STANDARD", "VIP", "COUPLE"].map((type) => {
@@ -529,7 +641,7 @@ export default function BookingPage() {
                         ? s.min === s.max
                           ? formatPrice(s.min)
                           : `${formatPrice(s.min)}–${formatPrice(s.max)}`
-                        : "—";
+                        : tb("priceUnavailable");
                     return (
                       <Badge key={type} variant="outline" className="gap-2">
                         <span className="font-semibold">{label}</span>
@@ -539,11 +651,10 @@ export default function BookingPage() {
                   })}
                 </div>
               )}
-            </CardContent>
-          </Card>
+          </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           {bookingStep === "tickets" ? (
             <TicketTypePicker
@@ -552,8 +663,7 @@ export default function BookingPage() {
               onChange={handleTicketQtyChange}
             />
           ) : (
-            <Card className="cinect-glass border-border/60">
-              <CardContent className="pt-6">
+            <div className="py-1">
                 <SeatMap
                   seats={seatArray}
                   selectedSeats={selectedSeats}
@@ -562,25 +672,19 @@ export default function BookingPage() {
                   conflictedSeatIds={!holdId && allConflicts.length > 0 ? allConflicts : undefined}
                   layoutTemplate={roomMeta?.layoutTemplate}
                   aisleAfterCol={roomMeta?.aisleAfterCol}
-                  roomName={
-                    showtime?.roomName
-                      ? localizeRoomName(showtime.roomName, (k, v) => tShow(k, v))
-                      : roomMeta?.name
+                  maxSelectableUnits={
+                    requiredDisplayUnits > 0 ? requiredDisplayUnits : undefined
                   }
-                  maxSelectable={requiredSeatCount > 0 ? requiredSeatCount : undefined}
+                  ticketSeatPlan={ticketSeatPlan}
                 />
-              </CardContent>
-            </Card>
+            </div>
           )}
         </div>
 
         {/* Sticky sidebar (desktop) */}
-        <div className="hidden lg:sticky lg:top-4 lg:block lg:self-start">
-          <Card className="cinect-glass border-border/60">
-            <CardHeader>
-              <CardTitle>{tb("bookingSummary")}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        <div className="hidden lg:sticky lg:top-4 lg:block lg:self-start lg:border-l lg:border-border/20 lg:pl-8">
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">{tb("bookingSummary")}</h2>
               {!isMobile && expiresAt && (
                 <CountdownTimer expiresAt={expiresAt} onExpire={handleExpire} />
               )}
@@ -594,11 +698,29 @@ export default function BookingPage() {
                 </Alert>
               )}
 
-              {bookingStep === "tickets" && requiredSeatCount === 0 && (
+              {bookingStep === "tickets" && requiredDisplayUnits === 0 && (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{tb("selectSeatHint")}</AlertDescription>
+                  <AlertDescription>{tb("selectTicketHint")}</AlertDescription>
                 </Alert>
+              )}
+
+              {bookingStep === "tickets" && selectedTicketLines.length > 0 && (
+                <div className="space-y-2 text-sm">
+                  <p className="font-medium">{tb("selectedTicketTypes")}</p>
+                  <ul className="space-y-1.5">
+                    {selectedTicketLines.map(({ product, quantity }) => (
+                      <li key={product.code} className="flex justify-between gap-3">
+                        <span className="text-muted-foreground min-w-0">
+                          {ticketProductLabel(product)} × {quantity}
+                        </span>
+                        <span className="shrink-0 font-medium tabular-nums">
+                          {formatPrice(quantity * product.unitPrice)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
 
               {bookingStep === "seats" &&
@@ -608,8 +730,10 @@ export default function BookingPage() {
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      {requiredSeatCount > 0
-                        ? tb("seatsRequired", { count: requiredSeatCount })
+                      {requiredDisplayUnits > 0
+                        ? ticketSeatPlan.mode === "double_only"
+                          ? tb("coupleSeatsRequired", { count: requiredDisplayUnits })
+                          : tb("seatsRequired", { count: requiredDisplayUnits })
                         : tb("selectSeatHint")}
                     </AlertDescription>
                   </Alert>
@@ -631,18 +755,26 @@ export default function BookingPage() {
               )}
 
               {bookingStep === "tickets" && ticketTotal > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{tb("ticketTotal")}:</span>
-                  <span className="text-lg font-bold tabular-nums">{formatPrice(ticketTotal)}</span>
-                </div>
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">{tb("ticketTotal")}:</span>
+                    <span className="text-lg font-bold tabular-nums">{formatPrice(ticketTotal)}</span>
+                  </div>
+                  <p className="text-muted-foreground text-xs">{tb("ticketEstimateNote")}</p>
+                </>
               )}
 
-              {bookingStep === "seats" && requiredSeatCount > 0 && (
+              {bookingStep === "seats" && requiredDisplayUnits > 0 && (
                 <div className="text-muted-foreground text-sm">
-                  {tb("seatsSelectedOfRequired", {
-                    selected: selectedSeats.length,
-                    required: requiredSeatCount,
-                  })}
+                  {ticketSeatPlan.mode === "double_only"
+                    ? tb("coupleSeatsSelectedOfRequired", {
+                        selected: selectedSeatUnits.length,
+                        required: requiredDisplayUnits,
+                      })
+                    : tb("seatsSelectedOfRequired", {
+                        selected: selectedSeatUnits.length,
+                        required: requiredDisplayUnits,
+                      })}
                 </div>
               )}
 
@@ -650,50 +782,15 @@ export default function BookingPage() {
                 <>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">{tb("seatsCountLabel")}:</span>
-                      <span className="font-medium">{selectedSeats.length}</span>
+                      <span className="text-muted-foreground">
+                        {ticketSeatPlan.mode === "double_only"
+                          ? tb("coupleSeatsCountLabel")
+                          : tb("seatsCountLabel")}
+                        :
+                      </span>
+                      <span className="font-medium">{selectedSeatUnits.length}</span>
                     </div>
-                    <div className="space-y-2 text-xs">
-                      {selectedSeatDetails.map((seat) => (
-                        <div key={seat.id} className="flex items-center gap-2">
-                          <span className="font-semibold">
-                            {seat.row}
-                            {seat.number}
-                          </span>
-                          <span className="text-muted-foreground">
-                            {seatTypeLabel(
-                              ((seat as { type?: string }).type ??
-                                (seat as { seatType?: string }).seatType ??
-                                "STANDARD") as string
-                            )}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {(() => {
-                        const counts = selectedSeatDetails.reduce(
-                          (acc, s) => {
-                            const kind =
-                              (s as { type?: string; seatType?: string }).type ??
-                              (s as { seatType?: string }).seatType ??
-                              "STANDARD";
-                            const key = String(kind);
-                            acc[key] = (acc[key] ?? 0) + 1;
-                            return acc;
-                          },
-                          {} as Record<string, number>
-                        );
-                        return Object.entries(counts)
-                          .sort((a, b) => b[1] - a[1])
-                          .map(([k, v]) => (
-                            <Badge key={k} variant="outline" className="gap-2">
-                              <span className="font-semibold">{seatTypeLabel(k)}</span>
-                              <span className="text-muted-foreground">{v}</span>
-                            </Badge>
-                          ));
-                      })()}
-                    </div>
+                    <SeatSelectionList units={selectedSeatUnits} compact />
                     <Separator />
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{tb("totalLabel")}:</span>
@@ -709,7 +806,7 @@ export default function BookingPage() {
                 <Button
                   className="w-full"
                   size="lg"
-                  disabled={requiredSeatCount === 0}
+                  disabled={requiredDisplayUnits === 0}
                   onClick={() => setBookingStep("seats")}
                 >
                   {tb("continueToSeats")}
@@ -719,9 +816,10 @@ export default function BookingPage() {
                   className="w-full"
                   size="lg"
                   disabled={
-                    selectedSeats.length === 0 ||
+                    selectedSeatUnits.length === 0 ||
                     holdMutation.isPending ||
-                    (requiredSeatCount > 0 && selectedSeats.length !== requiredSeatCount)
+                    (requiredDisplayUnits > 0 &&
+                      selectedSeatUnits.length !== requiredDisplayUnits)
                   }
                   onClick={() => void handleHoldSeats()}
                 >
@@ -732,13 +830,12 @@ export default function BookingPage() {
                   {tb("proceedToCheckout")}
                 </Button>
               )}
-            </CardContent>
-          </Card>
+          </div>
         </div>
       </div>
 
       {/* Mobile bottom bar */}
-      <div className="cinect-glass fixed inset-x-0 bottom-0 z-40 border-t p-4 lg:hidden">
+      <div className="bg-background/90 fixed inset-x-0 bottom-0 z-40 border-t border-border/25 p-4 backdrop-blur-md lg:hidden">
         <div className="mx-auto flex max-w-7xl flex-col gap-2">
           {isMobile && expiresAt && <CountdownTimer expiresAt={expiresAt} onExpire={handleExpire} />}
           <div className="flex items-center justify-between gap-4">
@@ -748,19 +845,24 @@ export default function BookingPage() {
                   ? tb("ticketTotal")
                   : holdId
                     ? tb("seatsHeldStatus")
-                    : requiredSeatCount > 0
-                      ? tb("seatsSelectedOfRequired", {
-                          selected: selectedSeats.length,
-                          required: requiredSeatCount,
-                        })
-                      : tb("seatsSelectedCount", { count: selectedSeats.length })}
+                    : requiredDisplayUnits > 0
+                      ? ticketSeatPlan.mode === "double_only"
+                        ? tb("coupleSeatsSelectedOfRequired", {
+                            selected: selectedSeatUnits.length,
+                            required: requiredDisplayUnits,
+                          })
+                        : tb("seatsSelectedOfRequired", {
+                            selected: selectedSeatUnits.length,
+                            required: requiredDisplayUnits,
+                          })
+                      : tb("seatsSelectedCount", { count: selectedSeatUnits.length })}
               </div>
               <div className="text-lg font-bold tabular-nums">{formatPrice(totalPrice)}</div>
             </div>
             {bookingStep === "tickets" ? (
               <Button
                 size="lg"
-                disabled={requiredSeatCount === 0}
+                disabled={requiredDisplayUnits === 0}
                 onClick={() => setBookingStep("seats")}
               >
                 {tb("continueToSeats")}
@@ -769,9 +871,10 @@ export default function BookingPage() {
               <Button
                 size="lg"
                 disabled={
-                  selectedSeats.length === 0 ||
+                  selectedSeatUnits.length === 0 ||
                   holdMutation.isPending ||
-                  (requiredSeatCount > 0 && selectedSeats.length !== requiredSeatCount)
+                  (requiredDisplayUnits > 0 &&
+                    selectedSeatUnits.length !== requiredDisplayUnits)
                 }
                 onClick={() => void handleHoldSeats()}
               >
@@ -786,6 +889,14 @@ export default function BookingPage() {
         </div>
       </div>
       <div className="h-24 lg:hidden" aria-hidden />
+
+      <CinestarNoticeDialog
+        open={seatNoticeMessage != null}
+        onOpenChange={(open) => {
+          if (!open) setSeatNoticeMessage(null);
+        }}
+        message={seatNoticeMessage ?? ""}
+      />
 
       {/* Hold expiration modal */}
       <Dialog open={expireModalOpen} onOpenChange={setExpireModalOpen}>

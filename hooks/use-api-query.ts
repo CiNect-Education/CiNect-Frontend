@@ -1,5 +1,6 @@
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { apiClient, ApiError, type RequestOptions } from "@/lib/api-client";
+import { useClientMounted } from "@/lib/use-client-mounted";
 import type { ApiEnvelope, QueryParams } from "@/types/api";
 import type { ZodType, ZodTypeDef } from "zod";
 
@@ -22,7 +23,8 @@ export function useApiQuery<T>(
   params?: QueryParams,
   options?: UseApiQueryOptions<T>
 ) {
-  const { schema, ...queryOptions } = options ?? {};
+  const isClient = useClientMounted();
+  const { schema, enabled, ...queryOptions } = options ?? {};
 
   const requestOpts: RequestOptions | undefined = schema ? { schema } : undefined;
 
@@ -30,5 +32,6 @@ export function useApiQuery<T>(
     queryKey: key,
     queryFn: ({ signal }) => apiClient.get<T>(path, params, { ...requestOpts, signal }),
     ...queryOptions,
+    enabled: isClient && (enabled ?? true),
   });
 }
