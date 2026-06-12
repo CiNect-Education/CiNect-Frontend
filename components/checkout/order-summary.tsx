@@ -158,7 +158,7 @@ export function OrderSummary({
             <span>{t("discount")}</span>
             <span>-{fmt(toNumber(booking.discountAmount))}</span>
           </div>
-          {(appliedPromoCode || (appliedPoints ?? 0) > 0 || appliedGiftCardCode) && (
+          {(Boolean(appliedPromoCode) || (appliedPoints ?? 0) > 0 || Boolean(appliedGiftCardCode)) && (
             <div className="text-muted-foreground space-y-0.5 text-xs">
               {appliedPromoCode && <p>{t("promoApplied", { code: appliedPromoCode })}</p>}
               {appliedPoints && appliedPoints > 0 && (

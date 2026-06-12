@@ -11,7 +11,7 @@ import type { UserRole } from "@/types/domain";
 
 function resolvePostLoginPath(role: UserRole | undefined, returnTo: string): string {
   const isAdmin = role === "ADMIN" || role === "STAFF";
-  if (!isAdmin) return returnTo;
+  if (!isAdmin) return returnTo.startsWith("/admin") ? "/" : returnTo;
   return returnTo.startsWith("/admin") ? returnTo : "/admin";
 }
 

@@ -63,6 +63,7 @@ export default function CheckoutPage() {
   const [hasFavoriteCombo, setHasFavoriteCombo] = useState(false);
   const [sessionExpiredOpen, setSessionExpiredOpen] = useState(false);
   const sessionExpiredRef = useRef(false);
+  const bookingSubmitRef = useRef(false);
 
   const FAVORITE_COMBO_KEY = "cinect_favorite_combo";
   const SESSION_REFETCH_MS = 15_000;
@@ -190,6 +191,8 @@ export default function CheckoutPage() {
 
   const handleContinueFromSnacks = useCallback(async () => {
     if (!holdShowtimeId) return;
+    if (bookingSubmitRef.current || createBookingMutation.isPending) return;
+    bookingSubmitRef.current = true;
     try {
       const isSpring = getApiBaseUrl().includes("8081");
       const extraPayload = isSpring
@@ -214,6 +217,8 @@ export default function CheckoutPage() {
       setStep(3);
     } catch {
       // Error handled by mutation
+    } finally {
+      bookingSubmitRef.current = false;
     }
   }, [holdShowtimeId, holdId, selectedSnacks, holdSeats, createBookingMutation]);
 
@@ -443,6 +448,7 @@ export default function CheckoutPage() {
                       selectedSnacks={selectedSnacks}
                       onSnackChange={handleSnackChange}
                       onContinue={handleContinueFromSnacks}
+                      isContinueDisabled={createBookingMutation.isPending || bookingSubmitRef.current}
                       onSaveFavorite={handleSaveFavoriteCombo}
                       onApplyFavorite={handleApplyFavoriteCombo}
                       hasFavorite={hasFavoriteCombo}

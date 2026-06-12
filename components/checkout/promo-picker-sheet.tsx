@@ -44,6 +44,11 @@ function formatDiscountLabel(
   return formatVnd(promo.discountValue, locale);
 }
 
+function formatDiscountCap(promo: Promotion, locale: string) {
+  if (!promo.maxDiscount || promo.maxDiscount <= 0) return null;
+  return formatVnd(promo.maxDiscount, locale);
+}
+
 function isPromoEligibleForPayment(
   promo: Promotion,
   paymentMethod: PaymentMethod,
@@ -155,6 +160,7 @@ export function PromoPickerSheet({
                 const isApplied =
                   appliedPromoCode?.toUpperCase() === promo.code.toUpperCase();
                 const discountLabel = formatDiscountLabel(promo, locale, tHome);
+                const discountCap = formatDiscountCap(promo, locale);
 
                 return (
                   <button
@@ -183,6 +189,11 @@ export function PromoPickerSheet({
                         {promo.description && (
                           <p className="text-muted-foreground line-clamp-2 text-xs">
                             {promo.description}
+                          </p>
+                        )}
+                        {discountCap && (
+                          <p className="text-primary text-[11px] font-medium">
+                            Tối đa {discountCap} mỗi đơn
                           </p>
                         )}
                         <div className="text-muted-foreground space-y-0.5 text-[11px]">

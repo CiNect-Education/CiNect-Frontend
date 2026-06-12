@@ -18,6 +18,8 @@ import { z } from "zod";
 export function useBookings(params?: QueryParams) {
   return useApiQuery<Booking[]>(["bookings", JSON.stringify(params)], "/bookings", params, {
     schema: z.array(bookingSchema),
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }
 
